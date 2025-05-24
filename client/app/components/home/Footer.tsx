@@ -8,7 +8,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="w-full bg-white/5 backdrop-blur-md border-t border-white/10">
+    <footer className="w-full bg-zinc-900 backdrop-blur-md border-t border-white/10">
       <div className="max-w-7xl mx-auto px-20 md:px-8 py-12">
         <div className="grid grid-cols-4 gap-8 md:grid-cols-2 sm:grid-cols-1">
           {/* Company Info */}

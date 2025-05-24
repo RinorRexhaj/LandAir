@@ -46,8 +46,8 @@ export default {
           "100%": { width: "0%" },
         },
         slideIn: {
-          "0%": { opacity: "0", transform: "translateX(-100%)" },
-          "60%": { opacity: "0.5" },
+          "0%": { opacity: "0", transform: "translateX(-50%)" },
+          "80%": { opacity: "0.5" },
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
         slideOut: {
@@ -127,10 +127,6 @@ export default {
           "50%": { color: "#e3e3e3" },
           "100%": { color: "#ffffff" },
         },
-        "gradient-x": {
-          "0%, 100%": { "background-position": "0% 50%" },
-          "50%": { "background-position": "100% 50%" },
-        },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
@@ -148,6 +144,14 @@ export default {
           "50%": { backgroundPosition: "100% 50%" },
           "100%": { backgroundPosition: "0% 50%" },
         },
+        "gradient-x": {
+          "0%, 100%": {
+            opacity: "0.5",
+          },
+          "50%": {
+            opacity: "0.65",
+          },
+        },
       },
       animation: {
         "ping-once": "ping 5s cubic-bezier(0, 0, 0.2, 1)",
@@ -156,8 +160,8 @@ export default {
         "spin-2": "spin 2s linear infinite",
         "spin-3": "spin 3s linear infinite",
         flip: "flip 1s linear",
-        fade: "fadeIn 0.3s ease-in-out",
-        "fade-in-slow": "fadeInSlow 1.5s ease-out forwards",
+        fade: "fadeIn 0.5s ease-in-out",
+        "fade-in-slow": "fadeInSlow 1s ease-out forwards",
         fadeOut: "fadeOut 0.3s ease-in-out",
         typing: "type 1s infinite",
         sliding: "slide 5s linear",
@@ -176,6 +180,7 @@ export default {
         glow: "glow 2s ease-in-out infinite",
         scan: "scan 2s linear infinite",
         gradient: "gradient 8s linear infinite",
+        "gradient-shift": "gradient-x 2s ease infinite",
       },
     },
   },

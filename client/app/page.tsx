@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import Background from "./components/home/Background";
 import Features from "./components/home/Features";
 import Footer from "./components/home/Footer";
 import GetStarted from "./components/home/GetStarted";
@@ -9,14 +9,12 @@ import Pricing from "./components/home/Pricing";
 import Navbar from "./components/Navbar";
 
 const Home = () => {
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, []);
-
   return (
-    <div className="relative flex flex-col items-center justify-items-center font-[family-name:var(--font-inter-sans)]">
+    <div className="relative flex flex-col items-center justify-items-center font-[family-name:var(--font-dm-sans)] tracking-tighter">
       <Navbar />
-      <main className="flex flex-col w-full">
+      <main className="relative flex flex-col w-full">
+        <Background />
+
         {/* Hero Section */}
         <Hero />
 

@@ -113,7 +113,7 @@ const Navbar: React.FC = () => {
                     ? "text-meta-5 bg-gray-500/80"
                     : "hover:text-meta-5"
                 }`}
-                style={{ animationDelay: `${index * 0.3 + 0.5}s` }}
+                style={{ animationDelay: `${index * 0.3 + 0.1}s` }}
                 aria-current={activeLink === link ? "page" : undefined}
                 title={`Go to ${link} section`}
               >
@@ -127,7 +127,10 @@ const Navbar: React.FC = () => {
         <div className="flex items-center gap-4">
           <Link
             href={"/sign-up"}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 font-semibold transition"
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 font-semibold transition animate-slideDown [animation-fill-mode:backwards]"
+            style={{
+              animationDelay: "0.8s",
+            }}
           >
             Sign Up
           </Link>

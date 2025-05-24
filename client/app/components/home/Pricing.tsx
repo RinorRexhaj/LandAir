@@ -105,6 +105,9 @@ const Pricing = () => {
               ))}
             </ul>
             <button
+              onClick={() => {
+                window.location.href = "/sign-up";
+              }}
               className={`w-full mt-8 py-3 rounded-full font-semibold backdrop-blur-sm ${
                 index === 1
                   ? "bg-blue-600 hover:bg-blue-700"
