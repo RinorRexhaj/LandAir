@@ -6,8 +6,14 @@ import {
   validateEmail,
 } from "../utils/Validation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+import useApi from "../hooks/useApi";
+import Confirmation from "./Confirmation";
+import { supabase } from "../utils/Supabase";
+import { useRouter } from "next/navigation";
+import useAuth from "../hooks/useAuth";
+import Loading from "../components/Loading";
 
 interface FormData {
   fullName: string;
@@ -25,6 +31,7 @@ interface ValidationErrors {
 
 const SignUp = () => {
   const [isLogin, setIsLogin] = useState(false);
+  const [confirm, setConfirm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -36,6 +43,15 @@ const SignUp = () => {
     score: 0,
     feedback: "",
   });
+  const { loading, setLoading } = useApi();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, []);
 
   const handleGeneratePassword = async () => {
     const newPassword = generateStrongPassword();
@@ -90,17 +106,71 @@ const SignUp = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      // TODO: Implement authentication logic
-      console.log("Form submitted:", formData);
+      let success = false;
+      setLoading(true);
+      if (isLogin) {
+        success = await signIn();
+      } else {
+        success = await signUp();
+      }
+      setLoading(false);
+      if (success) {
+        if (isLogin) {
+          router.push("/dashboard");
+        } else {
+          setConfirm(true);
+        }
+      }
     }
   };
 
-  const handleGoogleSignIn = () => {
-    // TODO: Implement Google authentication
-    console.log("Google sign in clicked");
+  const signIn = async () => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (error) {
+      let newErrors: ValidationErrors = {};
+      newErrors.password = error.message;
+      newErrors.email = " ";
+      setErrors(newErrors);
+      return false;
+    } else return true;
+  };
+
+  const signUp = async () => {
+    const { error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        data: { name: formData.fullName, full_name: formData.fullName },
+      },
+    });
+
+    if (error) {
+      let newErrors: ValidationErrors = {};
+      newErrors.password = error.message;
+      newErrors.email = "";
+      setErrors(newErrors);
+      return false;
+    } else return true;
+  };
+
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+
+    if (error) {
+      console.error("Google login error:", error.message);
+    }
   };
 
   useEffect(() => {
@@ -109,7 +179,11 @@ const SignUp = () => {
     }
   }, [formData.password]);
 
-  return (
+  if (authLoading) return <Loading />;
+
+  return confirm ? (
+    <Confirmation email={formData.email} />
+  ) : (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-900">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
@@ -309,9 +383,15 @@ const SignUp = () => {
           <div>
             <button
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="w-full h-12 flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
-              {isLogin ? "Sign In" : "Create Account"}
+              {loading ? (
+                <FontAwesomeIcon icon={faSpinner} spin className="h-4 w-4" />
+              ) : isLogin ? (
+                "Sign In"
+              ) : (
+                "Create Account"
+              )}
             </button>
           </div>
         </form>
