@@ -14,27 +14,23 @@ const Dashboard = () => {
   const router = useRouter();
   const { darkMode } = useThemeStore();
 
+  const [isClient, setIsClient] = useState(false);
   useEffect(() => {
-    if (!user) {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user) {
       router.push("/");
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
-  const getComponent = () => {
-    switch (activeLink) {
-      case 0:
-        return <Projects />;
-      // case 1: return <Projects />
-      // case 2: return <Analytics />
-      // case 3: return <Billing />
-      // case 4: return <Settings />
-      // case 5: return <Help />
-      default:
-        return <Projects />;
-    }
-  };
+  if (!isClient || loading) return <Loading />;
 
-  if (loading) return <Loading />;
+  const safeUserName = user?.user_metadata?.name ?? "User";
+  const safeUserEmail = user?.email ?? "";
+  const safeUserImage =
+    user?.identities?.[0]?.identity_data?.picture ?? undefined;
 
   return (
     <div
@@ -43,9 +39,9 @@ const Dashboard = () => {
       } transition-colors`}
     >
       <DashboardNavbar
-        userName={user?.user_metadata?.name || "User"}
-        userEmail={user?.email || ""}
-        image={user?.identities?.[0]?.identity_data?.picture}
+        userName={safeUserName}
+        userEmail={safeUserEmail}
+        image={safeUserImage}
         credits={5}
       />
 
@@ -54,8 +50,7 @@ const Dashboard = () => {
           activeLink={activeLink}
           setActiveLink={setActiveLink}
         />
-
-        <main className="flex-1 px-8 py-6 md:p-4">{getComponent()}</main>
+        <main className="flex-1 px-8 py-6 md:p-4">{<Projects />}</main>
       </div>
     </div>
   );
