@@ -6,7 +6,7 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  darkMode: false,
+  darkMode: true,
   setDarkMode: (value: boolean) => {
     if (typeof window !== "undefined") {
       localStorage.setItem("theme", value ? "dark" : "light");

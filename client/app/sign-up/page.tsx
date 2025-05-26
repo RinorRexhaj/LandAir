@@ -161,10 +161,14 @@ const SignUp = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    const redirect =
+      process.env.NEXT_PUBLIC_PROD === "true"
+        ? process.env.NEXT_PUBLIC_URL
+        : "http://localhost:3000/";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${redirect}/dashboard`,
       },
     });
 
@@ -199,7 +203,7 @@ const SignUp = () => {
               "Sign in to your account to continue"
             ) : (
               <span>
-                Join <span className="font-semibold text-white">LandAir</span>
+                Join <span className="font-semibold text-white">LandAir </span>
                 and start creating amazing pages
               </span>
             )}
