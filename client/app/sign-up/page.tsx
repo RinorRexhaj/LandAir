@@ -161,14 +161,10 @@ const SignUp = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    const redirect =
-      process.env.NEXT_PUBLIC_PROD === "true"
-        ? process.env.NEXT_PUBLIC_URL
-        : "http://localhost:3000/";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${redirect}/dashboard`,
+        redirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
