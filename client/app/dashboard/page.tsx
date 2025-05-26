@@ -50,7 +50,7 @@ const Dashboard = () => {
           activeLink={activeLink}
           setActiveLink={setActiveLink}
         />
-        <main className="flex-1 px-8 py-6 md:p-4">{<Projects />}</main>
+        <main className="flex-1 px-7 py-6 md:p-4">{<Projects />}</main>
       </div>
     </div>
   );

@@ -8,9 +8,10 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
-      className={`w-11 h-10 flex items-center justify-center rounded-lg transition-colors ${
+      className={`w-11 h-10 flex items-center justify-center rounded-lg animate-slideDown [animation-fill-mode:backwards] transition-colors ${
         darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
       }`}
+      style={{ animationDelay: "0.2s" }}
       title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
       <FontAwesomeIcon

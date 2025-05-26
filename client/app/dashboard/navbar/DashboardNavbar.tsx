@@ -4,6 +4,7 @@ import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
 import CreditsDisplay from "./CreditsDisplay";
 import { useThemeStore } from "@/app/store/useThemeStore";
+import BuyCreditsModal from "./BuyCreditsModal";
 
 interface DashboardNavbarProps {
   userName: string;
@@ -19,6 +20,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   credits = 5,
 }) => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isBuyCreditsModalOpen, setIsBuyCreditsModalOpen] = useState(false);
   const { darkMode, setDarkMode } = useThemeStore();
 
   useEffect(() => {
@@ -46,31 +48,28 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             <div className="flex items-center gap-8">
               {/* Brand */}
               <h1
-                className={`text-2xl overflow-hidden font-semibold ${
+                className={`text-2xl overflow-hidden font-bold ${
                   darkMode ? "text-white" : "text-zinc-900"
-                }`}
+                } animate-fade`}
               >
-                {"LandAir".split("").map((char, index) => (
-                  <span
-                    className="animate-textReveal [animation-fill-mode:backwards]"
-                    style={{ animationDelay: `${index * 0.03}s` }}
-                    key={`${char}-${index}`}
-                  >
-                    {char === " " ? "\u00A0" : char}
-                  </span>
-                ))}
+                LandAir
               </h1>
             </div>
 
             {/* Right side - User and Sign Out */}
             <div className="flex items-center gap-2.5 md:gap-1">
-              <CreditsDisplay darkMode={darkMode} credits={credits} />
+              <CreditsDisplay
+                darkMode={darkMode}
+                credits={credits}
+                setIsBuyCreditsModalOpen={setIsBuyCreditsModalOpen}
+              />
               <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
-                className={`flex items-center gap-3 px-4 py-1.5 rounded-lg ${
+                className={`flex items-center gap-3 px-4 py-1.5 md:px-1.5 rounded-lg ${
                   darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
-                } transition-colors group`}
+                } transition-colors animate-slideDown [animation-fill-mode:backwards]`}
+                style={{ animationDelay: "0.3s" }}
               >
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5">
                   {image ? (
@@ -92,7 +91,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   )}
                 </div>
                 <span
-                  className={`md:hidden ${
+                  className={`md:hidden font-medium ${
                     darkMode
                       ? "text-gray-300 hover group-hover:text-white"
                       : "text-zinc-900"
@@ -112,6 +111,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         userName={userName}
         userEmail={userEmail}
         userImage={image}
+      />
+      <BuyCreditsModal
+        isOpen={isBuyCreditsModalOpen}
+        onClose={() => setIsBuyCreditsModalOpen(false)}
       />
     </>
   );

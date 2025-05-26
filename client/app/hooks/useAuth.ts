@@ -11,9 +11,10 @@ const useAuth = () => {
   const getUser = useCallback(async () => {
     const {
       data: { session },
+      error,
     } = await supabase.auth.getSession();
 
-    if (session?.user) {
+    if (!error && session?.user) {
       setUser(session.user);
       router.push("/dashboard");
     }

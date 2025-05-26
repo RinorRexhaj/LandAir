@@ -1,58 +1,52 @@
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { supabase } from "../utils/Supabase";
 
 const url = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const useApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const api = axios.create({
-    baseURL: url,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  api.interceptors.request.use((config) => {
-    // const token = useSessionStore.getState().accessToken;
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    return config;
-  });
 
   const request = useCallback(
     async <T = unknown, D = unknown>(
       method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
-      url: string,
+      endpoint: string,
       data?: D,
       params?: Record<string, unknown>
     ) => {
       setLoading(true);
       setError(null);
+
       try {
+        const session = (await supabase.auth.getSession()).data.session;
+        const token = session?.access_token;
+
         const config: AxiosRequestConfig = {
           method,
-          url,
+          url: endpoint,
+          baseURL: url,
           params,
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
         };
 
         if (data !== undefined) {
           config.data = data;
         }
 
-        if (data instanceof FormData) {
-          delete api.defaults.headers["Content-Type"];
-          config.headers = { "Content-Type": undefined };
+        if (data instanceof FormData && config.headers) {
+          delete config.headers["Content-Type"];
+          config.headers["Content-Type"] = undefined;
         }
 
-        const response = await api(config);
+        const response = await axios(config);
         return response.data as T;
       } catch (err) {
         const error = err as AxiosError;
-        console.error(`API Error: ${method} ${url}`, error);
-        console.error("Error details:", error.response?.data || error.message);
-
+        console.error(`API Error: ${method} ${endpoint}`, error);
         setError(
           (error.response?.data as { error?: string })?.error || error.message
         );
@@ -61,103 +55,69 @@ const useApi = () => {
         setLoading(false);
       }
     },
-    [api]
+    []
   );
 
-  const download = useCallback(
-    async (url: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        // const token = useSessionStore.getState().accessToken;
+  const download = useCallback(async (endpoint: string) => {
+    setLoading(true);
+    setError(null);
 
-        const response = await api.get(url, {
-          responseType: "blob",
-          headers: {
-            // Authorization: token ? `Bearer ${token}` : "",
-          },
-        });
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const token = session?.access_token;
 
-        const contentDisposition = response.headers["content-disposition"];
-        const filenameStart = contentDisposition.indexOf('filename="') + 10;
-        const filenameEnd = contentDisposition.indexOf('"', filenameStart);
-        const filename = contentDisposition.slice(filenameStart, filenameEnd);
+      const response = await axios.get(`${url}${endpoint}`, {
+        responseType: "blob",
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
 
-        const blob = new Blob([response.data], {
-          type: response.headers["content-type"] || "application/octet-stream",
-        });
+      const contentDisposition = response.headers["content-disposition"];
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch?.[1] ?? "download";
 
-        // Create an object URL for the file
-        const fileUrl = URL.createObjectURL(blob);
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"] || "application/octet-stream",
+      });
 
-        // Open file in a new tab
-        const newTab = window.open(fileUrl, "_blank");
+      const fileUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = fileUrl;
+      a.download = filename;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(fileUrl);
+    } catch (err) {
+      const error = err as AxiosError;
+      setError(
+        (error.response?.data as { error?: string })?.error || "Download failed"
+      );
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-        // If the file is downloadable, trigger the download as well
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = downloadUrl;
-        a.download = filename;
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        // Cleanup after opening in the new tab
-        URL.revokeObjectURL(fileUrl);
-        newTab?.focus(); // Optionally focus the new tab
-      } catch (err) {
-        const error = err as AxiosError;
-        setError(
-          (error.response?.data as { error?: string })?.error ||
-            "Download failed"
-        );
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [api]
-  );
-
-  const get = useCallback(
-    <T = unknown>(url: string, params?: Record<string, unknown>) =>
-      request<T>("GET", url, null, params),
-    [request]
-  );
-  const post = useCallback(
-    <T = unknown, D = unknown>(url: string, data?: D) =>
-      request<T, D>("POST", url, data),
-    [request]
-  );
-  const patch = useCallback(
-    <T = unknown, D = unknown>(
-      url: string,
-      data?: D,
-      params?: Record<string, unknown>
-    ) => request<T, D>("PATCH", url, data, params),
-    [request]
-  );
-  const put = useCallback(
-    <T = unknown, D = unknown>(
-      url: string,
-      data?: D,
-      params?: Record<string, unknown>
-    ) => request<T, D>("PUT", url, data, params),
-    [request]
-  );
-  const del = useCallback(
-    <T = unknown>(url: string, params?: Record<string, unknown>) =>
-      request<T>("DELETE", url, undefined, params),
+  const apiMethods = useMemo(
+    () => ({
+      get: <T = unknown>(url: string, params?: Record<string, unknown>) =>
+        request<T>("GET", url, undefined, params),
+      post: <T = unknown, D = unknown>(url: string, data?: D) =>
+        request<T, D>("POST", url, data),
+      patch: <T = unknown, D = unknown>(url: string, data?: D) =>
+        request<T, D>("PATCH", url, data),
+      put: <T = unknown, D = unknown>(url: string, data?: D) =>
+        request<T, D>("PUT", url, data),
+      del: <T = unknown>(url: string) => request<T>("DELETE", url),
+    }),
     [request]
   );
 
   return {
-    get,
-    post,
-    patch,
-    put,
-    del,
+    ...apiMethods,
     download,
     loading,
     setLoading,

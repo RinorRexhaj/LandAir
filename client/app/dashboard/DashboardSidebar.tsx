@@ -36,19 +36,19 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   return (
     <aside
-      className={`w-52 md:w-14 border-r ${
+      className={`w-48 md:w-14 border-r ${
         darkMode ? "border-white/10" : "border-zinc-900/10"
-      } p-6 md:p-4`}
+      } px-5 py-6 md:p-4`}
       style={{
         height: "calc(100% - 56px)",
       }}
     >
-      <nav className="space-y-1 md:flex md:flex-col md:items-center">
+      <nav className="space-y-1.5 flex flex-col items-center">
         {navItems.map((item, index) => (
           <button
             key={item.name}
             onClick={() => setActiveLink(index)}
-            className={`w-40 md:w-10 flex items-center md:justify-center gap-3.5 px-4 py-2 rounded-lg transition-colors group ${
+            className={`w-40 md:w-10 flex items-center md:justify-center text-sm gap-3.5 px-4 py-2 rounded-lg transition-colors group ${
               index === activeLink
                 ? darkMode
                   ? "text-white bg-white/5"
