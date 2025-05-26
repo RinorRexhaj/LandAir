@@ -19,7 +19,7 @@ const Home = () => {
     if (user) {
       router.push("/dashboard");
     }
-  }, []);
+  }, [router, user]);
 
   if (loading) return <Loading />;
 

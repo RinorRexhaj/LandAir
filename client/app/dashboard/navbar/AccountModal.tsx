@@ -8,9 +8,9 @@ import {
 import { supabase } from "../../utils/Supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useThemeStore } from "@/app/store/useThemeStore";
 
 interface AccountModalProps {
-  darkMode: boolean;
   isOpen: boolean;
   onClose: () => void;
   userName: string;
@@ -19,7 +19,6 @@ interface AccountModalProps {
 }
 
 const AccountModal: React.FC<AccountModalProps> = ({
-  darkMode,
   isOpen,
   onClose,
   userName,
@@ -27,6 +26,7 @@ const AccountModal: React.FC<AccountModalProps> = ({
   userImage,
 }) => {
   const router = useRouter();
+  const { darkMode } = useThemeStore();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -47,7 +47,7 @@ const AccountModal: React.FC<AccountModalProps> = ({
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-md p-6  rounded-xl border ${
+        className={`relative w-full md:w-10/12 max-w-md p-6  rounded-xl border ${
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-700/20"

@@ -51,7 +51,7 @@ const SignUp = () => {
     if (user) {
       router.push("/dashboard");
     }
-  }, []);
+  }, [router, user]);
 
   const handleGeneratePassword = async () => {
     const newPassword = generateStrongPassword();
@@ -66,7 +66,7 @@ const SignUp = () => {
     setTimeout(async () => {
       if ("credentials" in navigator && "PasswordCredential" in window) {
         try {
-          const cred = new (window as any).PasswordCredential({
+          const cred = new PasswordCredential({
             id: formData.email,
             password: newPassword,
             name: "password",
@@ -134,7 +134,7 @@ const SignUp = () => {
     });
 
     if (error) {
-      let newErrors: ValidationErrors = {};
+      const newErrors: ValidationErrors = {};
       newErrors.password = error.message;
       newErrors.email = " ";
       setErrors(newErrors);
@@ -152,7 +152,7 @@ const SignUp = () => {
     });
 
     if (error) {
-      let newErrors: ValidationErrors = {};
+      const newErrors: ValidationErrors = {};
       newErrors.password = error.message;
       newErrors.email = "";
       setErrors(newErrors);
@@ -199,7 +199,7 @@ const SignUp = () => {
               "Sign in to your account to continue"
             ) : (
               <span>
-                Join <span className="font-semibold text-white">LandAir</span>{" "}
+                Join <span className="font-semibold text-white">LandAir</span>
                 and start creating amazing pages
               </span>
             )}

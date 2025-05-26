@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faHome,
   faLayerGroup,
   faChartLine,
   faCog,
@@ -9,6 +8,7 @@ import {
   faQuestionCircle,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
+import { useThemeStore } from "../store/useThemeStore";
 
 interface NavItem {
   name: string;
@@ -16,11 +16,11 @@ interface NavItem {
 }
 
 interface DashboardSidebarProps {
-  darkMode: boolean;
+  activeLink: number;
+  setActiveLink: (link: number) => void;
 }
 
 const navItems: NavItem[] = [
-  { name: "Overview", icon: faHome },
   { name: "Projects", icon: faLayerGroup },
   { name: "Analytics", icon: faChartLine },
   { name: "Billing", icon: faCreditCard },
@@ -28,24 +28,27 @@ const navItems: NavItem[] = [
   { name: "Help", icon: faQuestionCircle },
 ];
 
-const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ darkMode }) => {
-  const [activeLink, setActiveLink] = useState(0);
+const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
+  activeLink,
+  setActiveLink,
+}) => {
+  const { darkMode } = useThemeStore();
 
   return (
     <aside
-      className={`w-52 border-r ${
+      className={`w-52 md:w-14 border-r ${
         darkMode ? "border-white/10" : "border-zinc-900/10"
-      } p-6`}
+      } p-6 md:p-4`}
       style={{
         height: "calc(100% - 56px)",
       }}
     >
-      <nav className="space-y-1">
+      <nav className="space-y-1 md:flex md:flex-col md:items-center">
         {navItems.map((item, index) => (
           <button
             key={item.name}
             onClick={() => setActiveLink(index)}
-            className={`w-40 flex items-center gap-3.5 px-4 py-2 rounded-lg transition-colors group ${
+            className={`w-40 md:w-10 flex items-center md:justify-center gap-3.5 px-4 py-2 rounded-lg transition-colors group ${
               index === activeLink
                 ? darkMode
                   ? "text-white bg-white/5"
@@ -53,7 +56,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ darkMode }) => {
                 : darkMode
                 ? "text-gray-400 hover:text-white hover:bg-white/5"
                 : "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100"
-            }`}
+            } animate-slideIn [animation-fill-mode:backwards]`}
+            style={{
+              animationDelay: `${index * 0.05}s`,
+            }}
           >
             <FontAwesomeIcon
               icon={item.icon}
@@ -63,7 +69,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ darkMode }) => {
                   : "group-hover:text-zinc-900"
               } transition-colors`}
             />
-            <span className="font-medium">{item.name}</span>
+            <span className="font-medium md:hidden">{item.name}</span>
           </button>
         ))}
       </nav>

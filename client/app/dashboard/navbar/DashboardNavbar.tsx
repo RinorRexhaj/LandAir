@@ -3,12 +3,11 @@ import AccountModal from "./AccountModal";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
 import CreditsDisplay from "./CreditsDisplay";
+import { useThemeStore } from "@/app/store/useThemeStore";
 
 interface DashboardNavbarProps {
   userName: string;
   userEmail: string;
-  darkMode: boolean;
-  setDarkMode: (theme: boolean) => void;
   image?: string;
   credits?: number;
 }
@@ -18,30 +17,19 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   userEmail,
   image,
   credits = 5,
-  darkMode,
-  setDarkMode,
 }) => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const { darkMode, setDarkMode } = useThemeStore();
 
   useEffect(() => {
-    // Check system preference on mount
-    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setDarkMode(isDark);
-
-    // Listen for system preference changes
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      setDarkMode(e.matches);
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    // Check system preference
+    let isDark = localStorage.getItem("theme");
+    if (isDark === null) {
+      localStorage.setItem("theme", "dark");
+      isDark = "dark";
+    }
+    setDarkMode(isDark === "dark");
   }, [setDarkMode]);
-
-  const toggleTheme = () => {
-    // When manually toggling, we want to override the system preference
-    setDarkMode(!darkMode);
-  };
 
   return (
     <>
@@ -52,24 +40,32 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             : "bg-white border-zinc-900/10"
         } backdrop-blur-md border-b`}
       >
-        <div className="w-full py-2 px-8">
+        <div className="w-full py-2 px-8 md:px-4">
           <div className="flex items-center justify-between">
             {/* Left side - Brand and Navigation */}
             <div className="flex items-center gap-8">
               {/* Brand */}
               <h1
-                className={`text-2xl font-semibold ${
+                className={`text-2xl overflow-hidden font-semibold ${
                   darkMode ? "text-white" : "text-zinc-900"
                 }`}
               >
-                LandAir
+                {"LandAir".split("").map((char, index) => (
+                  <span
+                    className="animate-textReveal [animation-fill-mode:backwards]"
+                    style={{ animationDelay: `${index * 0.03}s` }}
+                    key={`${char}-${index}`}
+                  >
+                    {char === " " ? "\u00A0" : char}
+                  </span>
+                ))}
               </h1>
             </div>
 
             {/* Right side - User and Sign Out */}
-            <div className="flex items-center gap-4">
-              <CreditsDisplay credits={credits} />
-              <ThemeToggle isDark={darkMode} onToggle={toggleTheme} />
+            <div className="flex items-center gap-2.5 md:gap-1">
+              <CreditsDisplay darkMode={darkMode} credits={credits} />
+              <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
                 className={`flex items-center gap-3 px-4 py-1.5 rounded-lg ${
@@ -88,7 +84,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   ) : (
                     <div
                       className={`w-full h-full flex items-center justify-center text-sm ${
-                        darkMode ? "text-gray-400" : "text-zinc-800"
+                        darkMode ? "text-gray-300" : "text-zinc-800"
                       }`}
                     >
                       {userName.charAt(0).toUpperCase()}
@@ -96,9 +92,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   )}
                 </div>
                 <span
-                  className={`${
+                  className={`md:hidden ${
                     darkMode
-                      ? "text-gray-400 hover group-hover:text-white"
+                      ? "text-gray-300 hover group-hover:text-white"
                       : "text-zinc-900"
                   } transition-colors`}
                 >
@@ -111,7 +107,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
       </nav>
 
       <AccountModal
-        darkMode={darkMode}
         isOpen={isAccountModalOpen}
         onClose={() => setIsAccountModalOpen(false)}
         userName={userName}

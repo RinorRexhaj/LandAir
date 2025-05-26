@@ -61,60 +61,64 @@ const useApi = () => {
         setLoading(false);
       }
     },
-    []
+    [api]
   );
 
-  const download = useCallback(async (url: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // const token = useSessionStore.getState().accessToken;
+  const download = useCallback(
+    async (url: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        // const token = useSessionStore.getState().accessToken;
 
-      const response = await api.get(url, {
-        responseType: "blob",
-        headers: {
-          // Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
+        const response = await api.get(url, {
+          responseType: "blob",
+          headers: {
+            // Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
 
-      const contentDisposition = response.headers["content-disposition"];
-      const filenameStart = contentDisposition.indexOf('filename="') + 10;
-      const filenameEnd = contentDisposition.indexOf('"', filenameStart);
-      const filename = contentDisposition.slice(filenameStart, filenameEnd);
+        const contentDisposition = response.headers["content-disposition"];
+        const filenameStart = contentDisposition.indexOf('filename="') + 10;
+        const filenameEnd = contentDisposition.indexOf('"', filenameStart);
+        const filename = contentDisposition.slice(filenameStart, filenameEnd);
 
-      const blob = new Blob([response.data], {
-        type: response.headers["content-type"] || "application/octet-stream",
-      });
+        const blob = new Blob([response.data], {
+          type: response.headers["content-type"] || "application/octet-stream",
+        });
 
-      // Create an object URL for the file
-      const fileUrl = URL.createObjectURL(blob);
+        // Create an object URL for the file
+        const fileUrl = URL.createObjectURL(blob);
 
-      // Open file in a new tab
-      const newTab = window.open(fileUrl, "_blank");
+        // Open file in a new tab
+        const newTab = window.open(fileUrl, "_blank");
 
-      // If the file is downloadable, trigger the download as well
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = filename;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+        // If the file is downloadable, trigger the download as well
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
 
-      // Cleanup after opening in the new tab
-      URL.revokeObjectURL(fileUrl);
-      newTab?.focus(); // Optionally focus the new tab
-    } catch (err) {
-      const error = err as AxiosError;
-      setError(
-        (error.response?.data as { error?: string })?.error || "Download failed"
-      );
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        // Cleanup after opening in the new tab
+        URL.revokeObjectURL(fileUrl);
+        newTab?.focus(); // Optionally focus the new tab
+      } catch (err) {
+        const error = err as AxiosError;
+        setError(
+          (error.response?.data as { error?: string })?.error ||
+            "Download failed"
+        );
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [api]
+  );
 
   const get = useCallback(
     <T = unknown>(url: string, params?: Record<string, unknown>) =>
