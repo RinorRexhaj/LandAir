@@ -139,6 +139,9 @@ const Navbar: React.FC = () => {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle mobile navigation menu"
             title="Toggle menu"
+            style={{
+              animationDelay: "1s",
+            }}
           >
             {isMobileMenuOpen ? (
               <FontAwesomeIcon className="w-7 h-7" icon={faXmark} />

@@ -82,8 +82,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     />
                   ) : (
                     <div
-                      className={`w-full h-full flex items-center justify-center text-sm ${
-                        darkMode ? "text-gray-300" : "text-zinc-800"
+                      className={`w-full h-full flex items-center rounded-full font-semibold justify-center text-sm ${
+                        darkMode
+                          ? "text-gray-300 bg-white/5"
+                          : "text-zinc-800 bg-black/10"
                       }`}
                     >
                       {userName.charAt(0).toUpperCase()}

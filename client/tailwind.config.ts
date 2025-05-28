@@ -42,8 +42,12 @@ export default {
           "50%": { transform: "translateY(0%)" },
         },
         slide: {
-          "0%": { width: "100%" },
-          "100%": { width: "0%" },
+          "0%": { width: "0%" },
+          "100%": { width: "100%" },
+        },
+        stretch: {
+          "0%": { height: "0%" },
+          "100%": { height: "100%" },
         },
         slideIn: {
           "0%": { opacity: "0", transform: "translateX(-50%)" },
@@ -152,6 +156,10 @@ export default {
             opacity: "0.65",
           },
         },
+        shimmerDown: {
+          "0%": { backgroundPosition: "0 -100%" },
+          "100%": { backgroundPosition: "0 200%" },
+        },
       },
       animation: {
         "ping-once": "ping 5s cubic-bezier(0, 0, 0.2, 1)",
@@ -164,7 +172,8 @@ export default {
         "fade-in-slow": "fadeInSlow 1s ease-out forwards",
         fadeOut: "fadeOut 0.3s ease-in-out",
         typing: "type 1s infinite",
-        sliding: "slide 5s linear",
+        sliding: "slide 0.75s linear",
+        stretch: "stretch 0.75s linear",
         slideIn: "slideIn 0.5s ease-in-out",
         slideOut: "slideOut 0.5s ease-in-out",
         slideDown: "slideDown 0.5s ease-in-out",
@@ -181,6 +190,7 @@ export default {
         scan: "scan 2s linear infinite",
         gradient: "gradient 8s linear infinite",
         "gradient-shift": "gradient-x 2s ease infinite",
+        shimmerDown: "shimmerDown 2s infinite linear",
       },
     },
   },

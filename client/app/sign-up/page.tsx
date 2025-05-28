@@ -30,7 +30,7 @@ interface ValidationErrors {
 }
 
 const SignUp = () => {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [confirm, setConfirm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     fullName: "",

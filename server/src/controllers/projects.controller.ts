@@ -69,12 +69,16 @@ export const createProject = async (
 
   const { name } = req.body;
 
-  const { data, error } = await supabase.from("Projects").insert([
-    {
-      user_id: user.id,
-      project_name: name,
-    },
-  ]);
+  const { data, error } = await supabase
+    .from("Projects")
+    .insert([
+      {
+        user_id: user.id,
+        project_name: name,
+        last_edited: new Date().toISOString(),
+      },
+    ])
+    .select();
 
   if (error) {
     console.log(error);
@@ -101,7 +105,7 @@ export const updateProject = async (
 
   const { data, error } = await supabase
     .from("Projects")
-    .update({ project_name: name })
+    .update({ project_name: name, last_edited: new Date().toISOString() })
     .eq("id", id)
     .eq("user_id", user.id)
     .select();

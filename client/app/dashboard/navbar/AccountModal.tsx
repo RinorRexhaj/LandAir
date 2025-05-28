@@ -69,7 +69,7 @@ const AccountModal: React.FC<AccountModalProps> = ({
         <div className="flex items-center gap-4 mb-6">
           <div
             className={`w-16 h-16 rounded-full overflow-hidden ${
-              darkMode ? "bg-white/5" : "bg-black/50"
+              darkMode ? "bg-white/5" : "bg-black/10"
             }`}
           >
             {userImage ? (
@@ -81,7 +81,11 @@ const AccountModal: React.FC<AccountModalProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl text-gray-400">
+              <div
+                className={`w-full h-full flex items-center justify-center text-2xl ${
+                  darkMode ? "text-gray-200" : "text-zinc-800"
+                }`}
+              >
                 {userName.charAt(0).toUpperCase()}
               </div>
             )}
