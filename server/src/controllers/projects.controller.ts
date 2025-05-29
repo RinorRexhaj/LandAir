@@ -36,6 +36,7 @@ export const getUserProjects = async (
   res: Response
 ): Promise<void> => {
   const user = (req as any).user;
+  console.log(user);
 
   if (!user) {
     res.status(401).json({ message: "Unauthorized" });

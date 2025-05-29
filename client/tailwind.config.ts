@@ -18,6 +18,9 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        // sans: ["var(--font-montserrat)", "sans-serif"],
+      },
       keyframes: {
         rotating: {
           "0%, 100%": { transform: "rotate(360deg)" },
@@ -157,8 +160,21 @@ export default {
           },
         },
         shimmerDown: {
-          "0%": { backgroundPosition: "0 -100%" },
-          "100%": { backgroundPosition: "0 200%" },
+          "0%": {
+            transform: "translateY(0%) scaleY(1.2)",
+            opacity: "0",
+          },
+          "30%": {
+            opacity: "0.5",
+          },
+          "50%": {
+            transform: "translateY(250px) scaleY(1)",
+            opacity: "0.7",
+          },
+          "100%": {
+            transform: "translateY(500px) scaleY(0.95)",
+            opacity: "0",
+          },
         },
       },
       animation: {
@@ -190,7 +206,7 @@ export default {
         scan: "scan 2s linear infinite",
         gradient: "gradient 8s linear infinite",
         "gradient-shift": "gradient-x 2s ease infinite",
-        shimmerDown: "shimmerDown 2s infinite linear",
+        shimmerDown: "shimmerDown 2.5s infinite linear",
       },
     },
   },

@@ -40,7 +40,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         darkMode ? "border-white/10" : "border-zinc-900/10"
       } px-5 py-6 md:p-4`}
       style={{
-        height: "calc(100% - 56px)",
+        height: "calc(100% + 18px)",
       }}
     >
       <nav className="space-y-1.5 flex flex-col items-center">

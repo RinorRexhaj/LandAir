@@ -36,7 +36,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   return (
     <>
       <nav
-        className={`w-full ${
+        className={`fixed top-0 w-full ${
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-900/10"

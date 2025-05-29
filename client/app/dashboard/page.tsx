@@ -45,7 +45,13 @@ const Dashboard = () => {
         credits={5}
       />
 
-      <div className="flex h-full">
+      <div
+        className="absolute w-full flex"
+        style={{
+          top: "61px",
+          height: "calc(100vh - 80px)",
+        }}
+      >
         <DashboardSidebar
           activeLink={activeLink}
           setActiveLink={setActiveLink}

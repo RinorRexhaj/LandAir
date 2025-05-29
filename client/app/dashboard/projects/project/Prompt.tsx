@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
-import useApi from "@/app/hooks/useApi";
+// import useApi from "@/app/hooks/useApi";
 import { useTimeAgo } from "@/app/hooks/useTimeAgo";
 
 interface PromptHistory {
@@ -21,7 +21,7 @@ const Prompt: React.FC<PromptProps> = ({ isGenerating, setIsGenerating }) => {
   const [prompt, setPrompt] = useState("");
   const [history, setHistory] = useState<PromptHistory[]>([]);
   const { darkMode } = useThemeStore();
-  const { post } = useApi();
+  // const { post } = useApi();
   const { formatTime } = useTimeAgo();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,11 +71,18 @@ const Prompt: React.FC<PromptProps> = ({ isGenerating, setIsGenerating }) => {
   return (
     <div
       className={`flex flex-col min-h-full w-full mx-auto ${
-        darkMode ? "bg-zinc-900" : "bg-white"
-      } border border-zinc-600/80 rounded-xl shadow-md overflow-hidden`}
+        darkMode
+          ? "bg-zinc-900 border-zinc-600/80"
+          : "bg-white border-zinc-600/20"
+      } border rounded-xl shadow-md overflow-hidden animate-fade`}
     >
       {/* Chat History */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        style={{
+          maxHeight: "calc(100% - 80px)",
+        }}
+      >
         {history.map((item) => (
           <div key={item.id} className="flex justify-end">
             <div
