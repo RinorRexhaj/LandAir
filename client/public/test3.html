@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Artisan Bakery - Freshly Baked Goodness</title>
+    <!-- Google Fonts: Open Sans for minimal/clean, warm look -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #a67c52;
+        --secondary: #e9cba7;
+        --accent: #d2691e;
+        --bg: #f8f5f0;
+        --text: #3e2c19;
+        --white: #fff;
+        --shadow: 0 2px 8px rgba(166, 124, 82, 0.08);
+        --radius: 12px;
+        --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Open Sans", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+      /* Navbar */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--white);
+        box-shadow: var(--shadow);
+      }
+      .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0.75rem 1.5rem;
+      }
+      .navbar .logo {
+        display: flex;
+        align-items: center;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--primary);
+        letter-spacing: 1px;
+        text-decoration: none;
+      }
+      .navbar .logo img {
+        height: 36px;
+        margin-right: 0.5rem;
+      }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+      }
+      .nav-links a {
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        position: relative;
+        transition: color var(--transition);
+      }
+      .nav-links a::after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 2px;
+        background: var(--primary);
+        transition: width var(--transition);
+        position: absolute;
+        left: 0;
+        bottom: -4px;
+      }
+      .nav-links a:hover,
+      .nav-links a.active {
+        color: var(--primary);
+      }
+      .nav-links a:hover::after,
+      .nav-links a.active::after {
+        width: 100%;
+      }
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        justify-content: center;
+        align-items: center;
+      }
+      .hamburger span {
+        height: 3px;
+        width: 24px;
+        background: var(--primary);
+        margin: 3px 0;
+        border-radius: 2px;
+        transition: all 0.3s;
+      }
+      /* Hero */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 3.5rem 1.5rem 2.5rem 1.5rem;
+        background: linear-gradient(
+          120deg,
+          var(--secondary) 60%,
+          var(--bg) 100%
+        );
+        position: relative;
+      }
+      .hero-image {
+        width: 100%;
+        max-width: 520px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+        object-fit: cover;
+        aspect-ratio: 16/9;
+        background: #e0d2c0;
+      }
+      .hero h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: 1px;
+      }
+      .hero p {
+        font-size: 1.25rem;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero .cta-btn {
+        background: var(--accent);
+        color: var(--white);
+        border: none;
+        padding: 0.85rem 2.2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: var(--radius);
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: background var(--transition), transform var(--transition);
+        text-decoration: none;
+        display: inline-block;
+      }
+      .hero .cta-btn:hover {
+        background: #b85c18;
+        transform: translateY(-2px) scale(1.03);
+      }
+      /* Sections */
+      section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      section h2 {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+      /* About Us */
+      .about-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        align-items: center;
+        justify-content: center;
+      }
+      .about-text {
+        flex: 1;
+        font-size: 1.1rem;
+        color: var(--text);
+        max-width: 500px;
+        text-align: left;
+      }
+      .about-image {
+        flex: 1;
+        max-width: 400px;
+        width: 100%;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        object-fit: cover;
+        aspect-ratio: 4/3;
+        background: #e0d2c0;
+      }
+      /* Menu */
+      .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+      }
+      .menu-item {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform var(--transition), box-shadow var(--transition);
+        cursor: pointer;
+        position: relative;
+      }
+      .menu-item:hover {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 6px 24px rgba(166, 124, 82, 0.13);
+      }
+      .menu-img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        background: #e0d2c0;
+      }
+      .menu-info {
+        padding: 1.1rem 1rem 1rem 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .menu-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+      }
+      .menu-desc {
+        font-size: 1rem;
+        color: var(--text);
+        margin-bottom: 0.75rem;
+        flex: 1;
+      }
+      .menu-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--accent);
+        margin-top: 0.5rem;
+        align-self: flex-end;
+      }
+      /* Special Offers */
+      .offers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        align-items: center;
+        margin-top: 1.5rem;
+      }
+      .offer-card {
+        background: linear-gradient(
+          100deg,
+          var(--secondary) 80%,
+          var(--white) 100%
+        );
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 2rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+      }
+      .offer-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+      .offer-desc {
+        font-size: 1rem;
+        color: var(--text);
+        margin-bottom: 1.2rem;
+      }
+      .offer-btn {
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        padding: 0.7rem 1.7rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: var(--radius);
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: background var(--transition), transform var(--transition);
+        text-decoration: none;
+        display: inline-block;
+      }
+      .offer-btn:hover {
+        background: var(--accent);
+        transform: translateY(-2px) scale(1.03);
+      }
+      /* Testimonials */
+      .testimonials-carousel {
+        position: relative;
+        max-width: 600px;
+        margin: 2rem auto 0 auto;
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 2.5rem 1.5rem 2rem 1.5rem;
+        text-align: center;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .testimonial-quote {
+        font-size: 1.15rem;
+        color: var(--text);
+        margin-bottom: 1.2rem;
+        font-style: italic;
+      }
+      .testimonial-author {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 1rem;
+        margin-bottom: 0.2rem;
+      }
+      .testimonial-meta {
+        font-size: 0.95rem;
+        color: #8d6e4a;
+        margin-bottom: 0.5rem;
+      }
+      .carousel-controls {
+        display: flex;
+        gap: 1.2rem;
+        justify-content: center;
+        align-items: center;
+        margin-top: 1rem;
+      }
+      .carousel-btn {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.2rem 0.7rem;
+        border-radius: 50%;
+        transition: background var(--transition);
+      }
+      .carousel-btn:focus,
+      .carousel-btn:hover {
+        background: var(--secondary);
+        outline: none;
+      }
+      .carousel-dots {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        justify-content: center;
+      }
+      .carousel-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e9cba7;
+        border: none;
+        cursor: pointer;
+        transition: background var(--transition);
+        padding: 0;
+      }
+      .carousel-dot.active {
+        background: var(--primary);
+      }
+      /* Contact */
+      .contact-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        align-items: stretch;
+        justify-content: center;
+      }
+      .contact-form {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 2rem 1.5rem;
+        flex: 1;
+        min-width: 0;
+        max-width: 420px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+      }
+      .contact-form label {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.2rem;
+        font-size: 1rem;
+      }
+      .contact-form input,
+      .contact-form textarea {
+        width: 100%;
+        padding: 0.7rem 0.9rem;
+        border: 1px solid #e9cba7;
+        border-radius: var(--radius);
+        font-size: 1rem;
+        font-family: inherit;
+        background: #f7f3ed;
+        color: var(--text);
+        transition: border var(--transition);
+        resize: none;
+      }
+      .contact-form input:focus,
+      .contact-form textarea:focus {
+        border: 1.5px solid var(--primary);
+        outline: none;
+      }
+      .contact-form button {
+        background: var(--accent);
+        color: var(--white);
+        border: none;
+        padding: 0.8rem 1.7rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        border-radius: var(--radius);
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: background var(--transition), transform var(--transition);
+        margin-top: 0.5rem;
+        align-self: flex-end;
+      }
+      .contact-form button:hover {
+        background: #b85c18;
+        transform: translateY(-2px) scale(1.03);
+      }
+      .form-message {
+        font-size: 1rem;
+        margin-top: 0.5rem;
+        color: var(--accent);
+        min-height: 1.2em;
+      }
+      .contact-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .contact-details .map {
+        width: 100%;
+        max-width: 350px;
+        height: 180px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        margin: 0 auto 1rem auto;
+        border: 0;
+      }
+      .contact-details .info {
+        font-size: 1.05rem;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+      .contact-details .socials {
+        display: flex;
+        gap: 1.2rem;
+        justify-content: center;
+        margin-top: 0.5rem;
+      }
+      .contact-details .socials a {
+        color: var(--primary);
+        font-size: 1.5rem;
+        transition: color var(--transition), transform var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .contact-details .socials a:hover {
+        color: var(--accent);
+        transform: scale(1.15);
+      }
+      /* Footer */
+      footer {
+        background: var(--primary);
+        color: var(--white);
+        text-align: center;
+        padding: 1.2rem 1.5rem;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        margin-top: 2rem;
+      }
+      /* Responsive */
+      @media (min-width: 800px) {
+        .hero {
+          flex-direction: row;
+          text-align: left;
+          padding: 4.5rem 1.5rem 3.5rem 1.5rem;
+          gap: 3rem;
+        }
+        .hero-image {
+          margin-bottom: 0;
+          margin-right: 2.5rem;
+        }
+        .about-content {
+          flex-direction: row;
+          align-items: flex-start;
+          gap: 3rem;
+        }
+        .contact-container {
+          flex-direction: row;
+          gap: 3rem;
+          align-items: flex-start;
+        }
+        .contact-details {
+          align-items: flex-start;
+          text-align: left;
+        }
+      }
+      @media (max-width: 700px) {
+        .navbar {
+          padding: 0.75rem 1rem;
+        }
+        section {
+          padding: 2.2rem 1rem;
+        }
+        .hero {
+          padding: 2.2rem 1rem 1.5rem 1rem;
+        }
+      }
+      @media (max-width: 600px) {
+        .menu-grid {
+          grid-template-columns: 1fr;
+        }
+        .testimonials-carousel {
+          padding: 1.5rem 0.7rem 1.2rem 0.7rem;
+        }
+        .about-image {
+          max-width: 100%;
+        }
+      }
+      @media (max-width: 900px) {
+        .nav-links {
+          position: fixed;
+          top: 64px;
+          right: 0;
+          background: var(--white);
+          flex-direction: column;
+          gap: 1.5rem;
+          width: 220px;
+          height: 0;
+          overflow: hidden;
+          box-shadow: 0 8px 24px rgba(166, 124, 82, 0.13);
+          border-radius: 0 0 0 var(--radius);
+          transition: height var(--transition), padding var(--transition);
+          padding: 0 1.5rem;
+          z-index: 99;
+        }
+        .nav-links.open {
+          height: 220px;
+          padding: 1.5rem 1.5rem;
+        }
+        .hamburger {
+          display: flex;
+        }
+      }
+      @media (min-width: 901px) {
+        .nav-links {
+          position: static;
+          flex-direction: row;
+          height: auto !important;
+          padding: 0 !important;
+          background: none;
+          box-shadow: none;
+        }
+        .hamburger {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="#" class="logo">
+          <img
+            src="https://img.icons8.com/ios-filled/50/a67c52/bread.png"
+            alt="Bakery Logo"
+          />
+          Artisan Bakery
+        </a>
+        <div class="nav-links" id="navLinks">
+          <a href="#home" class="active">Home</a>
+          <a href="#about">About Us</a>
+          <a href="#menu">Menu</a>
+          <a href="#offers">Special Offers</a>
+          <a href="#testimonials">Testimonials</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div
+          class="hamburger"
+          id="hamburger"
+          aria-label="Open menu"
+          tabindex="0"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <!-- Hero Section -->
+      <section class="hero" id="home">
+        <img
+          class="hero-image"
+          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80"
+          alt="Signature bakery products"
+        />
+        <div>
+          <h1>Freshly Baked, Every Day</h1>
+          <p>
+            Welcome to Artisan Bakery, where tradition meets taste. Discover our
+            hand-crafted breads, pastries, and cakes made with love and the
+            finest ingredients. Your neighborhood bakery since 1998.
+          </p>
+          <a href="#menu" class="cta-btn">Explore Our Menu</a>
+        </div>
+      </section>
+      <!-- About Us -->
+      <section id="about">
+        <h2>About Us</h2>
+        <div class="about-content">
+          <div class="about-text">
+            <p>
+              Established in 1998, Artisan Bakery has been a cornerstone of our
+              community, bringing people together with the aroma of fresh bread
+              and the warmth of a friendly smile. Our mission is to craft
+              delicious, wholesome baked goods using time-honored recipes and
+              locally sourced ingredients. Whether you're a first-time visitor
+              or a loyal patron, we invite you to experience the joy of
+              authentic baking in every bite.
+            </p>
+          </div>
+          <img
+            class="about-image"
+            src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=600&q=80"
+            alt="Bakery interior"
+          />
+        </div>
+      </section>
+      <!-- Menu -->
+      <section id="menu">
+        <h2>Our Menu</h2>
+        <div class="menu-grid">
+          <div class="menu-item">
+            <img
+              class="menu-img"
+              src="https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=400&q=80"
+              alt="Sourdough Bread"
+            />
+            <div class="menu-info">
+              <div class="menu-title">Sourdough Bread</div>
+              <div class="menu-desc">
+                Crusty on the outside, soft and tangy on the inside. Naturally
+                leavened and baked fresh daily.
+              </div>
+              <div class="menu-price">$5.00</div>
+            </div>
+          </div>
+          <div class="menu-item">
+            <img
+              class="menu-img"
+              src="https://images.unsplash.com/photo-1464306076886-debca5e8a6b0?auto=format&fit=crop&w=400&q=80"
+              alt="Chocolate Croissant"
+            />
+            <div class="menu-info">
+              <div class="menu-title">Chocolate Croissant</div>
+              <div class="menu-desc">
+                Flaky, buttery pastry filled with rich dark chocolate. Perfect
+                for breakfast or a sweet treat.
+              </div>
+              <div class="menu-price">$3.50</div>
+            </div>
+          </div>
+          <div class="menu-item">
+            <img
+              class="menu-img"
+              src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=400&q=80"
+              alt="Cinnamon Roll"
+            />
+            <div class="menu-info">
+              <div class="menu-title">Cinnamon Roll</div>
+              <div class="menu-desc">
+                Soft, gooey rolls swirled with cinnamon and topped with our
+                signature cream cheese icing.
+              </div>
+              <div class="menu-price">$3.00</div>
+            </div>
+          </div>
+          <div class="menu-item">
+            <img
+              class="menu-img"
+              src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80"
+              alt="Rustic Baguette"
+            />
+            <div class="menu-info">
+              <div class="menu-title">Rustic Baguette</div>
+              <div class="menu-desc">
+                Classic French baguette with a golden crust and airy crumb.
+                Ideal for sandwiches or sharing.
+              </div>
+              <div class="menu-price">$2.50</div>
+            </div>
+          </div>
+          <div class="menu-item">
+            <img
+              class="menu-img"
+              src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=400&q=80"
+              alt="Lemon Tart"
+            />
+            <div class="menu-info">
+              <div class="menu-title">Lemon Tart</div>
+              <div class="menu-desc">
+                Tangy lemon curd in a buttery crust, topped with a dusting of
+                powdered sugar.
+              </div>
+              <div class="menu-price">$4.00</div>
+            </div>
+          </div>
+          <div class="menu-item">
+            <img
+              class="menu-img"
+              src="https://images.unsplash.com/photo-1464306076886-debca5e8a6b0?auto=format&fit=crop&w=400&q=80"
+              alt="Multigrain Loaf"
+            />
+            <div class="menu-info">
+              <div class="menu-title">Multigrain Loaf</div>
+              <div class="menu-desc">
+                Hearty and wholesome, packed with seeds and grains for a
+                nutritious bite.
+              </div>
+              <div class="menu-price">$5.50</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Special Offers -->
+      <section id="offers">
+        <h2>Special Offers</h2>
+        <div class="offers-list">
+          <div class="offer-card">
+            <div class="offer-title">Spring Fling: 20% Off All Pastries!</div>
+            <div class="offer-desc">
+              Celebrate the season with a sweet deal. Enjoy 20% off all pastries
+              every Saturday in April. Treat yourself or share with friends!
+            </div>
+            <a href="#contact" class="offer-btn">Order Now</a>
+          </div>
+          <div class="offer-card">
+            <div class="offer-title">Buy 2, Get 1 Free - Artisan Breads</div>
+            <div class="offer-desc">
+              Mix and match any three loaves and get the third one free. Perfect
+              for family gatherings or sharing with neighbors.
+            </div>
+            <a href="#menu" class="offer-btn">View Specials</a>
+          </div>
+        </div>
+      </section>
+      <!-- Testimonials -->
+      <section id="testimonials">
+        <h2>What Our Customers Say</h2>
+        <div
+          class="testimonials-carousel"
+          id="testimonialsCarousel"
+          aria-live="polite"
+        >
+          <div class="testimonial-quote" id="testimonialQuote"></div>
+          <div class="testimonial-author" id="testimonialAuthor"></div>
+          <div class="testimonial-meta" id="testimonialMeta"></div>
+          <div class="carousel-controls">
+            <button
+              class="carousel-btn"
+              id="prevTestimonial"
+              aria-label="Previous testimonial"
+            >
+              &larr;
+            </button>
+            <button
+              class="carousel-btn"
+              id="nextTestimonial"
+              aria-label="Next testimonial"
+            >
+              &rarr;
+            </button>
+          </div>
+          <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+      </section>
+      <!-- Contact Us -->
+      <section id="contact">
+        <h2>Contact Us</h2>
+        <div class="contact-container">
+          <form class="contact-form" id="contactForm" novalidate>
+            <label for="name">Name *</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              autocomplete="name"
+            />
+            <label for="email">Email *</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+            />
+            <label for="message">Message *</label>
+            <textarea id="message" name="message" rows="4" required></textarea>
+            <button type="submit">Send Message</button>
+            <div class="form-message" id="formMessage"></div>
+          </form>
+          <div class="contact-details">
+            <iframe
+              class="map"
+              title="Bakery Location"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-0.128590,51.507351,-0.127590,51.508351&amp;layer=mapnik"
+              style="border: 1px solid #ccc"
+            ></iframe>
+            <div class="info">
+              <strong>Visit Us:</strong><br />
+              123 Baker Street, London, UK<br />
+              <strong>Phone:</strong>
+              <a
+                href="tel:+441234567890"
+                style="color: var(--accent); text-decoration: none"
+                >+44 1234 567890</a
+              >
+            </div>
+            <div class="socials" aria-label="Social media links">
+              <a href="#" title="Instagram" aria-label="Instagram">
+                <svg
+                  width="24"
+                  height="24"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 2.2c3.2 0 3.584.012 4.85.07 1.17.056 1.97.24 2.43.41a4.92 4.92 0 0 1 1.77 1.03 4.92 4.92 0 0 1 1.03 1.77c.17.46.354 1.26.41 2.43.058 1.266.07 1.65.07 4.85s-.012 3.584-.07 4.85c-.056 1.17-.24 1.97-.41 2.43a4.92 4.92 0 0 1-1.03 1.77 4.92 4.92 0 0 1-1.77 1.03c-.46.17-1.26.354-2.43.41-1.266.058-1.65.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.056-1.97-.24-2.43-.41a4.92 4.92 0 0 1-1.77-1.03 4.92 4.92 0 0 1-1.03-1.77c-.17-.46-.354-1.26-.41-2.43C2.212 15.784 2.2 15.4 2.2 12.2s.012-3.584.07-4.85c.056-1.17.24-1.97.41-2.43A4.92 4.92 0 0 1 3.71 3.15a4.92 4.92 0 0 1 1.77-1.03c.46-.17 1.26-.354 2.43-.41C8.416 2.212 8.8 2.2 12 2.2zm0-2.2C8.736 0 8.332.013 7.052.072 5.77.13 4.87.32 4.09.57a7.07 7.07 0 0 0-2.57 1.64A7.07 7.07 0 0 0 .57 4.09c-.25.78-.44 1.68-.5 2.96C.013 8.332 0 8.736 0 12c0 3.264.013 3.668.072 4.948.058 1.282.25 2.182.5 2.96a7.07 7.07 0 0 0 1.64 2.57 7.07 7.07 0 0 0 2.57 1.64c.78.25 1.68.44 2.96.5C8.332 23.987 8.736 24 12 24s3.668-.013 4.948-.072c1.282-.058 2.182-.25 2.96-.5a7.07 7.07 0 0 0 2.57-1.64 7.07 7.07 0 0 0 1.64-2.57c.25-.78.44-1.68.5-2.96.059-1.28.072-1.684.072-4.948s-.013-3.668-.072-4.948c-.058-1.282-.25-2.182-.5-2.96a7.07 7.07 0 0 0-1.64-2.57A7.07 7.07 0 0 0 19.91.57c-.78-.25-1.68-.44-2.96-.5C15.668.013 15.264 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zm0 10.162a3.999 3.999 0 1 1 0-7.998 3.999 3.999 0 0 1 0 7.998zm7.844-10.406a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"
+                  />
+                </svg>
+              </a>
+              <a href="#" title="Facebook" aria-label="Facebook">
+                <svg
+                  width="24"
+                  height="24"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.408.595 24 1.325 24h11.495v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.406 24 24 23.408 24 22.674V1.326C24 .592 23.406 0 22.675 0"
+                  />
+                </svg>
+              </a>
+              <a href="#" title="Twitter" aria-label="Twitter">
+                <svg
+                  width="24"
+                  height="24"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M24 4.557a9.83 9.83 0 0 1-2.828.775 4.932 4.932 0 0 0 2.165-2.724c-.951.564-2.005.974-3.127 1.195a4.916 4.916 0 0 0-8.38 4.482C7.691 8.095 4.066 6.13 1.64 3.161c-.542.929-.856 2.01-.857 3.17 0 2.188 1.115 4.116 2.823 5.247a4.904 4.904 0 0 1-2.229-.616c-.054 2.281 1.581 4.415 3.949 4.89a4.936 4.936 0 0 1-2.224.084c.627 1.956 2.444 3.377 4.6 3.417A9.867 9.867 0 0 1 0 21.543a13.94 13.94 0 0 0 7.548 2.209c9.058 0 14.009-7.496 14.009-13.986 0-.21 0-.423-.016-.634A9.936 9.936 0 0 0 24 4.557z"
+                  />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      &copy; 2024 Artisan Bakery. All rights reserved. | Crafted with
+      <span style="color: #e9cba7">&#10084;</span> in your neighborhood.
+    </footer>
+    <script>
+      // Navbar Hamburger Toggle
+      const hamburger = document.getElementById("hamburger");
+      const navLinks = document.getElementById("navLinks");
+      hamburger.addEventListener("click", () => {
+        navLinks.classList.toggle("open");
+      });
+      hamburger.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          navLinks.classList.toggle("open");
+        }
+      });
+      // Close nav on link click (mobile)
+      Array.from(navLinks.querySelectorAll("a")).forEach((link) => {
+        link.addEventListener("click", () => {
+          if (window.innerWidth < 901) {
+            navLinks.classList.remove("open");
+          }
+        });
+      });
+      // Smooth Scroll Fallback for browsers not supporting scroll-behavior
+      (function () {
+        if ("scrollBehavior" in document.documentElement.style) return;
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            const targetId = this.getAttribute("href").slice(1);
+            const target = document.getElementById(targetId);
+            if (target) {
+              e.preventDefault();
+              const top =
+                target.getBoundingClientRect().top + window.pageYOffset - 60;
+              window.scrollTo({ top, behavior: "smooth" });
+            }
+          });
+        });
+      })();
+      // Navbar Active Link Highlight
+      function setActiveNav() {
+        const sections = [
+          "home",
+          "about",
+          "menu",
+          "offers",
+          "testimonials",
+          "contact",
+        ];
+        let scrollPos = window.scrollY + 120;
+        let found = false;
+        for (let i = sections.length - 1; i >= 0; i--) {
+          const sec = document.getElementById(sections[i]);
+          if (sec && sec.offsetTop <= scrollPos) {
+            navLinks
+              .querySelectorAll("a")
+              .forEach((a) => a.classList.remove("active"));
+            const link = navLinks.querySelector(`a[href="#${sections[i]}"]`);
+            if (link) link.classList.add("active");
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          navLinks
+            .querySelectorAll("a")
+            .forEach((a) => a.classList.remove("active"));
+          navLinks.querySelector('a[href="#home"]').classList.add("active");
+        }
+      }
+      window.addEventListener("scroll", setActiveNav);
+      window.addEventListener("DOMContentLoaded", setActiveNav);
+
+      // Testimonials Carousel
+      const testimonials = [
+        {
+          quote:
+            "The sourdough here is the best I've ever tasted! The staff are always so friendly and welcoming.",
+          author: "Emily R.",
+          meta: "Local Resident",
+        },
+        {
+          quote:
+            "I love stopping by for a chocolate croissant and coffee on my way to work. Highly recommend!",
+          author: "James T.",
+          meta: "Daily Customer",
+        },
+        {
+          quote:
+            "Their seasonal specials are always a treat. The lemon tart is my absolute favorite.",
+          author: "Priya S.",
+          meta: "Pastry Enthusiast",
+        },
+        {
+          quote:
+            "Artisan Bakery has been part of our family traditions for years. The bread is always fresh and delicious.",
+          author: "The Martins",
+          meta: "Family of Loyal Patrons",
+        },
+      ];
+      let currentTestimonial = 0;
+      const quoteEl = document.getElementById("testimonialQuote");
+      const authorEl = document.getElementById("testimonialAuthor");
+      const metaEl = document.getElementById("testimonialMeta");
+      const prevBtn = document.getElementById("prevTestimonial");
+      const nextBtn = document.getElementById("nextTestimonial");
+      const dotsEl = document.getElementById("carouselDots");
+      function renderTestimonial(idx) {
+        const t = testimonials[idx];
+        quoteEl.textContent = `"${t.quote}"`;
+        authorEl.textContent = t.author;
+        metaEl.textContent = t.meta;
+        // Dots
+        dotsEl.innerHTML = "";
+        testimonials.forEach((_, i) => {
+          const dot = document.createElement("button");
+          dot.className = "carousel-dot" + (i === idx ? " active" : "");
+          dot.setAttribute("aria-label", `Show testimonial ${i + 1}`);
+          dot.addEventListener("click", () => {
+            currentTestimonial = i;
+            renderTestimonial(currentTestimonial);
+          });
+          dotsEl.appendChild(dot);
+        });
+      }
+      prevBtn.addEventListener("click", () => {
+        currentTestimonial =
+          (currentTestimonial - 1 + testimonials.length) % testimonials.length;
+        renderTestimonial(currentTestimonial);
+      });
+      nextBtn.addEventListener("click", () => {
+        currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+        renderTestimonial(currentTestimonial);
+      });
+      // Keyboard navigation
+      prevBtn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") prevBtn.click();
+      });
+      nextBtn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") nextBtn.click();
+      });
+      // Auto-advance every 8s
+      let testimonialInterval = setInterval(() => {
+        currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+        renderTestimonial(currentTestimonial);
+      }, 8000);
+      // Pause on hover
+      const carousel = document.getElementById("testimonialsCarousel");
+      carousel.addEventListener("mouseenter", () =>
+        clearInterval(testimonialInterval)
+      );
+      carousel.addEventListener("mouseleave", () => {
+        testimonialInterval = setInterval(() => {
+          currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+          renderTestimonial(currentTestimonial);
+        }, 8000);
+      });
+      // Initial render
+      renderTestimonial(currentTestimonial);
+
+      // Contact Form Validation
+      const contactForm = document.getElementById("contactForm");
+      const formMessage = document.getElementById("formMessage");
+      contactForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        formMessage.textContent = "";
+        let valid = true;
+        const name = contactForm.name.value.trim();
+        const email = contactForm.email.value.trim();
+        const message = contactForm.message.value.trim();
+        if (!name) {
+          valid = false;
+          formMessage.textContent = "Please enter your name.";
+          contactForm.name.focus();
+        } else if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+          valid = false;
+          formMessage.textContent = "Please enter a valid email address.";
+          contactForm.email.focus();
+        } else if (!message) {
+          valid = false;
+          formMessage.textContent = "Please enter your message.";
+          contactForm.message.focus();
+        }
+        if (valid) {
+          formMessage.style.color = "var(--primary)";
+          formMessage.textContent =
+            "Thank you for reaching out! We will get back to you soon.";
+          contactForm.reset();
+          setTimeout(() => {
+            formMessage.textContent = "";
+          }, 6000);
+        } else {
+          formMessage.style.color = "var(--accent)";
+        }
+      });
+    </script>
+  </body>
+</html>

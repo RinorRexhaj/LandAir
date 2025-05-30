@@ -48,7 +48,11 @@ const ProjectPage: React.FC<ProjectPageProps> = ({
         setSelectedProject={setSelectedProject}
       />
 
-      <div className="w-fit hidden z-50 absolute top-20 md:top-[72px] right-6 md:right-4 tb:flex px-2 py-1.5 rounded-lg items-center justify-center gap-2 border border-gray-200/20 bg-zinc-800/20">
+      <div
+        className={`w-fit hidden z-50 absolute top-20 md:top-[72px] right-6 md:right-4 tb:flex px-2 py-1.5 rounded-lg items-center justify-center gap-2 border border-gray-200/20 ${
+          darkMode ? "bg-zinc-800/20" : "bg-gray-100/40"
+        }`}
+      >
         <button
           className={`${baseButtonClasses} ${getButtonClasses(
             activeView === "preview",
