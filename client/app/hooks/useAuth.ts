@@ -28,7 +28,7 @@ const useAuth = () => {
     getUser();
   }, [getUser]);
 
-  return { user, loading, getUser };
+  return { user, loading, setLoading, getUser };
 };
 
 export default useAuth;

@@ -4,24 +4,26 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import useApi from "@/app/hooks/useApi";
 import { Project } from "@/app/types/Project";
-import useAuth from "@/app/hooks/useAuth";
 import CustomSelect from "./CustomSelect";
 import ProjectPage from "./project/Project";
 import SkeletonProjects from "./SkeletonProjects";
 import ProjectPreview from "./ProjectPreview";
 import Empty from "./Empty";
 import Creating from "./Creating";
+import { useProjectStore } from "@/app/store/useProjectsStore";
+import { addProject, fetchProjects } from "@/app/services/ProjectService";
+import useAuth from "@/app/hooks/useAuth";
 
 type SortOption = "Edited" | "Created" | "alphabetical";
 
 const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [creating, setCreating] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("Edited");
+  const [creating, setCreating] = useState(false);
+  const { projects, setProjects, selectedProject, setSelectedProject } =
+    useProjectStore();
   const { darkMode } = useThemeStore();
+  const { loading, setLoading } = useApi();
   const { user } = useAuth();
-  const { loading, get, post } = useApi();
 
   const sortOptions = [
     { value: "Edited" as SortOption, label: "Last Edited" },
@@ -30,34 +32,24 @@ const Projects = () => {
   ];
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      const projects: Project[] = await get("/projects");
+    const getProjects = async () => {
+      setLoading(true);
+      const projects = await fetchProjects();
       setProjects(projects);
+      setLoading(false);
     };
-    fetchProjects();
-  }, [get]);
+    getProjects();
+  }, [setProjects, setLoading]);
 
   const createProject = async () => {
     setCreating(true);
-    const newProject: Project[] = await post("/projects", {
-      name: "New Project",
-      user_id: user?.id,
-    });
+    const newProject = await addProject(user?.id || "");
     newProject[0].created = true;
     setProjects([newProject[0], ...projects]);
     setTimeout(() => {
       setCreating(false);
       setSelectedProject(newProject[0]);
     }, 300);
-  };
-
-  const changeProject = (project: Project) => {
-    setProjects(
-      projects.map((p) => {
-        if (p.id === project.id) return project;
-        return p;
-      })
-    );
   };
 
   const sortProjects = (projects: Project[]): Project[] => {
@@ -87,11 +79,7 @@ const Projects = () => {
       }`}
     >
       {selectedProject ? (
-        <ProjectPage
-          selectedProject={selectedProject}
-          setSelectedProject={setSelectedProject}
-          changeProject={changeProject}
-        />
+        <ProjectPage />
       ) : (
         <>
           {/* Header */}
@@ -142,7 +130,6 @@ const Projects = () => {
                 <ProjectPreview
                   key={"project-" + project.id}
                   project={project}
-                  setSelectedProject={setSelectedProject}
                   sortBy={sortBy}
                 />
               ))

@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 5000;
 import express from "express";
 import cors from "cors";
 import projectRoutes from "./routes/projectRoutes";
+import storageRoutes from "./routes/storageRoutes";
 
 const app = express();
 app.use(
@@ -18,6 +19,7 @@ app.use(
 app.use(express.json());
 
 app.use("/projects/", projectRoutes);
+app.use("/storage/", storageRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

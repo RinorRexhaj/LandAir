@@ -1,4 +1,5 @@
 import { useTimeAgo } from "@/app/hooks/useTimeAgo";
+import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { Project } from "@/app/types/Project";
 import { faClock, faFolder } from "@fortawesome/free-solid-svg-icons";
@@ -7,16 +8,12 @@ import React from "react";
 
 interface ProjectPreviewProps {
   project: Project;
-  setSelectedProject: (project: Project) => void;
   sortBy: string;
 }
 
-const ProjectPreview: React.FC<ProjectPreviewProps> = ({
-  project,
-  setSelectedProject,
-  sortBy,
-}) => {
+const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const { darkMode } = useThemeStore();
+  const { setSelectedProject } = useProjectStore();
   const { formatTime } = useTimeAgo();
 
   const formatProjectDate = (project: Project) => {

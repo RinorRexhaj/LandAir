@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
@@ -7,31 +7,34 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
-import useApi from "@/app/hooks/useApi";
 import { Project } from "@/app/types/Project";
+import { useProjectStore } from "@/app/store/useProjectsStore";
+import { updateProject } from "@/app/services/ProjectService";
+import useAuth from "@/app/hooks/useAuth";
 
 interface ProjectHeaderProps {
   isEditing: boolean;
   setIsEditing: (editing: boolean) => void;
-  projectName: string;
-  setProjectName: (name: string) => void;
-  selectedProject: Project;
-  setSelectedProject: (project: Project | null) => void;
-  changeProject: (project: Project) => void;
 }
 
 const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   isEditing,
   setIsEditing,
-  projectName,
-  setProjectName,
-  selectedProject,
-  changeProject,
-  setSelectedProject,
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { selectedProject, setSelectedProject, changeProject } =
+    useProjectStore();
+  const [projectName, setProjectName] = useState(
+    selectedProject?.project_name ?? ""
+  );
+
+  const { user } = useAuth();
   const { darkMode } = useThemeStore();
-  const { put } = useApi();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Update local input state when selectedProject changes
+  useEffect(() => {
+    setProjectName(selectedProject?.project_name ?? "");
+  }, [selectedProject]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -39,6 +42,8 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
       inputRef.current.select();
     }
   }, [isEditing]);
+
+  if (!selectedProject) return null;
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -50,21 +55,22 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   };
 
   const handleNameChange = async () => {
-    if (projectName.trim() === "") {
-      setProjectName(selectedProject.project_name);
+    const trimmed = projectName.trim();
+
+    if (trimmed === "" || trimmed === selectedProject.project_name) {
+      setProjectName(selectedProject.project_name); // revert
       setIsEditing(false);
       return;
     }
 
     try {
-      const updatedProject: Project = await put(
-        `/projects/${selectedProject.id}`,
-        {
-          name: projectName.trim(),
-        }
+      const updatedProject: Project[] = await updateProject(
+        user?.id || "",
+        selectedProject.id,
+        projectName
       );
-      setSelectedProject(updatedProject);
-      changeProject(updatedProject);
+      // setSelectedProject(updatedProject[0]);
+      changeProject(updatedProject[0]);
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update project name:", error);

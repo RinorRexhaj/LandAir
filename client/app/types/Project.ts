@@ -5,4 +5,5 @@ export interface Project {
   project_name: string;
   last_edited: Date;
   created?: boolean;
+  file?: string;
 }

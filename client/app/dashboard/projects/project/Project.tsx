@@ -1,4 +1,3 @@
-import { Project } from "@/app/types/Project";
 import React, { useState, useEffect } from "react";
 import ProjectHeader from "./ProjectHeader";
 // import Empty from "./EmptyProject";
@@ -8,24 +7,23 @@ import Preview from "./Preview";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDisplay, faRobot } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
-import { baseButtonClasses, getButtonClasses } from "@/app/utils/ButtonClasses";
+import Generating from "./Generating";
+import Empty from "./EmptyProject";
+import { useProjectStore } from "@/app/store/useProjectsStore";
+import useAuth from "@/app/hooks/useAuth";
+import { supabase } from "@/app/utils/Supabase";
+import useApi from "@/app/hooks/useApi";
+import Loading from "./Loading";
 
-interface ProjectPageProps {
-  selectedProject: Project;
-  setSelectedProject: (project: Project | null) => void;
-  changeProject: (project: Project) => void;
-}
-
-const ProjectPage: React.FC<ProjectPageProps> = ({
-  selectedProject,
-  setSelectedProject,
-  changeProject,
-}) => {
+const ProjectPage = () => {
+  const { selectedProject, setSelectedProject } = useProjectStore();
+  const [projectFile, setProjectFile] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [projectName, setProjectName] = useState(selectedProject.project_name);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeView, setActiveView] = useState<"preview" | "prompt">("preview");
   const { darkMode } = useThemeStore();
+  const { user } = useAuth();
+  const { setLoading, loading, get } = useApi();
 
   useEffect(() => {
     if (selectedProject?.created) {
@@ -33,51 +31,76 @@ const ProjectPage: React.FC<ProjectPageProps> = ({
     }
   }, [selectedProject]);
 
+  useEffect(() => {
+    if (!user || !selectedProject || selectedProject.file) return;
+
+    const getUrl = async () => {
+      setLoading(true);
+      const filePath = `${user.id}/${selectedProject.project_name}`;
+      const { data } = supabase.storage.from("pages").getPublicUrl(filePath);
+      const content: string = await get(`${data.publicUrl}?v=${Date.now()}`);
+
+      if (data && content) {
+        setSelectedProject({ ...selectedProject, file: content });
+        setProjectFile(true);
+      } else {
+        setSelectedProject({ ...selectedProject, file: undefined });
+        setProjectFile(false);
+      }
+    };
+
+    getUrl();
+  }, [user, selectedProject, projectFile, setSelectedProject, get, setLoading]);
+
   if (!selectedProject) return null;
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <ProjectHeader
-        isEditing={isEditing}
-        setIsEditing={setIsEditing}
-        projectName={projectName}
-        setProjectName={setProjectName}
-        changeProject={changeProject}
-        selectedProject={selectedProject}
-        setSelectedProject={setSelectedProject}
-      />
+      <ProjectHeader isEditing={isEditing} setIsEditing={setIsEditing} />
 
+      {/* Toggle Preview/Prompt */}
       <div
-        className={`w-fit hidden z-50 absolute top-20 md:top-[72px] right-6 md:right-4 tb:flex px-2 py-1.5 rounded-lg items-center justify-center gap-2 border border-gray-200/20 ${
-          darkMode ? "bg-zinc-800/20" : "bg-gray-100/40"
+        className={`absolute right-7 top-20 md:right-4 md:top-[72px] hidden z-50 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
+          darkMode
+            ? "bg-zinc-800/20 border-gray-200/20"
+            : "bg-zinc-100/80 border-gray-300/50"
         }`}
       >
         <button
-          className={`${baseButtonClasses} ${getButtonClasses(
-            activeView === "preview",
-            darkMode
-          )}`}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+            activeView !== "preview"
+              ? "opacity-70 hover:opacity-100"
+              : darkMode
+              ? "bg-zinc-700 text-white"
+              : "bg-white text-black shadow"
+          }`}
           onClick={() => setActiveView("preview")}
+          title="Preview"
         >
-          <FontAwesomeIcon icon={faDisplay} />
+          <FontAwesomeIcon icon={faDisplay} className="w-4 h-4" />
           <p className="md:hidden">Preview</p>
         </button>
+
         <button
-          className={`${baseButtonClasses} ${getButtonClasses(
-            activeView === "prompt",
-            darkMode
-          )}`}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+            activeView === "prompt"
+              ? darkMode
+                ? "bg-zinc-700 text-white"
+                : "bg-white text-black shadow"
+              : "opacity-70 hover:opacity-100"
+          }`}
           onClick={() => setActiveView("prompt")}
+          title="Generate"
         >
-          <FontAwesomeIcon icon={faRobot} />
+          <FontAwesomeIcon icon={faRobot} className="w-4 h-4" />
           <p className="md:hidden">Generate</p>
         </button>
       </div>
 
       {/* Project Content */}
       <div
-        className="w-full flex gap-6"
+        className="w-full flex gap-4"
         style={{
           height: "calc(100vh - 160px)",
         }}
@@ -88,7 +111,15 @@ const ProjectPage: React.FC<ProjectPageProps> = ({
             activeView === "preview" ? "tb:w-full" : "tb:hidden"
           }`}
         >
-          <Preview />
+          {isGenerating ? (
+            <Generating />
+          ) : projectFile ? (
+            <Preview />
+          ) : loading ? (
+            <Loading />
+          ) : (
+            <Empty />
+          )}
         </div>
         <div
           className={`w-4/12 ${
@@ -98,6 +129,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({
           <Prompt
             isGenerating={isGenerating}
             setIsGenerating={setIsGenerating}
+            setProjectFile={setProjectFile}
           />
         </div>
       </div>
