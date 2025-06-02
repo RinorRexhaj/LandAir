@@ -9,9 +9,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
+import Code from "./Code";
+import { handleDownload, handleOpenFullSize } from "@/app/utils/ProjectActions";
 
 const Preview = () => {
-  const [mobile, setMobile] = useState(false);
+  const [mobile, setMobile] = useState(0);
   const [scale, setScale] = useState(1);
   const mainRef = useRef<HTMLDivElement | null>(null);
   const { darkMode } = useThemeStore();
@@ -35,26 +37,6 @@ const Preview = () => {
     return () => window.removeEventListener("resize", updateScale);
   }, [mobile]);
 
-  const handleOpenFullSize = () => {
-    const blob = new Blob([selectedProject?.file || ""], {
-      type: "text/html",
-    });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([selectedProject?.file || ""], {
-      type: "text/html",
-    });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${selectedProject?.project_name || "landing"}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div
       className="w-full h-full flex flex-col gap-3 animate-fade"
@@ -63,17 +45,17 @@ const Preview = () => {
       <div className="flex gap-2 md:gap-1 flex-wrap">
         {/* Device Toggle */}
         <div
-          className={`flex px-2 py-1.5 rounded-lg items-center gap-2 border transition-all duration-200 ${
+          className={`flex px-2 py-1.5 md:gap-1 rounded-lg items-center gap-2 border transition-all duration-200 ${
             darkMode
               ? "bg-zinc-800/20 border-gray-200/20"
               : "bg-zinc-100/80 border-gray-300/50"
           }`}
         >
           <button
-            onClick={() => setMobile(false)}
+            onClick={() => setMobile(0)}
             title="Desktop"
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
-              mobile
+            className={`flex items-center gap-1 px-3 md:px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+              mobile !== 0
                 ? "opacity-70 hover:opacity-100"
                 : darkMode
                 ? "bg-zinc-700 text-white"
@@ -84,10 +66,10 @@ const Preview = () => {
             <span className="tb:hidden">Desktop</span>
           </button>
           <button
-            onClick={() => setMobile(true)}
+            onClick={() => setMobile(1)}
             title="Mobile"
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
-              mobile
+            className={`flex items-center gap-1 px-3 md:px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+              mobile === 1
                 ? darkMode
                   ? "bg-zinc-700 text-white"
                   : "bg-white text-black shadow"
@@ -97,18 +79,34 @@ const Preview = () => {
             <FontAwesomeIcon icon={faMobileScreen} className="w-4 h-4" />
             <span className="tb:hidden">Mobile</span>
           </button>
+          <button
+            title="View Code"
+            className={`flex items-center gap-1 px-3 md:px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+              mobile === 2
+                ? darkMode
+                  ? "bg-zinc-700 text-white"
+                  : "bg-white text-black shadow"
+                : "opacity-70 hover:opacity-100"
+            }`}
+            onClick={() => setMobile(2)}
+          >
+            <FontAwesomeIcon icon={faCode} className="w-4 h-4" />
+            <span className="tb:hidden">Code</span>
+          </button>
         </div>
 
         {/* Action Buttons */}
         <div
-          className={`flex px-2 py-1.5 rounded-lg items-center gap-1 md:gap-0.5 border transition-all duration-200 ${
+          className={`flex px-2 py-1.5 rounded-lg items-center gap-1 ${
+            mobile === 2 && "md:hidden"
+          } md:absolute md:top-[53px] md:right-0 md:z-50 border transition-all duration-200 ${
             darkMode
-              ? "bg-zinc-800/20 border-gray-200/20"
-              : "bg-zinc-100/80 border-gray-300/50"
+              ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
+              : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
           }`}
         >
           <button
-            onClick={handleOpenFullSize}
+            onClick={() => handleOpenFullSize(selectedProject)}
             title="Open Full Size"
             className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
@@ -117,16 +115,8 @@ const Preview = () => {
               className="w-4 h-4"
             />
           </button>
-
           <button
-            title="View Code"
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
-          >
-            <FontAwesomeIcon icon={faCode} className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={handleDownload}
+            onClick={() => handleDownload(selectedProject)}
             title="Download"
             className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
@@ -136,19 +126,15 @@ const Preview = () => {
       </div>
 
       {/* Preview Area */}
-      <div
-        className={`relative w-full h-full flex rounded-lg shadow-md overflow-hidden p-1 border ${
-          darkMode ? "border-zinc-600/80" : "border-zinc-600/20"
-        }`}
-      >
-        {(scale < 1 || mobile) && selectedProject?.file && (
+      <div className={`relative w-full h-full flex shadow-md overflow-hidden`}>
+        {(scale < 1 || mobile) && selectedProject?.file && mobile < 2 && (
           <iframe
             key={selectedProject.file}
             srcDoc={selectedProject?.file}
             className="rounded-lg shadow-md"
             style={{
               border: "none",
-              width: mobile ? "417px" : "1420px",
+              width: mobile ? "430px" : "1440px",
               transform: `scale(${scale})`,
               height: mobile ? "calc(100vh - 100px)" : "100vh",
               transformOrigin: "top left",
@@ -156,6 +142,7 @@ const Preview = () => {
             }}
           />
         )}
+        {mobile === 2 && <Code file={selectedProject?.file || ""} />}
       </div>
     </div>
   );

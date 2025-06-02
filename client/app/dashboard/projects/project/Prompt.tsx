@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSpinner, faWandSparkles } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSpinner,
+  faWandMagicSparkles,
+} from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import useAuth from "@/app/hooks/useAuth";
-import { supabase } from "@/app/utils/Supabase";
+import { enhancePrompt, generateWebsite } from "@/app/services/AIService";
+import { uploadFile } from "@/app/services/StorageService";
 
 interface WebsiteRequirements {
   generalDescription: string;
   audienceType: string;
   colorScheme: string;
-  additionalFeatures: string;
+  additionalInfo: string;
 }
 
 interface PromptProps {
@@ -28,8 +32,9 @@ const Prompt: React.FC<PromptProps> = ({
     generalDescription: "",
     audienceType: "",
     colorScheme: "",
-    additionalFeatures: "",
+    additionalInfo: "",
   });
+  const [enhancing, setEnhancing] = useState(false);
   const { selectedProject, setSelectedProject } = useProjectStore();
   const { user } = useAuth();
   const { darkMode } = useThemeStore();
@@ -50,23 +55,24 @@ const Prompt: React.FC<PromptProps> = ({
     setIsGenerating(true);
 
     try {
-      const content = `<!DOCTYPE html><body><h1 style="color: white; font-size: 40px">Personal Project - LandAir</h1></body></html>`;
-      const blob = new Blob([content], { type: "text/html" });
+      const content = await generateWebsite(requirements.generalDescription);
       const filePath = `${user?.id}/${selectedProject?.project_name}`;
-      const file = new File([blob], filePath, { type: "text/html" });
-      await supabase.storage.from("pages").upload(filePath, file, {
-        contentType: "text/html",
-      });
+      await uploadFile(content, filePath);
       setSelectedProject(selectedProject);
-      setProjectFile(true);
     } catch (error) {
       console.error(error);
     } finally {
-      setTimeout(() => {
-        setIsGenerating(false);
-        setProjectFile(true);
-      }, 5000);
+      setIsGenerating(false);
+      setProjectFile(true);
     }
+  };
+
+  const enhanceDescription = async () => {
+    if (!requirements.generalDescription) return;
+    setEnhancing(true);
+    const enhanced = await enhancePrompt(requirements.generalDescription);
+    setRequirements({ ...requirements, generalDescription: enhanced.answer });
+    setEnhancing(false);
   };
 
   return (
@@ -77,15 +83,28 @@ const Prompt: React.FC<PromptProps> = ({
           : "bg-white border-zinc-600/20"
       } border rounded-xl shadow-md overflow-hidden animate-fade p-6`}
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
-          <label
-            className={`block text-sm font-medium mb-2 ${
-              darkMode ? "text-gray-200" : "text-gray-700"
-            }`}
-          >
-            General Description
-          </label>
+          <div className="w-full flex justify-between items-center mb-1">
+            <label
+              className={`block text-sm font-medium ${
+                darkMode ? "text-gray-200" : "text-gray-700"
+              } ${enhancing && "animate-glow"}`}
+            >
+              {enhancing ? "Enhancing..." : "General Description"}
+            </label>
+            <button
+              className={`p-2 bg-violet-700/80 hover:bg-violet-700 transition-colors rounded-md flex items-center justify-center text-gray-100`}
+              disabled={!requirements.generalDescription || isGenerating}
+              onClick={enhanceDescription}
+            >
+              <FontAwesomeIcon
+                icon={faWandMagicSparkles}
+                className="w-4 h-4"
+                beatFade={enhancing}
+              />
+            </button>
+          </div>
           <textarea
             value={requirements.generalDescription}
             onChange={(e) =>
@@ -97,14 +116,14 @@ const Prompt: React.FC<PromptProps> = ({
               darkMode
                 ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
                 : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
-            }`}
-            rows={3}
+            } ${enhancing && "animate-glow"}`}
+            rows={5}
           />
         </div>
 
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
+            className={`block text-sm font-medium mb-1 ${
               darkMode ? "text-gray-200" : "text-gray-700"
             }`}
           >
@@ -125,7 +144,7 @@ const Prompt: React.FC<PromptProps> = ({
 
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
+            className={`block text-sm font-medium mb-1 ${
               darkMode ? "text-gray-200" : "text-gray-700"
             }`}
           >
@@ -146,24 +165,24 @@ const Prompt: React.FC<PromptProps> = ({
 
         <div>
           <label
-            className={`block text-sm font-medium mb-2 ${
+            className={`block text-sm font-medium mb-1 ${
               darkMode ? "text-gray-200" : "text-gray-700"
             }`}
           >
-            Additional Features
+            Additional Info
           </label>
           <textarea
-            value={requirements.additionalFeatures}
+            value={requirements.additionalInfo}
             onChange={(e) =>
-              handleInputChange("additionalFeatures", e.target.value)
+              handleInputChange("additionalInfo", e.target.value)
             }
-            placeholder="List any specific features or functionality you need..."
+            placeholder="List any contact or other info..."
             className={`w-full rounded-xl px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               darkMode
                 ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
                 : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
             }`}
-            rows={3}
+            rows={2}
           />
         </div>
       </div>
@@ -188,7 +207,7 @@ const Prompt: React.FC<PromptProps> = ({
           </span>
         ) : (
           <span className="flex items-center justify-center gap-2">
-            <FontAwesomeIcon icon={faWandSparkles} />
+            <FontAwesomeIcon icon={faWandMagicSparkles} />
             Generate Website
           </span>
         )}
