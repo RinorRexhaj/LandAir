@@ -32,7 +32,13 @@ const ProjectPage = () => {
   }, [selectedProject]);
 
   useEffect(() => {
-    if (!user || !selectedProject || selectedProject.file) return;
+    if (
+      !user ||
+      !selectedProject ||
+      selectedProject.file ||
+      selectedProject.created
+    )
+      return;
 
     const getUrl = async () => {
       setLoading(true);

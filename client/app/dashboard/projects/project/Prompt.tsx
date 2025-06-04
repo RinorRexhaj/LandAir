@@ -7,8 +7,8 @@ import {
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import useAuth from "@/app/hooks/useAuth";
-import { enhancePrompt, generateWebsite } from "@/app/services/AIService";
-import { uploadFile } from "@/app/services/StorageService";
+import useApi from "@/app/hooks/useApi";
+import { Relevance } from "@/app/types/Relevance";
 
 interface WebsiteRequirements {
   generalDescription: string;
@@ -37,7 +37,11 @@ const Prompt: React.FC<PromptProps> = ({
   const [enhancing, setEnhancing] = useState(false);
   const { selectedProject, setSelectedProject } = useProjectStore();
   const { user } = useAuth();
+  const { post, put } = useApi();
   const { darkMode } = useThemeStore();
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
   const handleInputChange = (
     field: keyof WebsiteRequirements,
@@ -49,28 +53,89 @@ const Prompt: React.FC<PromptProps> = ({
     }));
   };
 
+  // const pollGenerationStatus = useCallback(
+  //   async (taskId: string) => {
+  //     try {
+  //       const status:  = await get("/api/relevance/"+taskId);
+  //       if (status.status === "completed") {
+  //         if (pollingInterval) {
+  //           clearInterval(pollingInterval);
+  //           setPollingInterval(null);
+  //         }
+  //         return status.answer;
+  //       } else if (status.status === "failed") {
+  //         if (pollingInterval) {
+  //           clearInterval(pollingInterval);
+  //           setPollingInterval(null);
+  //         }
+  //         throw new Error("Website generation failed");
+  //       }
+  //       return null;
+  //     } catch (error) {
+  //       if (pollingInterval) {
+  //         clearInterval(pollingInterval);
+  //         setPollingInterval(null);
+  //       }
+  //       throw error;
+  //     }
+  //   },
+  //   [pollingInterval]
+  // );
+
   const handleSubmit = async () => {
     if (isGenerating) return;
 
     setIsGenerating(true);
 
     try {
-      const content = await generateWebsite(requirements.generalDescription);
-      const filePath = `${user?.id}/${selectedProject?.project_name}`;
-      await uploadFile(content, filePath);
-      setSelectedProject(selectedProject);
+      const response: Relevance = await post(`/api/relevance`, {
+        prompt: requirements.generalDescription,
+        type: "generate",
+      });
+
+      // Start polling with the task ID
+      const interval = setInterval(async () => {
+        try {
+          // const result = await pollGenerationStatus(taskId);
+          // if (result) {
+          const filePath = `${user?.id}/${selectedProject?.project_name}`;
+          await post(`/api/storage/`, { content: response?.answer, filePath });
+          await put(`/api/projects/${selectedProject?.id}`, {
+            new_name: selectedProject?.project_name,
+          });
+          setSelectedProject(selectedProject);
+          setProjectFile(true);
+          setIsGenerating(false);
+          // }
+        } catch (error) {
+          console.error("Polling error:", error);
+          setIsGenerating(false);
+        }
+      }, 5000); // Poll every 5 seconds
+
+      setPollingInterval(interval);
     } catch (error) {
       console.error(error);
-    } finally {
       setIsGenerating(false);
-      setProjectFile(true);
     }
   };
+
+  // Cleanup polling interval on component unmount
+  React.useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
 
   const enhanceDescription = async () => {
     if (!requirements.generalDescription) return;
     setEnhancing(true);
-    const enhanced = await enhancePrompt(requirements.generalDescription);
+    const enhanced: Relevance = await post(`/api/relevance`, {
+      type: "enhance",
+      prompt: requirements.generalDescription,
+    });
     setRequirements({ ...requirements, generalDescription: enhanced.answer });
     setEnhancing(false);
   };
@@ -81,10 +146,10 @@ const Prompt: React.FC<PromptProps> = ({
         darkMode
           ? "bg-zinc-900 border-zinc-600/80"
           : "bg-white border-zinc-600/20"
-      } border rounded-xl shadow-md overflow-hidden animate-fade p-6`}
+      } border rounded-lg shadow-md overflow-hidden animate-fade p-6`}
     >
       <div className="space-y-4">
-        <div>
+        <div className="relative">
           <div className="w-full flex justify-between items-center mb-1">
             <label
               className={`block text-sm font-medium ${
@@ -93,17 +158,19 @@ const Prompt: React.FC<PromptProps> = ({
             >
               {enhancing ? "Enhancing..." : "General Description"}
             </label>
-            <button
-              className={`p-2 bg-violet-700/80 hover:bg-violet-700 transition-colors rounded-md flex items-center justify-center text-gray-100`}
-              disabled={!requirements.generalDescription || isGenerating}
-              onClick={enhanceDescription}
-            >
-              <FontAwesomeIcon
-                icon={faWandMagicSparkles}
-                className="w-4 h-4"
-                beatFade={enhancing}
-              />
-            </button>
+            <div className="bg-transparent tb:bg-zinc-900 tb:p-1.5 rounded-md tb:border tb:border-zinc-500/50 tb:absolute tb:top-6 tb:right-0">
+              <button
+                className={`px-2 py-1.5 bg-violet-700/80 hover:bg-violet-700 transition-colors rounded-md flex items-center justify-center text-gray-100 `}
+                disabled={!requirements.generalDescription || isGenerating}
+                onClick={enhanceDescription}
+              >
+                <FontAwesomeIcon
+                  icon={faWandMagicSparkles}
+                  className="w-4 h-4"
+                  beatFade={enhancing}
+                />
+              </button>
+            </div>
           </div>
           <textarea
             value={requirements.generalDescription}
@@ -112,7 +179,7 @@ const Prompt: React.FC<PromptProps> = ({
             }
             required
             placeholder="Describe your website's purpose and main features..."
-            className={`w-full rounded-xl px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               darkMode
                 ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
                 : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
@@ -134,7 +201,7 @@ const Prompt: React.FC<PromptProps> = ({
             value={requirements.audienceType}
             onChange={(e) => handleInputChange("audienceType", e.target.value)}
             placeholder="e.g., Small Business, E-commerce, Portfolio..."
-            className={`w-full rounded-xl px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               darkMode
                 ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
                 : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
@@ -155,7 +222,7 @@ const Prompt: React.FC<PromptProps> = ({
             value={requirements.colorScheme}
             onChange={(e) => handleInputChange("colorScheme", e.target.value)}
             placeholder="e.g., Blue and White, Dark Theme, Pastel Colors..."
-            className={`w-full rounded-xl px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               darkMode
                 ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
                 : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
@@ -177,7 +244,7 @@ const Prompt: React.FC<PromptProps> = ({
               handleInputChange("additionalInfo", e.target.value)
             }
             placeholder="List any contact or other info..."
-            className={`w-full rounded-xl px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               darkMode
                 ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
                 : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
@@ -189,7 +256,7 @@ const Prompt: React.FC<PromptProps> = ({
       <button
         onClick={handleSubmit}
         disabled={isGenerating || !requirements.generalDescription}
-        className={`w-full py-3 rounded-xl transition-colors bg-blue-600 hover:bg-blue-700 text-white font-medium ${
+        className={`w-full py-3 rounded-lg transition-colors bg-blue-600 hover:bg-blue-700 text-white font-medium ${
           isGenerating
             ? "animate-glow cursor-not-allowed"
             : !requirements.generalDescription

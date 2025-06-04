@@ -1,10 +1,9 @@
-import { supabase } from "../utils/Supabase";
+import { supabase } from "../supabase";
 
 export const uploadFile = async (
   content: string,
   filePath: string
 ): Promise<void> => {
-  console.log(content);
   const blob = new Blob([content], { type: "text/html" });
   const file = new File([blob], filePath, { type: "text/html" });
   const exists = supabase.storage.from("pages").exists(filePath);
@@ -17,4 +16,9 @@ export const uploadFile = async (
       contentType: "text/html",
     });
   }
+};
+
+export const deleteFile = async (filePath: string): Promise<boolean> => {
+  const deleted = await supabase.storage.from("pages").remove([filePath]);
+  return deleted.error !== null;
 };

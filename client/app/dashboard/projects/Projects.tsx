@@ -11,8 +11,6 @@ import ProjectPreview from "./ProjectPreview";
 import Empty from "./Empty";
 import Creating from "./Creating";
 import { useProjectStore } from "@/app/store/useProjectsStore";
-import { addProject, fetchProjects } from "@/app/services/ProjectService";
-import useAuth from "@/app/hooks/useAuth";
 
 type SortOption = "Edited" | "Created" | "alphabetical";
 
@@ -22,8 +20,7 @@ const Projects = () => {
   const { projects, setProjects, selectedProject, setSelectedProject } =
     useProjectStore();
   const { darkMode } = useThemeStore();
-  const { loading, setLoading } = useApi();
-  const { user } = useAuth();
+  const { loading, setLoading, get, post } = useApi();
 
   const sortOptions = [
     { value: "Edited" as SortOption, label: "Last Edited" },
@@ -34,16 +31,17 @@ const Projects = () => {
   useEffect(() => {
     const getProjects = async () => {
       setLoading(true);
-      const projects = await fetchProjects();
+      const projects: Project[] = await get("/api/projects");
       setProjects(projects);
       setLoading(false);
     };
     getProjects();
-  }, [setProjects, setLoading]);
+  }, [setProjects, setLoading, get]);
 
   const createProject = async () => {
+    if (projects.length >= 4) return;
     setCreating(true);
-    const newProject = await addProject(user?.id || "");
+    const newProject: Project[] = await post("/api/projects/");
     newProject[0].created = true;
     setProjects([newProject[0], ...projects]);
     setTimeout(() => {

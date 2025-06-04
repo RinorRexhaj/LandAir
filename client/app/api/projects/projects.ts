@@ -1,11 +1,12 @@
-// utils/supabaseService.ts
-import { Project } from "../types/Project";
-import { supabase } from "../utils/Supabase";
+import { Project } from "@/app/types/Project";
+import { supabase } from "../supabase";
+import { deleteFile } from "../storage/storage";
 
-export const fetchProjects = async (): Promise<Project[]> => {
+export const fetchProjects = async (user_id: string): Promise<Project[]> => {
   const { data, error } = await supabase
     .from("Projects")
     .select("*")
+    .eq("user_id", user_id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -56,15 +57,24 @@ export const updateProject = async (
   return data;
 };
 
-export const deleteProject = async (projectId: string) => {
+export const deleteProject = async (projectId: number, userId: string) => {
+  const { data } = await supabase
+    .from("Projects")
+    .select("project_name")
+    .eq("id", projectId);
+
   const { error } = await supabase
     .from("Projects")
     .delete()
     .eq("id", projectId);
 
   if (error) {
-    console.error("Error deleting project:", error.message);
+    console.error("Error deleting project:", error?.message);
     return false;
+  }
+
+  if (data) {
+    await deleteFile(`${userId}/${data}`);
   }
 
   return true;

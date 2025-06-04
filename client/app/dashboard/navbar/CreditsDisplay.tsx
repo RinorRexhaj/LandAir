@@ -20,6 +20,7 @@ const CreditsDisplay: React.FC<CreditsDisplayProps> = ({
         animationDelay: "0.1s",
       }}
       onClick={() => setIsBuyCreditsModalOpen(true)}
+      title="Get Credits"
     >
       <FontAwesomeIcon
         icon={faCoins}

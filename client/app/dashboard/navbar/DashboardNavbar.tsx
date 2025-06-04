@@ -70,6 +70,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
                 } transition-colors animate-slideDown [animation-fill-mode:backwards]`}
                 style={{ animationDelay: "0.3s" }}
+                title="Account"
               >
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5">
                   {image ? (

@@ -107,7 +107,7 @@ const Preview = () => {
         >
           <button
             onClick={() => handleOpenFullSize(selectedProject)}
-            title="Open Full Size"
+            title="Open Full Size Page"
             className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
             <FontAwesomeIcon

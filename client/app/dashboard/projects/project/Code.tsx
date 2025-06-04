@@ -32,7 +32,7 @@ const Code: React.FC<CodeProps> = ({ file }) => {
   };
 
   return (
-    <div className="w-full rounded-sm overflow-hidden relative">
+    <div className="w-full rounded-md overflow-hidden relative">
       {/* Top Control Bar */}
       <div
         className={`absolute z-50 top-0 right-0 flex gap-2 p-2 rounded-md border border-zinc-400/20 ${
@@ -47,6 +47,7 @@ const Code: React.FC<CodeProps> = ({ file }) => {
               ? "bg-zinc-800 text-white"
               : "bg-zinc-600 hover:bg-zinc-700 text-white"
           }`}
+          title="Copy"
         >
           <FontAwesomeIcon icon={faCopy} />
           <span className={`md:hidden ${copied && "animate-fade"}`}>
@@ -63,6 +64,7 @@ const Code: React.FC<CodeProps> = ({ file }) => {
               ? "bg-blue-800 text-white cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700 text-white"
           }`}
+          title="Save"
         >
           <FontAwesomeIcon icon={faFileCode} />
           <span className="md:hidden">{isSaving ? "Saving..." : "Save"}</span>
