@@ -191,7 +191,7 @@ const SignUp = () => {
           <h2 className="text-3xl font-bold text-white">
             {isLogin ? "Welcome Back" : "Create Your Account"}
           </h2>
-          <Link href={"/"} className="absolute left-0">
+          <Link href={"/"} className="absolute left-0 top-2">
             <FontAwesomeIcon icon={faArrowLeft} className="h-6" />
           </Link>
           <p className="mt-4 text-gray-400">

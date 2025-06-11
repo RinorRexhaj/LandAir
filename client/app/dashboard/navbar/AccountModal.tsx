@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser,
   faSignOutAlt,
   faTimes,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "../../utils/Supabase";
 import { useRouter } from "next/navigation";
@@ -27,9 +28,12 @@ const AccountModal: React.FC<AccountModalProps> = ({
 }) => {
   const router = useRouter();
   const { darkMode } = useThemeStore();
+  const [loading, setLoading] = useState(false);
 
   const handleSignOut = async () => {
+    setLoading(true);
     await supabase.auth.signOut();
+    setLoading(false);
     router.push("/");
   };
 
@@ -125,7 +129,11 @@ const AccountModal: React.FC<AccountModalProps> = ({
                 : "text-red-500/90 hover:text-gray-100 hover:bg-red-500"
             } rounded-lg font-semibold transition-colors`}
           >
-            <FontAwesomeIcon icon={faSignOutAlt} className="w-5 h-5" />
+            <FontAwesomeIcon
+              icon={loading ? faSpinner : faSignOutAlt}
+              spin={loading}
+              className="w-5 h-5"
+            />
             <span>Sign Out</span>
           </button>
         </div>

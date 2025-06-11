@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ProjectHeader from "./ProjectHeader";
 // import Empty from "./EmptyProject";
 import Prompt from "./Prompt";
@@ -11,7 +11,6 @@ import Generating from "./Generating";
 import Empty from "./EmptyProject";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import useAuth from "@/app/hooks/useAuth";
-import { supabase } from "@/app/utils/Supabase";
 import useApi from "@/app/hooks/useApi";
 import Loading from "./Loading";
 
@@ -24,6 +23,23 @@ const ProjectPage = () => {
   const { darkMode } = useThemeStore();
   const { user } = useAuth();
   const { setLoading, loading, get } = useApi();
+
+  const getUrl = useCallback(async () => {
+    if (!selectedProject) return;
+    setLoading(true);
+    const url = await get(
+      `/api/storage?project_name=${selectedProject.project_name}`
+    );
+    const content: string = await get(`${url}?v=${Date.now()}`);
+
+    if (url && content) {
+      setSelectedProject({ ...selectedProject, file: content });
+      setProjectFile(true);
+    } else {
+      setSelectedProject({ ...selectedProject, file: undefined });
+      setProjectFile(false);
+    }
+  }, [get, selectedProject, setLoading, setSelectedProject]);
 
   useEffect(() => {
     if (selectedProject?.created) {
@@ -40,23 +56,16 @@ const ProjectPage = () => {
     )
       return;
 
-    const getUrl = async () => {
-      setLoading(true);
-      const filePath = `${user.id}/${selectedProject.project_name}`;
-      const { data } = supabase.storage.from("pages").getPublicUrl(filePath);
-      const content: string = await get(`${data.publicUrl}?v=${Date.now()}`);
-
-      if (data && content) {
-        setSelectedProject({ ...selectedProject, file: content });
-        setProjectFile(true);
-      } else {
-        setSelectedProject({ ...selectedProject, file: undefined });
-        setProjectFile(false);
-      }
-    };
-
     getUrl();
-  }, [user, selectedProject, projectFile, setSelectedProject, get, setLoading]);
+  }, [
+    user,
+    selectedProject,
+    projectFile,
+    setSelectedProject,
+    get,
+    setLoading,
+    getUrl,
+  ]);
 
   if (!selectedProject) return null;
 
@@ -120,7 +129,7 @@ const ProjectPage = () => {
           {isGenerating ? (
             <Generating />
           ) : projectFile ? (
-            <Preview />
+            <Preview getUrl={getUrl} />
           ) : loading ? (
             <Loading />
           ) : (

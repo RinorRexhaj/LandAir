@@ -1,3 +1,4 @@
+import useApi from "@/app/hooks/useApi";
 import useAuth from "@/app/hooks/useAuth";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
@@ -24,6 +25,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
   }>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const { user } = useAuth();
+  const { post } = useApi();
   const { darkMode } = useThemeStore();
   const { selectedProject } = useProjectStore();
 
@@ -51,26 +53,21 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
       const formData = new FormData();
 
       // Add project files to FormData
-      const projectFiles = await getProjectFiles();
-      projectFiles.forEach((file: File) => {
-        formData.append("files", file);
-      });
+      const projectFile = await getProjectFile();
+      console.log(projectFile);
+      formData.append("file", projectFile);
 
       appendLog("Uploading project files...");
 
-      const response = await fetch("/api/deploy", {
-        method: "POST",
-        body: formData,
+      const response: VercelDeploymentResponse = await post("/api/deploy", {
+        formData,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Deployment failed");
+      if (!response) {
+        throw new Error("Deployment failed");
       }
 
       appendLog("Deployment successful!");
-      appendLog(`Deployed URL: ${data.url}`);
 
       setStatusMessage({
         type: "success",
@@ -92,11 +89,10 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
     }
   };
 
-  // Helper function to get project files from Supabase storage
-  const getProjectFiles = async (): Promise<File[]> => {
+  const getProjectFile = async (): Promise<File> => {
     try {
       // Get the file path from your project data
-      const filePath = `${user?.id}/${selectedProject?.project_name}`; // Adjust this path based on your storage structure
+      const filePath = `${user?.id}/${selectedProject?.project_name}`;
 
       // Get the public URL of the file
       const { data: urlData } = supabase.storage
@@ -119,7 +115,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
       // Create a File object from the Blob
       const file = new File([blob], "index.html", { type: "text/html" });
 
-      return [file];
+      return file;
     } catch (error) {
       console.error("Error fetching project files:", error);
       throw error;

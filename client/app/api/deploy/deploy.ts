@@ -1,106 +1,59 @@
-// pages/api/deploy.ts
-import type { NextApiRequest, NextApiResponse } from "next";
-// import formidable, { File } from "formidable";
-// import fs from "fs";
-// import crypto from "crypto";
-// import fetch from "node-fetch";
+import crypto from "crypto";
 
-// Required to disable body parsing so formidable can handle it
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export async function deploy(): Promise<{ url: string } | { error: string }> {
+  const htmlContent = `<html><body><h1>Hello from dynamic deploy</h1></body></html>`;
+  const buffer = Buffer.from(htmlContent, "utf-8");
+  const sha = crypto.createHash("sha1").update(buffer).digest("hex");
 
-const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
+  const files = [
+    {
+      file: "index.html",
+      data: buffer,
+      sha,
+    },
+  ];
 
-if (!VERCEL_TOKEN) {
-  throw new Error("VERCEL_TOKEN is not defined in environment variables");
-}
+  const deployment = await createDeployment(files);
+  if ("error" in deployment) return deployment;
 
-// type FileMap = {
-//   file: string;
-//   data: Buffer;
-//   sha: string;
-// };
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<void> {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Method Not Allowed" });
+  // Upload file content
+  for (const f of files) {
+    await uploadFileToVercel(f.sha, f.data);
   }
 
-  console.log("Deploy");
+  return { url: deployment.url };
+}
 
-  //   const form = new formidable.IncomingForm({
-  //     multiples: true,
-  //     keepExtensions: true,
-  //   });
+async function createDeployment(files: { file: string; sha: string }[]) {
+  const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
+  if (!VERCEL_TOKEN) return { error: "Missing VERCEL_TOKEN" };
 
-  //   form.parse(req, async (err, fields, files) => {
-  //     if (err) {
-  //       console.error("File parsing failed:", err);
-  //       return res.status(500).json({ error: "File parsing failed" });
-  //     }
+  const res = await fetch("https://api.vercel.com/v13/deployments", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${VERCEL_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: "manual-deploy",
+      target: "production",
+      files,
+    }),
+  });
 
-  //     const uploadedFiles: File[] = Array.isArray(files.files)
-  //       ? (files.files as File[])
-  //       : [files.files as File];
+  const json = await res.json();
+  if (!res.ok) return { error: json.error?.message || "Deployment failed" };
+  return json;
+}
 
-  //     const fileMap: FileMap[] = uploadedFiles.map((file) => {
-  //       const filePath = file.filepath ?? (file as any).path;
-  //       const data = fs.readFileSync(filePath);
-  //       const sha = crypto.createHash("sha1").update(data).digest("hex");
-  //       return {
-  //         file: file.originalFilename ?? "file",
-  //         data,
-  //         sha,
-  //       };
-  //     });
-
-  //     try {
-  //       // Step 1: Create deployment
-  //       const deployRes = await fetch("https://api.vercel.com/v13/deployments", {
-  //         method: "POST",
-  //         headers: {
-  //           Authorization: `Bearer ${VERCEL_TOKEN}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           files: fileMap.map(({ file, sha }) => ({ file, sha })),
-  //           target: "production",
-  //           name: "manual-static-deploy",
-  //         }),
-  //       });
-
-  //       const deployJson = await deployRes.json();
-
-  //       if (!deployRes.ok) {
-  //         console.error("Vercel deployment failed:", deployJson);
-  //         return res
-  //           .status(500)
-  //           .json({ error: "Deployment failed", details: deployJson });
-  //       }
-
-  //       // Step 2: Upload missing files
-  //       for (const file of fileMap) {
-  //         await fetch(`https://api.vercel.com/v13/files/${file.sha}`, {
-  //           method: "PUT",
-  //           headers: {
-  //             Authorization: `Bearer ${VERCEL_TOKEN}`,
-  //             "Content-Type": "application/octet-stream",
-  //           },
-  //           body: file.data,
-  //         });
-  //       }
-
-  //       return res.status(200).json({ url: deployJson.url });
-  //     } catch (error) {
-  //       console.error("Error during deployment:", error);
-  //       return res.status(500).json({ error: "Unexpected server error" });
-  //     }
-  //   });
+async function uploadFileToVercel(sha: string, data: Buffer) {
+  const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
+  await fetch(`https://api.vercel.com/v13/files/${sha}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${VERCEL_TOKEN}`,
+      "Content-Type": "application/octet-stream",
+    },
+    body: data,
+  });
 }

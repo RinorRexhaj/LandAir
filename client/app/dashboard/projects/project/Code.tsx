@@ -3,29 +3,43 @@ import Editor from "@monaco-editor/react";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileCode, faCopy } from "@fortawesome/free-solid-svg-icons";
+import useApi from "@/app/hooks/useApi";
+import { useProjectStore } from "@/app/store/useProjectsStore";
 
 interface CodeProps {
   file: string;
+  getUrl: () => void;
 }
 
-const Code: React.FC<CodeProps> = ({ file }) => {
+const Code: React.FC<CodeProps> = ({ file, getUrl }) => {
   const [code, setCode] = useState(file);
   const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const { darkMode } = useThemeStore();
+  const { selectedProject } = useProjectStore();
+  const { post, put } = useApi();
 
   const saveCode = async () => {
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log("Code saved:", code);
+    await post(`/api/storage/`, {
+      content: code,
+      filePath: `${selectedProject?.project_name}`,
+    });
+    await put(`/api/projects/${selectedProject?.id}`, {
+      new_name: selectedProject?.project_name,
+    });
     setIsSaving(false);
+    setSaved(true);
+    getUrl();
+    setTimeout(() => setSaved(false), 1000);
   };
 
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      setTimeout(() => setCopied(false), 500); // Reset after 1.5s
+      setTimeout(() => setCopied(false), 500);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -67,7 +81,9 @@ const Code: React.FC<CodeProps> = ({ file }) => {
           title="Save"
         >
           <FontAwesomeIcon icon={faFileCode} />
-          <span className="md:hidden">{isSaving ? "Saving..." : "Save"}</span>
+          <span className="md:hidden">
+            {isSaving ? "Saving..." : saved ? "Saved!" : "Save"}
+          </span>
         </button>
       </div>
 
@@ -82,6 +98,7 @@ const Code: React.FC<CodeProps> = ({ file }) => {
           formatOnPaste: true,
           formatOnType: true,
         }}
+        className={`${isSaving && "animate-glow"}`}
         onChange={(value) => setCode(value || "")}
       />
     </div>

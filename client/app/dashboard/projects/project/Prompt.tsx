@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSpinner,
@@ -37,7 +37,7 @@ const Prompt: React.FC<PromptProps> = ({
   const [enhancing, setEnhancing] = useState(false);
   const { selectedProject, setSelectedProject } = useProjectStore();
   const { user } = useAuth();
-  const { post, put } = useApi();
+  const { get, post, put } = useApi();
   const { darkMode } = useThemeStore();
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
     null
@@ -53,34 +53,37 @@ const Prompt: React.FC<PromptProps> = ({
     }));
   };
 
-  // const pollGenerationStatus = useCallback(
-  //   async (taskId: string) => {
-  //     try {
-  //       const status:  = await get("/api/relevance/"+taskId);
-  //       if (status.status === "completed") {
-  //         if (pollingInterval) {
-  //           clearInterval(pollingInterval);
-  //           setPollingInterval(null);
-  //         }
-  //         return status.answer;
-  //       } else if (status.status === "failed") {
-  //         if (pollingInterval) {
-  //           clearInterval(pollingInterval);
-  //           setPollingInterval(null);
-  //         }
-  //         throw new Error("Website generation failed");
-  //       }
-  //       return null;
-  //     } catch (error) {
-  //       if (pollingInterval) {
-  //         clearInterval(pollingInterval);
-  //         setPollingInterval(null);
-  //       }
-  //       throw error;
-  //     }
-  //   },
-  //   [pollingInterval]
-  // );
+  const pollGenerationStatus = useCallback(
+    async (taskId: string) => {
+      try {
+        const status: {
+          type: string;
+          updates: { _id: number; output: { answer: string } }[];
+        } = await get("/api/relevance?taskId=" + taskId);
+        if (status.type === "complete") {
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            setPollingInterval(null);
+          }
+          return status;
+        } else if (status.type === "failed") {
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            setPollingInterval(null);
+          }
+          return status;
+        }
+        return null;
+      } catch (error) {
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+        throw error;
+      }
+    },
+    [get, pollingInterval]
+  );
 
   const handleSubmit = async () => {
     if (isGenerating) return;
@@ -88,7 +91,7 @@ const Prompt: React.FC<PromptProps> = ({
     setIsGenerating(true);
 
     try {
-      const response: Relevance = await post(`/api/relevance`, {
+      const taskId: string = await post(`/api/relevance`, {
         prompt: requirements.generalDescription,
         type: "generate",
       });
@@ -96,17 +99,21 @@ const Prompt: React.FC<PromptProps> = ({
       // Start polling with the task ID
       const interval = setInterval(async () => {
         try {
-          // const result = await pollGenerationStatus(taskId);
-          // if (result) {
-          const filePath = `${user?.id}/${selectedProject?.project_name}`;
-          await post(`/api/storage/`, { content: response?.answer, filePath });
-          await put(`/api/projects/${selectedProject?.id}`, {
-            new_name: selectedProject?.project_name,
-          });
-          setSelectedProject(selectedProject);
-          setProjectFile(true);
-          setIsGenerating(false);
-          // }
+          const result = await pollGenerationStatus(taskId);
+          if (result?.type === "complete") {
+            const filePath = `${user?.id}/${selectedProject?.project_name}`;
+            await post(`/api/storage/`, {
+              content: result.updates[result.updates.length - 1]?.output.answer,
+              filePath,
+            });
+            await put(`/api/projects/${selectedProject?.id}`, {
+              new_name: selectedProject?.project_name,
+            });
+            setSelectedProject(selectedProject);
+            setProjectFile(true);
+            setIsGenerating(false);
+            return;
+          }
         } catch (error) {
           console.error("Polling error:", error);
           setIsGenerating(false);
@@ -121,7 +128,7 @@ const Prompt: React.FC<PromptProps> = ({
   };
 
   // Cleanup polling interval on component unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (pollingInterval) {
         clearInterval(pollingInterval);

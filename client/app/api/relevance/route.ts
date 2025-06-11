@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateRequest } from "../validateRequest";
-import { enhancePrompt, generateWebsite } from "./relevance";
+import { checkCompletion, enhancePrompt, generateWebsite } from "./relevance";
 
 export async function GET(req: NextRequest) {
   const validation = await validateRequest(req);
   if (validation instanceof NextResponse) {
     return validation;
   }
-  const { prompt } = await req.json();
-  const enhanced = await enhancePrompt(prompt);
-  return NextResponse.json(enhanced);
+  const searchParams = req.nextUrl.searchParams;
+  const taskId = searchParams.get("taskId");
+  if (taskId) {
+    const poll = await checkCompletion(taskId);
+    return NextResponse.json(poll);
+  }
 }
 
 export async function POST(req: NextRequest) {

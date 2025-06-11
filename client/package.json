@@ -17,6 +17,7 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.8",
+    "@vercel/sdk": "^1.8.0",
     "axios": "^1.9.0",
     "formidable": "^3.5.4",
     "javascript-time-ago": "^2.5.11",

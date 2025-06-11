@@ -12,7 +12,11 @@ import React, { useEffect, useRef, useState } from "react";
 import Code from "./Code";
 import { handleDownload, handleOpenFullSize } from "@/app/utils/ProjectActions";
 
-const Preview = () => {
+interface PreviewProps {
+  getUrl: () => void;
+}
+
+const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
   const [mobile, setMobile] = useState(0);
   const [scale, setScale] = useState(1);
   const mainRef = useRef<HTMLDivElement | null>(null);
@@ -142,7 +146,9 @@ const Preview = () => {
             }}
           />
         )}
-        {mobile === 2 && <Code file={selectedProject?.file || ""} />}
+        {mobile === 2 && (
+          <Code file={selectedProject?.file || ""} getUrl={getUrl} />
+        )}
       </div>
     </div>
   );
