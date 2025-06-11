@@ -6,7 +6,8 @@ export async function POST(req: NextRequest) {
   const validation = await validateRequest(req);
   if (validation instanceof NextResponse) return validation;
 
-  const result = await deploy();
+  const { project_name, content } = await req.json();
+  const result = await deploy(project_name, content);
 
   if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: 500 });

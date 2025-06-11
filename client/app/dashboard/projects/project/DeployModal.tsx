@@ -8,6 +8,7 @@ import {
   faSpinner,
   faCheckCircle,
   faTimesCircle,
+  faGlobe,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
@@ -24,6 +25,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
     text: string;
   }>(null);
   const [logs, setLogs] = useState<string[]>([]);
+  const [url, setUrl] = useState("");
   const { user } = useAuth();
   const { post } = useApi();
   const { darkMode } = useThemeStore();
@@ -57,21 +59,24 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
       console.log(projectFile);
       formData.append("file", projectFile);
 
-      appendLog("Uploading project files...");
+      setTimeout(() => appendLog("Uploading project files..."), 500);
+      setTimeout(() => appendLog("Deploying..."), 1000);
 
-      const response: VercelDeploymentResponse = await post("/api/deploy", {
-        formData,
+      const { url }: VercelDeploymentResponse = await post("/api/deploy", {
+        project_name: selectedProject.project_name.toLowerCase(),
+        content: selectedProject.file,
       });
 
-      if (!response) {
+      if (!url) {
         throw new Error("Deployment failed");
       }
+      setUrl(url);
 
       appendLog("Deployment successful!");
 
       setStatusMessage({
         type: "success",
-        text: "Deployment completed successfully.",
+        text: `Deployment completed successfully. View at: `,
       });
     } catch (err: unknown) {
       console.error(err);
@@ -176,6 +181,17 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
           />
           {statusMessage?.text}
         </div>
+        {url && (
+          <a
+            href={`https://${url}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-sm gap-1 text-blue-600 hover:underline hover:text-blue-800 transition-colors duration-200"
+          >
+            {url}
+            <FontAwesomeIcon icon={faGlobe} />
+          </a>
+        )}
 
         <div className="flex justify-end gap-4 pt-2">
           <button
@@ -191,7 +207,9 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
 
           <button
             onClick={handleDeploy}
-            disabled={isDeploying || !confirmation}
+            disabled={
+              isDeploying || !confirmation || statusMessage?.type === "success"
+            }
             className="px-4 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDeploying ? (
