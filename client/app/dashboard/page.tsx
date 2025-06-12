@@ -42,7 +42,6 @@ const Dashboard = () => {
         userName={safeUserName}
         userEmail={safeUserEmail}
         image={safeUserImage}
-        credits={5}
       />
 
       <div

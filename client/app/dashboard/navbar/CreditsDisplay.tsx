@@ -1,18 +1,30 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCoins } from "@fortawesome/free-solid-svg-icons";
+import useApi from "@/app/hooks/useApi";
+import { useCreditStore } from "@/app/store/useCreditStore";
 
 interface CreditsDisplayProps {
-  credits: number;
   darkMode: boolean;
   setIsBuyCreditsModalOpen: (open: boolean) => void;
 }
 
 const CreditsDisplay: React.FC<CreditsDisplayProps> = ({
-  credits,
   darkMode,
   setIsBuyCreditsModalOpen,
 }) => {
+  const { credits, setCredits } = useCreditStore();
+  const { loading, get } = useApi();
+
+  useEffect(() => {
+    const getCredits = async () => {
+      const { credits }: { credits: number } = await get(`/api/credits`);
+      setCredits(credits);
+    };
+
+    getCredits();
+  }, [get, setCredits]);
+
   return (
     <div
       className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group cursor-pointer animate-slideDown [animation-fill-mode:backwards]"
@@ -35,9 +47,9 @@ const CreditsDisplay: React.FC<CreditsDisplayProps> = ({
           darkMode
             ? "text-gray-300 group-hover:text-gray-300"
             : "text-zinc-800 group-hover:text-zinc-900"
-        } transition-colors`}
+        } transition-colors ${loading && "animate-glow"}`}
       >
-        {credits} <span className="md:hidden">Credits</span>
+        {!loading ? credits : ""} <span className="md:hidden">Credits</span>
       </span>
     </div>
   );

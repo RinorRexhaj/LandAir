@@ -1,5 +1,6 @@
 import useApi from "@/app/hooks/useApi";
 import useAuth from "@/app/hooks/useAuth";
+import { useCreditStore } from "@/app/store/useCreditStore";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { supabase } from "@/app/utils/Supabase";
@@ -11,6 +12,7 @@ import {
   faGlobe,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import React, { useState } from "react";
 
 interface DeployModalProps {
@@ -27,15 +29,17 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [url, setUrl] = useState("");
   const { user } = useAuth();
-  const { post } = useApi();
+  const { post, put } = useApi();
   const { darkMode } = useThemeStore();
-  const { selectedProject } = useProjectStore();
+  const { selectedProject, setSelectedProject } = useProjectStore();
+  const { credits, setCredits } = useCreditStore();
 
   const appendLog = (msg: string) => {
     setLogs((prev) => [...prev, msg]);
   };
 
   const handleDeploy = async () => {
+    if (isDeploying) return;
     if (!selectedProject) {
       setStatusMessage({
         type: "error",
@@ -56,7 +60,6 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
 
       // Add project files to FormData
       const projectFile = await getProjectFile();
-      console.log(projectFile);
       formData.append("file", projectFile);
 
       setTimeout(() => appendLog("Uploading project files..."), 500);
@@ -65,12 +68,16 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
       const { url }: VercelDeploymentResponse = await post("/api/deploy", {
         project_name: selectedProject.project_name.toLowerCase(),
         content: selectedProject.file,
+        project_id: selectedProject.id,
       });
 
       if (!url) {
         throw new Error("Deployment failed");
       }
       setUrl(url);
+      const { credits }: { credits: number } = await put(`/api/credits`);
+      setCredits(credits);
+      setSelectedProject({ ...selectedProject, url });
 
       appendLog("Deployment successful!");
 
@@ -208,9 +215,13 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
           <button
             onClick={handleDeploy}
             disabled={
-              isDeploying || !confirmation || statusMessage?.type === "success"
+              isDeploying ||
+              !confirmation ||
+              statusMessage?.type === "success" ||
+              credits < 3
             }
-            className="px-4 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={credits < 3 ? "Not enough credits" : ""}
+            className="px-4 py-2 rounded-lg md:rounded font-medium bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDeploying ? (
               <>
@@ -224,6 +235,17 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
               <>
                 <FontAwesomeIcon icon={faRocket} className="w-4 h-4" />
                 Deploy
+                <span className="flex gap-1">
+                  (3{" "}
+                  <Image
+                    src={"credit.svg"}
+                    alt="Credits"
+                    width={16}
+                    height={16}
+                    className="-mr-1 mt-0.5"
+                  />
+                  )
+                </span>
               </>
             )}
           </button>

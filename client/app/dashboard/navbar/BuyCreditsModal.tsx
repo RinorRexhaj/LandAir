@@ -1,20 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
+import { loadStripe } from "@stripe/stripe-js";
+import useApi from "@/app/hooks/useApi";
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
 const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
   isOpen,
   onClose,
 }) => {
   const { darkMode } = useThemeStore();
-
-  if (!isOpen) return null;
+  const { post } = useApi();
+  const [redirecting, setRedirecting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -39,6 +44,22 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
     },
   ];
 
+  const buyNow = async (type: string) => {
+    setRedirecting(true);
+    let priceId;
+    if (type === "growth") {
+      priceId = process.env.NEXT_PUBLIC_STRIPE_GROWTH;
+    } else if (type === "scale") {
+      priceId = process.env.NEXT_PUBLIC_STRIPE_SCALE;
+    }
+    const { sessionId }: { sessionId: string } = await post(`/api/payment`, {
+      priceId,
+    });
+    const stripe = await stripePromise;
+    await stripe?.redirectToCheckout({ sessionId });
+    setRedirecting(false);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
@@ -55,7 +76,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-700/20"
-        } shadow-2xl`}
+        } shadow-2xl ${redirecting && "animate-glow"}`}
       >
         {/* Close button */}
         <button
@@ -76,7 +97,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
               darkMode ? "text-white" : "text-zinc-900"
             }`}
           >
-            Buy Credits
+            {redirecting ? "Redirecting..." : "Buy Credits"}
           </h2>
           <p className={`mt-2 ${darkMode ? "text-gray-400" : "text-zinc-600"}`}>
             Choose a credit bundle that fits your needs
@@ -144,8 +165,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
 
               <button
                 onClick={() => {
-                  // Add payment processing logic here
-                  console.log(`Selected plan: ${plan.name}`);
+                  buyNow(plan.name.toLowerCase());
                 }}
                 className={`w-full py-3 rounded-full font-semibold backdrop-blur-sm ${
                   index === 0

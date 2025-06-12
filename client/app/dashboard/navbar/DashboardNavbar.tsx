@@ -10,14 +10,12 @@ interface DashboardNavbarProps {
   userName: string;
   userEmail: string;
   image?: string;
-  credits?: number;
 }
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   userName,
   userEmail,
   image,
-  credits = 5,
 }) => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isBuyCreditsModalOpen, setIsBuyCreditsModalOpen] = useState(false);
@@ -60,7 +58,6 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             <div className="flex items-center gap-2.5 md:gap-1">
               <CreditsDisplay
                 darkMode={darkMode}
-                credits={credits}
                 setIsBuyCreditsModalOpen={setIsBuyCreditsModalOpen}
               />
               <ThemeToggle />

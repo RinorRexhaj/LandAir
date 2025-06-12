@@ -1,3 +1,5 @@
+import { supabase } from "../supabase";
+
 const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
 
 if (!VERCEL_TOKEN) {
@@ -12,7 +14,9 @@ interface DeployFile {
 
 export async function deploy(
   project_name: string,
-  content: string
+  project_id: number,
+  content: string,
+  user_id: string
 ): Promise<{ url: string } | { error: string }> {
   const buffer = Buffer.from(content, "utf-8");
 
@@ -27,7 +31,13 @@ export async function deploy(
   const deployment = await createDeployment(files, project_name);
   if ("error" in deployment) return deployment;
 
-  return { url: deployment.url };
+  // Get production domain (preferred over `deployment.url`)
+  const productionDomain = deployment?.alias?.[0] || deployment?.url;
+
+  // Update project in Supabase
+  await updateProjectUrl(user_id, project_id, productionDomain);
+
+  return { url: productionDomain };
 }
 
 async function createDeployment(files: DeployFile[], name: string) {
@@ -42,10 +52,10 @@ async function createDeployment(files: DeployFile[], name: string) {
       target: "production",
       files,
       projectSettings: {
-        framework: null, // Static
+        framework: null, // Static site
         devCommand: "",
         buildCommand: "",
-        outputDirectory: ".", // root
+        outputDirectory: ".",
       },
     }),
   });
@@ -57,3 +67,23 @@ async function createDeployment(files: DeployFile[], name: string) {
 
   return json;
 }
+
+export const updateProjectUrl = async (
+  user_id: string,
+  project_id: number,
+  url: string
+): Promise<void> => {
+  const { error } = await supabase
+    .from("Projects")
+    .update({
+      last_edited: new Date().toISOString(),
+      url,
+    })
+    .eq("user_id", user_id)
+    .eq("id", project_id)
+    .select();
+
+  if (error) {
+    console.error("Error updating project URL:", error.message);
+  }
+};

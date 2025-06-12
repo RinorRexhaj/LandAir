@@ -76,7 +76,7 @@ const ProjectPage = () => {
 
       {/* Toggle Preview/Prompt */}
       <div
-        className={`absolute right-7 top-20 md:right-4 md:top-[72px] hidden z-50 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
+        className={`absolute right-7 top-20 md:right-4 md:top-[72px] hidden z-40 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
           darkMode
             ? "bg-zinc-800/20 border-gray-200/20"
             : "bg-zinc-100/80 border-gray-300/50"
@@ -92,6 +92,7 @@ const ProjectPage = () => {
           }`}
           onClick={() => setActiveView("preview")}
           title="Preview"
+          disabled={loading}
         >
           <FontAwesomeIcon icon={faDisplay} className="w-4 h-4" />
           <p className="md:hidden">Preview</p>
@@ -107,6 +108,7 @@ const ProjectPage = () => {
           }`}
           onClick={() => setActiveView("prompt")}
           title="Generate"
+          disabled={loading}
         >
           <FontAwesomeIcon icon={faRobot} className="w-4 h-4" />
           <p className="md:hidden">Generate</p>

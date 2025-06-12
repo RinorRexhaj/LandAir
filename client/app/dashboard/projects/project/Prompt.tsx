@@ -6,9 +6,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { useProjectStore } from "@/app/store/useProjectsStore";
-import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
 import { Relevance } from "@/app/types/Relevance";
+import Image from "next/image";
+import { useCreditStore } from "@/app/store/useCreditStore";
 
 interface WebsiteRequirements {
   generalDescription: string;
@@ -36,9 +37,10 @@ const Prompt: React.FC<PromptProps> = ({
   });
   const [enhancing, setEnhancing] = useState(false);
   const { selectedProject, setSelectedProject } = useProjectStore();
-  const { user } = useAuth();
   const { get, post, put } = useApi();
+  const { credits, setCredits } = useCreditStore();
   const { darkMode } = useThemeStore();
+  const [result, setResult] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
     null
   );
@@ -55,10 +57,11 @@ const Prompt: React.FC<PromptProps> = ({
 
   const pollGenerationStatus = useCallback(
     async (taskId: string) => {
+      if (result) return;
       try {
         const status: {
           type: string;
-          updates: { _id: number; output: { answer: string } }[];
+          updates: { _id: number; output: { output: { answer: string } } }[];
         } = await get("/api/relevance?taskId=" + taskId);
         if (status.type === "complete") {
           if (pollingInterval) {
@@ -82,15 +85,18 @@ const Prompt: React.FC<PromptProps> = ({
         throw error;
       }
     },
-    [get, pollingInterval]
+    [get, pollingInterval, result]
   );
 
   const handleSubmit = async () => {
-    if (isGenerating) return;
+    if (isGenerating || enhancing) return;
+    if (credits < 3) return;
 
     setIsGenerating(true);
 
     try {
+      const { credits }: { credits: number } = await put(`/api/credits`);
+      setCredits(credits);
       const taskId: string = await post(`/api/relevance`, {
         prompt: requirements.generalDescription,
         type: "generate",
@@ -98,12 +104,16 @@ const Prompt: React.FC<PromptProps> = ({
 
       // Start polling with the task ID
       const interval = setInterval(async () => {
+        if (result) return;
         try {
           const result = await pollGenerationStatus(taskId);
           if (result?.type === "complete") {
-            const filePath = `${user?.id}/${selectedProject?.project_name}`;
+            setResult(true);
+            const filePath = `${selectedProject?.project_name}`;
+            const content =
+              result.updates[result.updates.length - 1]?.output.output.answer;
             await post(`/api/storage/`, {
-              content: result.updates[result.updates.length - 1]?.output.answer,
+              content,
               filePath,
             });
             await put(`/api/projects/${selectedProject?.id}`, {
@@ -137,6 +147,7 @@ const Prompt: React.FC<PromptProps> = ({
   }, [pollingInterval]);
 
   const enhanceDescription = async () => {
+    if (isGenerating || enhancing) return;
     if (!requirements.generalDescription) return;
     setEnhancing(true);
     const enhanced: Relevance = await post(`/api/relevance`, {
@@ -168,7 +179,9 @@ const Prompt: React.FC<PromptProps> = ({
             <div className="bg-transparent tb:bg-zinc-900 tb:p-1.5 rounded-md tb:border tb:border-zinc-500/50 tb:absolute tb:top-6 tb:right-0">
               <button
                 className={`px-2 py-1.5 bg-violet-700/80 hover:bg-violet-700 transition-colors rounded-md flex items-center justify-center text-gray-100 `}
-                disabled={!requirements.generalDescription || isGenerating}
+                disabled={
+                  !requirements.generalDescription || isGenerating || enhancing
+                }
                 onClick={enhanceDescription}
               >
                 <FontAwesomeIcon
@@ -262,11 +275,20 @@ const Prompt: React.FC<PromptProps> = ({
       </div>
       <button
         onClick={handleSubmit}
-        disabled={isGenerating || !requirements.generalDescription}
+        disabled={
+          isGenerating || !requirements.generalDescription || credits < 3
+        }
+        title={
+          credits < 3
+            ? "Not enough credits"
+            : !requirements.generalDescription
+            ? "General Description is required"
+            : ""
+        }
         className={`w-full py-3 rounded-lg transition-colors bg-blue-600 hover:bg-blue-700 text-white font-medium ${
           isGenerating
             ? "animate-glow cursor-not-allowed"
-            : !requirements.generalDescription
+            : !requirements.generalDescription || credits < 3
             ? "opacity-70 cursor-not-allowed"
             : ""
         }`}
@@ -282,7 +304,18 @@ const Prompt: React.FC<PromptProps> = ({
         ) : (
           <span className="flex items-center justify-center gap-2">
             <FontAwesomeIcon icon={faWandMagicSparkles} />
-            Generate Website
+            Generate Website{" "}
+            <span className="flex gap-1">
+              (3{" "}
+              <Image
+                src={"credit.svg"}
+                alt="Credits"
+                width={16}
+                height={16}
+                className="-mr-1 mt-0.5"
+              />
+              )
+            </span>
           </span>
         )}
       </button>
