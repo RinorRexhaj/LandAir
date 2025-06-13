@@ -18,6 +18,7 @@ interface NavItem {
 interface DashboardSidebarProps {
   activeLink: number;
   setActiveLink: (link: number) => void;
+  isOpen: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -31,17 +32,17 @@ const navItems: NavItem[] = [
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeLink,
   setActiveLink,
+  isOpen,
 }) => {
   const { darkMode } = useThemeStore();
 
   return (
     <aside
-      className={`w-48 md:w-14 border-r ${
+      className={`fixed top-[60px] left-0 h-[calc(100vh-57px)] transition-all duration-300 ease-in-out ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      } w-48 md:w-14 border-r ${
         darkMode ? "border-white/10" : "border-zinc-900/10"
-      } px-5 py-6 md:p-4`}
-      style={{
-        height: "calc(100% + 18px)",
-      }}
+      } px-5 py-6 md:p-4 bg-inherit`}
     >
       <nav className="space-y-1.5 flex flex-col items-center">
         {navItems.map((item, index) => (

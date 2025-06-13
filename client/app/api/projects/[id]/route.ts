@@ -4,7 +4,7 @@ import { validateRequest } from "../../validateRequest";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const validation = await validateRequest(req);
   if (validation instanceof NextResponse) {
@@ -14,7 +14,7 @@ export async function PUT(
   const { new_name } = await req.json();
   const updated = await updateProject(
     validation.user.id,
-    parseInt(params.id),
+    parseInt((await params).id),
     new_name
   );
   return NextResponse.json(updated);
@@ -22,13 +22,16 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const validation = await validateRequest(req);
   if (validation instanceof NextResponse) {
     return validation;
   }
 
-  const success = await deleteProject(parseInt(params.id), validation.user.id);
+  const success = await deleteProject(
+    parseInt((await params).id),
+    validation.user.id
+  );
   return NextResponse.json({ success });
 }

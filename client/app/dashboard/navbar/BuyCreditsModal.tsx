@@ -67,7 +67,9 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         className={`absolute inset-0 ${
           darkMode ? "bg-black/50" : "bg-white/5"
         } backdrop-blur-sm`}
-        onClick={onClose}
+        onClick={() => {
+          if (!redirecting) onClose();
+        }}
       />
 
       {/* Modal */}
@@ -80,7 +82,9 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
       >
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={() => {
+            if (!redirecting) onClose();
+          }}
           className={`absolute top-4 right-4 ${
             darkMode
               ? "text-gray-400 hover:text-white"

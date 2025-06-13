@@ -65,7 +65,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
       setTimeout(() => appendLog("Uploading project files..."), 500);
       setTimeout(() => appendLog("Deploying..."), 1000);
 
-      const { url }: VercelDeploymentResponse = await post("/api/deploy", {
+      const { url }: { url: string } = await post("/api/deploy", {
         project_name: selectedProject.project_name.toLowerCase(),
         content: selectedProject.file,
         project_id: selectedProject.id,

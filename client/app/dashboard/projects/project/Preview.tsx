@@ -41,6 +41,25 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
     return () => window.removeEventListener("resize", updateScale);
   }, [mobile]);
 
+  const injectLinkFixScript = (html: string): string => {
+    const script = `
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("a").forEach(a => {
+          a.setAttribute("target", "_self");
+          a.addEventListener("click", function (e) {
+            const href = a.getAttribute("href");
+            if (href === "#" || href === "") {
+              e.preventDefault();
+            }
+          });
+        });
+      });
+    <\/script>
+  `;
+    return html + script;
+  };
+
   return (
     <div
       className="w-full h-full flex flex-col gap-3 animate-fade"
@@ -134,7 +153,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
         {(scale < 1 || mobile) && selectedProject?.file && mobile < 2 && (
           <iframe
             key={selectedProject.file}
-            srcDoc={selectedProject?.file}
+            srcDoc={injectLinkFixScript(selectedProject?.file)}
             className="rounded-lg shadow-md"
             style={{
               border: "none",

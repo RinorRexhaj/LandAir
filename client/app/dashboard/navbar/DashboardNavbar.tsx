@@ -5,17 +5,22 @@ import ThemeToggle from "./ThemeToggle";
 import CreditsDisplay from "./CreditsDisplay";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import BuyCreditsModal from "./BuyCreditsModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 
 interface DashboardNavbarProps {
   userName: string;
   userEmail: string;
   image?: string;
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
 }
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   userName,
   userEmail,
   image,
+  toggleSidebar,
 }) => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isBuyCreditsModalOpen, setIsBuyCreditsModalOpen] = useState(false);
@@ -40,10 +45,25 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             : "bg-white border-zinc-900/10"
         } backdrop-blur-md border-b`}
       >
-        <div className="w-full py-2 px-8 md:px-4">
+        <div className="w-full py-2 px-6 md:px-4">
           <div className="flex items-center justify-between">
             {/* Left side - Brand and Navigation */}
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              {/* Menu Button */}
+              <button
+                onClick={toggleSidebar}
+                className={`p-2 md:pl-0 mt-0.5 flex items-center justify-center rounded-lg ${
+                  darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
+                } transition-colors`}
+                title="Toggle Menu"
+              >
+                <FontAwesomeIcon
+                  icon={faBars}
+                  className={`w-5 h-5 ${
+                    darkMode ? "text-white" : "text-zinc-900"
+                  }`}
+                />
+              </button>
               {/* Brand */}
               <h1
                 className={`text-2xl overflow-hidden font-bold ${
@@ -63,7 +83,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
-                className={`flex items-center gap-3 px-4 py-1.5 md:px-1.5 rounded-lg ${
+                className={`flex items-center gap-2 px-2.5 py-1.5 md:px-1.5 rounded-lg ${
                   darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
                 } transition-colors animate-slideDown [animation-fill-mode:backwards]`}
                 style={{ animationDelay: "0.3s" }}
@@ -80,7 +100,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     />
                   ) : (
                     <div
-                      className={`w-full h-full flex items-center rounded-full font-semibold justify-center text-sm ${
+                      className={`w-full max-w-48 h-full flex items-center rounded-full font-semibold justify-center text-sm  truncate ${
                         darkMode
                           ? "text-gray-300 bg-white/5"
                           : "text-zinc-800 bg-black/10"

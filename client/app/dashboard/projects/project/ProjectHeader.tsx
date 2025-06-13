@@ -84,27 +84,25 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   return (
     <>
       <div className="relative h-8 flex items-center justify-between mb-6">
-        <button
-          onClick={() => setSelectedProject(null)}
-          className={`flex items-center gap-2 py-2 rounded-lg font-medium transition-colors animate-fade ${
-            darkMode ? "hover:text-white" : "hover:text-zinc-900"
-          }`}
-          title="Back to Projects"
-        >
-          <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
-          <p className="md:hidden">Projects</p>
-        </button>
-
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setSelectedProject(null)}
+            className={`flex items-center gap-2 py-2 rounded-lg font-medium transition-colors animate-fade ${
+              darkMode ? "hover:text-white" : "hover:text-zinc-900"
+            }`}
+            title="Back to Projects"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
+          </button>
           {isEditing ? (
-            <div className="flex justify-center items-center md:gap-0.5 gap-2">
+            <div className="flex justify-start items-center md:gap-0.5 gap-2">
               <input
                 ref={inputRef}
                 type="text"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className={`text-xl font-medium rounded-lg px-3 md:px-2 py-1 transition-all border focus:outline-none w-2/3 md:w-1/2
+                className={`text-xl text-left font-medium rounded-lg px-3 md:px-2 py-1 transition-all border focus:outline-none w-2/3 md:w-1/2
                   ${
                     darkMode
                       ? "bg-zinc-800 text-white border-zinc-700 focus:border-blue-500"
@@ -153,7 +151,9 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
               href={"https://" + selectedProject.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-2.5 md:px-2.5 md:py-2 rounded-lg md:rounded bg-zinc-700 flex items-center justify-center"
+              className={`px-3 py-2.5 md:px-2.5 md:py-2 rounded-lg md:rounded ${
+                darkMode ? "bg-zinc-700" : "bg-gray-200"
+              } flex items-center justify-center`}
               title="View Live Page"
             >
               <FontAwesomeIcon

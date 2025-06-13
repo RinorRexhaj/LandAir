@@ -10,6 +10,7 @@ import { useThemeStore } from "../store/useThemeStore";
 
 const Dashboard = () => {
   const [activeLink, setActiveLink] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
   const { darkMode } = useThemeStore();
@@ -42,6 +43,8 @@ const Dashboard = () => {
         userName={safeUserName}
         userEmail={safeUserEmail}
         image={safeUserImage}
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
       <div
@@ -54,8 +57,9 @@ const Dashboard = () => {
         <DashboardSidebar
           activeLink={activeLink}
           setActiveLink={setActiveLink}
+          isOpen={isSidebarOpen}
         />
-        <main className="flex-1 px-7 py-6 md:p-4">{<Projects />}</main>
+        <main className="flex-1 px-8 py-6 md:p-4">{<Projects />}</main>
       </div>
     </div>
   );
