@@ -71,7 +71,6 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
           new_name: projectName,
         }
       );
-      // setSelectedProject(updatedProject[0]);
       changeProject(updatedProject[0]);
       setIsEditing(false);
     } catch (error) {
@@ -83,7 +82,7 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
 
   return (
     <>
-      <div className="relative h-8 flex items-center justify-between mb-6">
+      <div className="relative h-8 flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => setSelectedProject(null)}
@@ -102,7 +101,7 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className={`text-xl text-left font-medium rounded-lg px-3 md:px-2 py-1 transition-all border focus:outline-none w-2/3 md:w-1/2
+                className={`text-lg text-left font-medium rounded-lg px-3 md:px-2 py-1 transition-all border focus:outline-none w-2/3 md:w-1/2
                   ${
                     darkMode
                       ? "bg-zinc-800 text-white border-zinc-700 focus:border-blue-500"
@@ -136,7 +135,7 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
           ) : (
             <h2
               onClick={() => setIsEditing(true)}
-              className={`text-2xl text-center md:text-xl font-semibold cursor-pointer hover:opacity-80 transition-opacity ${
+              className={`text-xl text-center md:text-xl font-semibold cursor-pointer hover:opacity-80 transition-opacity ${
                 darkMode ? "text-white" : "text-zinc-900"
               }`}
             >

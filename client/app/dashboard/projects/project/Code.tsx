@@ -49,7 +49,7 @@ const Code: React.FC<CodeProps> = ({ file, getUrl }) => {
     <div className="w-full rounded-md overflow-hidden relative">
       {/* Top Control Bar */}
       <div
-        className={`absolute z-50 top-0 right-0 flex gap-2 p-2 rounded-md border border-zinc-400/20 ${
+        className={`absolute z-40 top-0 right-0 flex gap-2 p-2 rounded-md border border-zinc-400/20 ${
           darkMode ? "bg-zinc-900" : "bg-gray-100"
         } shadow-lg`}
       >

@@ -38,18 +38,20 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   return (
     <aside
-      className={`fixed top-[60px] left-0 h-[calc(100vh-57px)] transition-all duration-300 ease-in-out ${
+      className={`fixed top-[49px] left-0 h-[calc(100vh-57px)] transition-all z-40 duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
-      } w-48 md:w-14 border-r ${
-        darkMode ? "border-white/10" : "border-zinc-900/10"
-      } px-5 py-6 md:p-4 bg-inherit`}
+      } w-48 md:w-40 border-r ${
+        darkMode
+          ? "border-white/10 bg-zinc-900"
+          : "border-zinc-900/10 bg-white/10"
+      } px-5 py-6 md:p-4`}
     >
       <nav className="space-y-1.5 flex flex-col items-center">
         {navItems.map((item, index) => (
           <button
             key={item.name}
             onClick={() => setActiveLink(index)}
-            className={`w-40 md:w-10 flex items-center md:justify-center text-sm gap-3.5 px-4 py-2 rounded-lg transition-colors group ${
+            className={`w-40 md:w-32 flex items-center text-sm gap-3.5 px-4 py-2 rounded-lg transition-colors group ${
               index === activeLink
                 ? darkMode
                   ? "text-white bg-white/5"
@@ -70,7 +72,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   : "group-hover:text-zinc-900"
               } transition-colors`}
             />
-            <span className="font-medium md:hidden">{item.name}</span>
+            <span className="font-medium">{item.name}</span>
           </button>
         ))}
       </nav>

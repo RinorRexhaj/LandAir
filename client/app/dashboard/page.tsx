@@ -50,8 +50,8 @@ const Dashboard = () => {
       <div
         className="absolute w-full flex"
         style={{
-          top: "61px",
-          height: "calc(100vh - 80px)",
+          top: "40px",
+          height: "calc(100vh - 40px)",
         }}
       >
         <DashboardSidebar

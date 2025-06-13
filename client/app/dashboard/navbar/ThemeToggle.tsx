@@ -8,7 +8,7 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
-      className={`w-11 h-10 flex items-center justify-center rounded-lg animate-slideDown [animation-fill-mode:backwards] transition-colors ${
+      className={`w-10 h-8 flex items-center justify-center rounded-lg animate-slideDown [animation-fill-mode:backwards] transition-colors ${
         darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
       }`}
       style={{ animationDelay: "0.2s" }}

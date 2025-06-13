@@ -20,6 +20,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
   const { darkMode } = useThemeStore();
   const { post } = useApi();
   const [redirecting, setRedirecting] = useState(false);
+  const [activePlan, setActivePlan] = useState(0);
 
   if (!isOpen) return null;
 
@@ -108,12 +109,33 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
           </p>
         </div>
 
+        {/* Plan Switcher - Mobile Only */}
+        <div className="md:flex hidden mb-6 bg-white/5 rounded-lg p-1">
+          {creditPlans.map((plan, index) => (
+            <button
+              key={index}
+              onClick={() => setActivePlan(index)}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                activePlan === index
+                  ? darkMode
+                    ? "bg-white/10 text-white"
+                    : "bg-zinc-200 text-zinc-900"
+                  : darkMode
+                  ? "text-gray-400 hover:text-white"
+                  : "text-zinc-600 hover:text-zinc-900"
+              }`}
+            >
+              {plan.name}
+            </button>
+          ))}
+        </div>
+
         {/* Credit Plans */}
-        <div className="w-full flex md:flex-col gap-4">
+        <div className="w-full flex gap-4">
           {creditPlans.map((plan, index) => (
             <div
               key={index}
-              className={`w-full relative p-6 rounded-xl backdrop-blur-md ${
+              className={`w-full relative p-6 rounded-xl backdrop-blur-md transition-all duration-300 ${
                 index === 0
                   ? darkMode
                     ? "bg-blue-600/20 border border-blue-500/30"
@@ -121,7 +143,9 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
                   : darkMode
                   ? "bg-violet-700/20 border border-violet-500/30"
                   : "bg-violet-700/60"
-              } shadow-lg hover:shadow-xl transition-all duration-300`}
+              } shadow-lg hover:shadow-xl ${
+                index === activePlan ? "md:block" : "md:hidden block"
+              }`}
             >
               <div className="flex items-center gap-4 mb-2">
                 <h3 className="text-2xl font-bold text-white">{plan.name}</h3>

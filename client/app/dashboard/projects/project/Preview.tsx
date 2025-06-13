@@ -122,7 +122,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
         <div
           className={`flex px-2 py-1.5 rounded-lg items-center gap-1 ${
             mobile === 2 && "md:hidden"
-          } md:absolute md:top-[53px] md:right-0 md:z-50 border transition-all duration-200 ${
+          } md:absolute md:top-[53px] md:right-0 md:z-40 border transition-all duration-200 ${
             darkMode
               ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
               : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"

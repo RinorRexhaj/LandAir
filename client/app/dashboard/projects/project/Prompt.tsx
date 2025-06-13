@@ -22,12 +22,14 @@ interface PromptProps {
   isGenerating: boolean;
   setIsGenerating: (generating: boolean) => void;
   setProjectFile: (file: boolean) => void;
+  getUrl: () => void;
 }
 
 const Prompt: React.FC<PromptProps> = ({
   isGenerating,
   setIsGenerating,
   setProjectFile,
+  getUrl,
 }) => {
   const [requirements, setRequirements] = useState<WebsiteRequirements>({
     generalDescription: "",
@@ -36,7 +38,7 @@ const Prompt: React.FC<PromptProps> = ({
     additionalInfo: "",
   });
   const [enhancing, setEnhancing] = useState(false);
-  const { selectedProject, setSelectedProject } = useProjectStore();
+  const { selectedProject } = useProjectStore();
   const { get, post, put } = useApi();
   const { credits, setCredits } = useCreditStore();
   const { darkMode } = useThemeStore();
@@ -63,20 +65,7 @@ const Prompt: React.FC<PromptProps> = ({
           type: string;
           updates: { _id: number; output: { output: { answer: string } } }[];
         } = await get("/api/relevance?taskId=" + taskId);
-        if (status.type === "complete") {
-          if (pollingInterval) {
-            clearInterval(pollingInterval);
-            setPollingInterval(null);
-          }
-          return status;
-        } else if (status.type === "failed") {
-          if (pollingInterval) {
-            clearInterval(pollingInterval);
-            setPollingInterval(null);
-          }
-          return status;
-        }
-        return null;
+        return status;
       } catch (error) {
         if (pollingInterval) {
           clearInterval(pollingInterval);
@@ -102,37 +91,43 @@ const Prompt: React.FC<PromptProps> = ({
         type: "generate",
       });
 
-      // Start polling with the task ID
-      const interval = setInterval(async () => {
-        if (result) return;
-        try {
-          const result = await pollGenerationStatus(taskId);
-          if (result?.type === "complete") {
-            setResult(true);
-            const filePath = `${selectedProject?.project_name}`;
-            const content =
-              result.updates[result.updates.length - 1]?.output.output.answer;
-            await post(`/api/storage/`, {
-              content,
-              filePath,
-            });
-            await put(`/api/projects/${selectedProject?.id}`, {
-              new_name: selectedProject?.project_name,
-            });
-            setSelectedProject(selectedProject);
-            setProjectFile(true);
-            setIsGenerating(false);
-            return;
-          }
-        } catch (error) {
-          console.error("Polling error:", error);
-          setIsGenerating(false);
-        }
-      }, 5000); // Poll every 5 seconds
-
-      setPollingInterval(interval);
+      await startPolling(taskId);
     } catch (error) {
       console.error(error);
+      setIsGenerating(false);
+    }
+  };
+
+  const startPolling = async (taskId: string) => {
+    try {
+      const status = await pollGenerationStatus(taskId);
+
+      if (status?.type === "complete") {
+        setResult(true);
+        const filePath = `${selectedProject?.project_name}`;
+        const content =
+          status.updates[status.updates.length - 1]?.output.output.answer;
+
+        await post(`/api/storage/`, { content, filePath });
+        await put(`/api/projects/${selectedProject?.id}`, {
+          new_name: selectedProject?.project_name,
+        });
+        getUrl();
+        setProjectFile(true);
+        setIsGenerating(false);
+        return;
+      }
+
+      if (status?.type === "failed") {
+        console.error("Generation failed");
+        setIsGenerating(false);
+        return;
+      }
+
+      // Wait 5s then recurse
+      setTimeout(() => startPolling(taskId), 5000);
+    } catch (error) {
+      console.error("Polling error:", error);
       setIsGenerating(false);
     }
   };

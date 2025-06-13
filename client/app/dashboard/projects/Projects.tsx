@@ -81,9 +81,9 @@ const Projects = () => {
       ) : (
         <>
           {/* Header */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between">
             <h2
-              className={`text-2xl font-semibold ${
+              className={`text-xl font-semibold ${
                 darkMode ? "text-white" : "text-zinc-900"
               } animate-fade [animation-fill-mode:backwards]`}
               style={{

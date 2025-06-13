@@ -76,7 +76,7 @@ const ProjectPage = () => {
 
       {/* Toggle Preview/Prompt */}
       <div
-        className={`absolute right-7 top-20 md:right-4 md:top-[72px] hidden z-40 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
+        className={`absolute right-8 top-[72px] md:right-4 md:top-16 hidden z-40 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
           darkMode
             ? "bg-zinc-800/20 border-gray-200/20"
             : "bg-zinc-100/80 border-gray-300/50"
@@ -147,6 +147,7 @@ const ProjectPage = () => {
             isGenerating={isGenerating}
             setIsGenerating={setIsGenerating}
             setProjectFile={setProjectFile}
+            getUrl={getUrl}
           />
         </div>
       </div>
