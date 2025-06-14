@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
 import Code from "./Code";
 import { handleDownload, handleOpenFullSize } from "@/app/utils/ProjectActions";
+import Image from "next/image";
 
 interface PreviewProps {
   getUrl: () => void;
@@ -18,8 +19,10 @@ interface PreviewProps {
 
 const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
   const [mobile, setMobile] = useState(0);
+  const [selector, setSelector] = useState(false);
   const [scale, setScale] = useState(1);
   const mainRef = useRef<HTMLDivElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const { darkMode } = useThemeStore();
   const { selectedProject } = useProjectStore();
 
@@ -41,6 +44,89 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
     return () => window.removeEventListener("resize", updateScale);
   }, [mobile]);
 
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !selectedProject?.file) return;
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc || !iframeDoc.body) return;
+
+    const overlayId = "iframe-blocker-overlay";
+
+    // Remove old overlay if it exists
+    iframeDoc.getElementById(overlayId)?.remove();
+
+    if (selector) {
+      let lastHighlightedElement: HTMLElement | HTMLImageElement | null = null;
+      let previousBg: string = "";
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const target = iframeDoc.elementFromPoint(
+          e.clientX,
+          e.clientY
+        ) as HTMLElement | null;
+
+        // If we're moving to a new element
+        if (target && target !== lastHighlightedElement) {
+          // Restore previous element's background
+          if (lastHighlightedElement) {
+            lastHighlightedElement.style.background = previousBg;
+            if (lastHighlightedElement instanceof HTMLImageElement) {
+              lastHighlightedElement.style.backgroundColor = "";
+            }
+          }
+
+          // Store new element's background and update it
+          previousBg = target.style.background || "";
+          target.style.background = "rgba(29, 45, 255, 0.5)";
+
+          // Add background color to images
+          if (target instanceof HTMLImageElement) {
+            target.style.backgroundColor = "rgba(29, 45, 255, 0.5)";
+          }
+
+          lastHighlightedElement = target;
+        }
+      };
+
+      const handleMouseLeave = () => {
+        if (lastHighlightedElement) {
+          lastHighlightedElement.style.background = previousBg;
+          if (lastHighlightedElement instanceof HTMLImageElement) {
+            lastHighlightedElement.style.backgroundColor = "";
+          }
+          lastHighlightedElement = null;
+        }
+      };
+
+      iframeDoc.addEventListener("mousemove", handleMouseMove);
+      iframeDoc.addEventListener("mouseleave", handleMouseLeave);
+
+      return () => {
+        if (lastHighlightedElement) {
+          lastHighlightedElement.style.background = previousBg;
+          if (lastHighlightedElement instanceof HTMLImageElement) {
+            lastHighlightedElement.style.backgroundColor = "";
+          }
+        }
+        iframeDoc.removeEventListener("mousemove", handleMouseMove);
+        iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
+        iframeDoc.body.style.overflow = "";
+      };
+    } else {
+      // Clean up any remaining highlights
+      const elements = iframeDoc.querySelectorAll("*");
+      elements.forEach((element) => {
+        if (element instanceof HTMLElement) {
+          element.style.background = "";
+          if (element instanceof HTMLImageElement) {
+            element.style.backgroundColor = "";
+          }
+        }
+      });
+    }
+  }, [selector, selectedProject]);
+
   const injectLinkFixScript = (html: string): string => {
     const script = `
     <script>
@@ -49,7 +135,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
           a.setAttribute("target", "_self");
           a.addEventListener("click", function (e) {
             const href = a.getAttribute("href");
-            if (href === "#" || href === "") {
+            if (['#', '', ''javascript:void(0)]'.includes(href) || href.startsWith('#')) {
               e.preventDefault();
             }
           });
@@ -120,9 +206,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
 
         {/* Action Buttons */}
         <div
-          className={`flex px-2 py-1.5 rounded-lg items-center gap-1 ${
-            mobile === 2 && "md:hidden"
-          } md:absolute md:top-[53px] md:right-0 md:z-40 border transition-all duration-200 ${
+          className={`flex px-2 py-1.5 rounded-lg items-center gap-1 md:gap-0.5 md:z-40 border transition-all duration-200 ${
             darkMode
               ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
               : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
@@ -131,7 +215,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
           <button
             onClick={() => handleOpenFullSize(selectedProject)}
             title="Open Full Size Page"
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
             <FontAwesomeIcon
               icon={faArrowUpRightFromSquare}
@@ -141,9 +225,27 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
           <button
             onClick={() => handleDownload(selectedProject)}
             title="Download"
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
             <FontAwesomeIcon icon={faDownload} className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setSelector(!selector)}
+            title="Selector"
+            className={`relative flex items-center justify-center pl-1.5 pt-1.5 pr-0.5 pb-0.5 gap-1 rounded-md text-sm font-medium transition-all duration-200  ${
+              selector
+                ? darkMode
+                  ? "bg-zinc-700 text-white"
+                  : "bg-white text-black shadow"
+                : "opacity-70 hover:opacity-100"
+            } focus:outline-none hover:opacity-100`}
+          >
+            <Image
+              src={`${darkMode ? "/select-dark.png" : "/select.png"}`}
+              alt="Selector"
+              width={24}
+              height={24}
+            />
           </button>
         </div>
       </div>
@@ -152,6 +254,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
       <div className={`relative w-full h-full flex shadow-md overflow-hidden`}>
         {(scale < 1 || mobile) && selectedProject?.file && mobile < 2 && (
           <iframe
+            ref={iframeRef}
             key={selectedProject.file}
             srcDoc={injectLinkFixScript(selectedProject?.file)}
             className="rounded-lg shadow-md"
