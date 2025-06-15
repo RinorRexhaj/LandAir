@@ -12,6 +12,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Code from "./Code";
 import { handleDownload, handleOpenFullSize } from "@/app/utils/ProjectActions";
 import Image from "next/image";
+import Website from "./Website";
 
 interface PreviewProps {
   getUrl: () => void;
@@ -20,9 +21,11 @@ interface PreviewProps {
 const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
   const [mobile, setMobile] = useState(0);
   const [selector, setSelector] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<HTMLElement | null>(
+    null
+  );
   const [scale, setScale] = useState(1);
   const mainRef = useRef<HTMLDivElement | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const { darkMode } = useThemeStore();
   const { selectedProject } = useProjectStore();
 
@@ -39,112 +42,15 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
       }
     };
 
+    if (mobile === 2) {
+      setSelector(false);
+      setSelectedElement(null);
+    }
+
     window.addEventListener("resize", updateScale);
     updateScale();
     return () => window.removeEventListener("resize", updateScale);
   }, [mobile]);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe || !selectedProject?.file) return;
-
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!iframeDoc || !iframeDoc.body) return;
-
-    const overlayId = "iframe-blocker-overlay";
-
-    // Remove old overlay if it exists
-    iframeDoc.getElementById(overlayId)?.remove();
-
-    if (selector) {
-      let lastHighlightedElement: HTMLElement | HTMLImageElement | null = null;
-      let previousBg: string = "";
-
-      const handleMouseMove = (e: MouseEvent) => {
-        const target = iframeDoc.elementFromPoint(
-          e.clientX,
-          e.clientY
-        ) as HTMLElement | null;
-
-        // If we're moving to a new element
-        if (target && target !== lastHighlightedElement) {
-          // Restore previous element's background
-          if (lastHighlightedElement) {
-            lastHighlightedElement.style.background = previousBg;
-            if (lastHighlightedElement instanceof HTMLImageElement) {
-              lastHighlightedElement.style.backgroundColor = "";
-            }
-          }
-
-          // Store new element's background and update it
-          previousBg = target.style.background || "";
-          target.style.background = "rgba(29, 45, 255, 0.5)";
-
-          // Add background color to images
-          if (target instanceof HTMLImageElement) {
-            target.style.backgroundColor = "rgba(29, 45, 255, 0.5)";
-          }
-
-          lastHighlightedElement = target;
-        }
-      };
-
-      const handleMouseLeave = () => {
-        if (lastHighlightedElement) {
-          lastHighlightedElement.style.background = previousBg;
-          if (lastHighlightedElement instanceof HTMLImageElement) {
-            lastHighlightedElement.style.backgroundColor = "";
-          }
-          lastHighlightedElement = null;
-        }
-      };
-
-      iframeDoc.addEventListener("mousemove", handleMouseMove);
-      iframeDoc.addEventListener("mouseleave", handleMouseLeave);
-
-      return () => {
-        if (lastHighlightedElement) {
-          lastHighlightedElement.style.background = previousBg;
-          if (lastHighlightedElement instanceof HTMLImageElement) {
-            lastHighlightedElement.style.backgroundColor = "";
-          }
-        }
-        iframeDoc.removeEventListener("mousemove", handleMouseMove);
-        iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
-        iframeDoc.body.style.overflow = "";
-      };
-    } else {
-      // Clean up any remaining highlights
-      const elements = iframeDoc.querySelectorAll("*");
-      elements.forEach((element) => {
-        if (element instanceof HTMLElement) {
-          element.style.background = "";
-          if (element instanceof HTMLImageElement) {
-            element.style.backgroundColor = "";
-          }
-        }
-      });
-    }
-  }, [selector, selectedProject]);
-
-  const injectLinkFixScript = (html: string): string => {
-    const script = `
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll("a").forEach(a => {
-          a.setAttribute("target", "_self");
-          a.addEventListener("click", function (e) {
-            const href = a.getAttribute("href");
-            if (['#', '', ''javascript:void(0)]'.includes(href) || href.startsWith('#')) {
-              e.preventDefault();
-            }
-          });
-        });
-      });
-    <\/script>
-  `;
-    return html + script;
-  };
 
   return (
     <div
@@ -253,19 +159,12 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
       {/* Preview Area */}
       <div className={`relative w-full h-full flex shadow-md overflow-hidden`}>
         {(scale < 1 || mobile) && selectedProject?.file && mobile < 2 && (
-          <iframe
-            ref={iframeRef}
-            key={selectedProject.file}
-            srcDoc={injectLinkFixScript(selectedProject?.file)}
-            className="rounded-lg shadow-md"
-            style={{
-              border: "none",
-              width: mobile ? "430px" : "1440px",
-              transform: `scale(${scale})`,
-              height: mobile ? "calc(100vh - 100px)" : "100vh",
-              transformOrigin: "top left",
-              position: "fixed",
-            }}
+          <Website
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+            selector={selector}
+            mobile={mobile}
+            scale={scale}
           />
         )}
         {mobile === 2 && (
