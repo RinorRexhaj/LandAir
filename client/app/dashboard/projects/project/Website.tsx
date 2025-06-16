@@ -1,5 +1,14 @@
+import useApi from "@/app/hooks/useApi";
 import { useProjectStore } from "@/app/store/useProjectsStore";
-import React, { useEffect, useRef } from "react";
+import {
+  faPenToSquare,
+  faTrash,
+  faSave,
+  faXmark,
+  faCheck,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useEffect, useRef, useState } from "react";
 
 interface WebsiteProps {
   selector: boolean;
@@ -7,6 +16,13 @@ interface WebsiteProps {
   scale: number;
   selectedElement: HTMLElement | null;
   setSelectedElement: (el: HTMLElement | null) => void;
+}
+
+interface ElementChange {
+  element: HTMLElement;
+  originalHTML: string;
+  newHTML: string;
+  type: "edit" | "delete";
 }
 
 const Website: React.FC<WebsiteProps> = ({
@@ -17,7 +33,83 @@ const Website: React.FC<WebsiteProps> = ({
   setSelectedElement,
 }) => {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const { selectedProject } = useProjectStore();
+  const [toolBarPos, setToolBarPos] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const [changes, setChanges] = useState<ElementChange[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const { selectedProject, setSelectedProject } = useProjectStore();
+  const { post, put } = useApi();
+
+  // Track changes when content is edited
+  const handleContentEdit = (element: HTMLElement) => {
+    const originalHTML =
+      element.getAttribute("data-original-html") || element.innerHTML;
+    const newHTML = element.innerHTML;
+
+    if (originalHTML !== newHTML) {
+      const existingChangeIndex = changes.findIndex(
+        (change) => change.element === element
+      );
+
+      if (existingChangeIndex >= 0) {
+        const updatedChanges = [...changes];
+        updatedChanges[existingChangeIndex] = {
+          ...updatedChanges[existingChangeIndex],
+          newHTML,
+        };
+        setChanges(updatedChanges);
+      } else {
+        setChanges([
+          ...changes,
+          { element, originalHTML, newHTML, type: "edit" },
+        ]);
+      }
+
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  // Save changes
+  const handleSaveChanges = async () => {
+    if (!selectedProject) return;
+
+    // Update the project file with new changes
+    const updatedHTML =
+      iframeRef.current?.contentDocument?.documentElement.outerHTML || "";
+    const filePath = `${selectedProject?.project_name}`;
+
+    await post(`/api/storage/`, { content: updatedHTML, filePath });
+    await put(`/api/projects/${selectedProject?.id}`, {
+      new_name: selectedProject?.project_name,
+    });
+    setSelectedProject({
+      ...selectedProject,
+      id: selectedProject.id,
+      last_edited: new Date(),
+    });
+    setChanges([]);
+    setHasUnsavedChanges(false);
+  };
+
+  // Discard changes
+  const handleDiscardChanges = () => {
+    if (!iframeRef.current || !selectedProject?.file) return;
+
+    const iframeDoc = iframeRef.current.contentDocument;
+    if (!iframeDoc) return;
+
+    iframeDoc.open();
+    iframeDoc.write(injectLinkFixScript(selectedProject.file));
+    iframeDoc.close();
+
+    setChanges([]);
+    setHasUnsavedChanges(false);
+    setSelectedElement(null);
+    setIsEditing(false);
+  };
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -27,6 +119,8 @@ const Website: React.FC<WebsiteProps> = ({
     if (!iframeDoc || !iframeDoc.body) return;
 
     if (!selector) {
+      removeDisableInteractionStyle(iframeDoc);
+
       iframeDoc.querySelectorAll("*").forEach((el) => {
         if (el instanceof HTMLElement) {
           el.style.backgroundColor = "";
@@ -34,13 +128,17 @@ const Website: React.FC<WebsiteProps> = ({
           el.style.outline = "";
         }
       });
+
       if (selectedElement) {
         selectedElement.style.backgroundColor = "";
         selectedElement.style.background = "";
         selectedElement.style.outline = "";
       }
+
       setSelectedElement(null);
       return;
+    } else {
+      injectDisableInteractionStyle(iframeDoc);
     }
 
     let lastHoveredElement: HTMLElement | null = null;
@@ -91,10 +189,13 @@ const Website: React.FC<WebsiteProps> = ({
       ) as HTMLElement | null;
       if (!target) return;
 
+      updateToolbarPos(target);
+
       // Deselect if clicking the same element
       if (selectedElement === target) {
         target.style.backgroundColor = "";
         target.style.outline = "";
+        target.contentEditable = "false";
         setSelectedElement(null);
         return;
       }
@@ -111,16 +212,84 @@ const Website: React.FC<WebsiteProps> = ({
       setSelectedElement(target);
     };
 
+    const updateToolbarPos = (target: HTMLElement | null) => {
+      const element = target || selectedElement;
+      if (!element) return;
+      const rect = element.getBoundingClientRect();
+      const top =
+        rect.y * scale < 50 ? rect.bottom * scale : scale * rect.y - 30;
+      setToolBarPos({ top, left: scale * rect.x });
+    };
+
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
     iframeDoc.addEventListener("click", handleClick);
+    iframeDoc.addEventListener("scroll", () =>
+      updateToolbarPos(selectedElement)
+    );
+    iframe.contentWindow?.addEventListener("resize", () =>
+      updateToolbarPos(selectedElement)
+    );
 
     return () => {
       iframeDoc.removeEventListener("mousemove", handleMouseMove);
       iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
       iframeDoc.removeEventListener("click", handleClick);
     };
-  }, [selector, selectedProject, selectedElement, setSelectedElement]);
+  }, [selector, selectedProject, selectedElement, setSelectedElement, scale]);
+
+  const injectDisableInteractionStyle = (iframeDoc: Document) => {
+    const style = iframeDoc.getElementById("disable-interaction-style");
+    if (style) return; // Prevent duplicates
+
+    const styleTag = iframeDoc.createElement("style");
+    styleTag.id = "disable-interaction-style";
+    styleTag.innerHTML = `
+    * {
+      cursor: default !important;
+      transition: none !important;
+      animation: none !important;
+    }
+  `;
+    iframeDoc.querySelectorAll("*").forEach((el) => {
+      if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
+        const htmlEl = el as HTMLElement;
+        htmlEl.onmouseover = (e) => e.stopPropagation();
+        htmlEl.onmouseenter = (e) => e.stopPropagation();
+        htmlEl.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        };
+        htmlEl.onfocus = (e) => e.preventDefault();
+        htmlEl.onmousedown = (e) => e.preventDefault();
+        htmlEl.onmouseup = (e) => e.preventDefault();
+      }
+    });
+
+    iframeDoc.querySelectorAll("a").forEach((a) => {
+      const htmlAnchor = a as HTMLAnchorElement;
+      const href = htmlAnchor.getAttribute("href") || "";
+
+      // Disable links with hashes, void, or empty href
+      if (
+        href.startsWith("#") ||
+        href === "" ||
+        href === "#" ||
+        href.startsWith("javascript:void")
+      ) {
+        htmlAnchor.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation(); // Optional: block any bubbling effect
+        });
+      }
+    });
+
+    iframeDoc.head.appendChild(styleTag);
+  };
+
+  const removeDisableInteractionStyle = (iframeDoc: Document) => {
+    iframeDoc.getElementById("disable-interaction-style")?.remove();
+  };
 
   const injectLinkFixScript = (html: string | undefined): string => {
     if (!html) return "";
@@ -145,20 +314,104 @@ const Website: React.FC<WebsiteProps> = ({
   if (!selectedProject) return;
 
   return (
-    <iframe
-      ref={iframeRef}
-      key={selectedProject.file}
-      srcDoc={injectLinkFixScript(selectedProject?.file)}
-      className="rounded-lg shadow-md"
-      style={{
-        border: "none",
-        width: mobile ? "430px" : "1440px",
-        transform: `scale(${scale})`,
-        height: mobile ? "calc(100vh - 100px)" : "100vh",
-        transformOrigin: "top left",
-        position: "fixed",
-      }}
-    />
+    <>
+      <iframe
+        ref={iframeRef}
+        key={selectedProject.file}
+        srcDoc={injectLinkFixScript(selectedProject?.file)}
+        className="rounded-lg shadow-md"
+        style={{
+          border: "none",
+          width: mobile ? "430px" : "1440px",
+          transform: `scale(${scale})`,
+          height: mobile ? "calc(100vh - 100px)" : "100vh",
+          transformOrigin: "top left",
+          position: "fixed",
+        }}
+      />
+      {selectedElement && selector && (
+        <div
+          className="absolute z-40 bg-white px-2 py-1 flex gap-2 items-center rounded text-xs shadow-lg border-2 border-zinc-200"
+          style={{
+            left: toolBarPos?.left,
+            top: toolBarPos?.top,
+          }}
+        >
+          <button
+            onClick={() => {
+              if (!isEditing) {
+                selectedElement.contentEditable = "true";
+                selectedElement.setAttribute(
+                  "data-original-html",
+                  selectedElement.innerHTML
+                );
+                selectedElement.addEventListener("input", () =>
+                  handleContentEdit(selectedElement)
+                );
+                selectedElement.focus();
+              } else {
+                selectedElement.contentEditable = "false";
+                selectedElement.blur();
+              }
+              setIsEditing(!isEditing);
+            }}
+            className="text-gray-700 hover:text-blue-600 flex items-center gap-1"
+            title="Edit"
+          >
+            <FontAwesomeIcon icon={isEditing ? faCheck : faPenToSquare} />
+            <p className={`${mobile === 1 && "hidden"} font-medium`}>
+              {isEditing ? "Save" : "Edit"}
+            </p>
+          </button>
+          <span className="w-px h-4 bg-zinc-400"></span>
+          <button
+            onClick={() => {
+              const originalHTML = selectedElement?.outerHTML || "";
+
+              setChanges([
+                ...changes,
+                {
+                  element: selectedElement,
+                  originalHTML,
+                  newHTML: "",
+                  type: "delete",
+                },
+              ]);
+
+              selectedElement?.remove();
+              setSelectedElement(null);
+              setHasUnsavedChanges(true);
+            }}
+            className="text-gray-700 hover:text-red-600 flex items-center gap-1"
+            title="Delete"
+          >
+            <FontAwesomeIcon icon={faTrash} />
+            <p className="md:hidden">Delete</p>
+          </button>
+        </div>
+      )}
+      {hasUnsavedChanges && (
+        <div className="fixed bottom-4 right-4 z-50 bg-white px-4 py-2 rounded-lg shadow-lg border-2 border-zinc-200 flex gap-4 items-center">
+          <span className="text-sm text-gray-700">Unsaved changes</span>
+          <button
+            onClick={handleSaveChanges}
+            className="text-green-600 hover:text-green-700 flex items-center gap-1"
+            title="Save Changes"
+          >
+            <FontAwesomeIcon icon={faSave} />
+            <span>Save</span>
+          </button>
+          <button
+            onClick={handleDiscardChanges}
+            className="text-red-600 hover:text-red-700 flex items-center gap-1"
+            title="Discard Changes"
+          >
+            <FontAwesomeIcon icon={faXmark} />
+            <span>Discard</span>
+          </button>
+        </div>
+      )}
+    </>
   );
 };
 
