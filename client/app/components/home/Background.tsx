@@ -2,17 +2,23 @@ import { useVanta } from "@/app/hooks/useVanta";
 
 const Background = () => {
   const vantaRef = useVanta<HTMLDivElement>({
-    baseColor: 0x4466aa, // A calm blue
-    backgroundColor: 0x0a0a0a, // Near-black background
-    amplitudeFactor: 0.2, // Very gentle wave intensity
-    waveSpeed: 0.4, // Slower motion
+    baseColor: 0x0ff,
+    backgroundColor: 0x000000,
   });
 
   return (
     <div
       ref={vantaRef}
       className="fixed inset-0 w-screen h-screen overflow-hidden -z-10 opacity-80"
-    ></div>
+    >
+      <div
+        className="absolute inset-0 bg-black/5"
+        style={{
+          backdropFilter: "blur(2px)",
+          WebkitBackdropFilter: "blur(2px)",
+        }}
+      />
+    </div>
   );
 };
 

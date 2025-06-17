@@ -4,12 +4,27 @@ import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useVanta } from "../hooks/useVanta";
 import Image from "next/image";
+import { supabase } from "../utils/Supabase";
 
 const SignInPage = () => {
   const vantaRef = useVanta<HTMLDivElement>({
     baseColor: 0x0ff,
     backgroundColor: 0x000000,
   });
+
+  const handleGoogleSignIn = async () => {
+    console.log(window.location.origin);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+
+    if (error) {
+      console.error("Google login error:", error.message);
+    }
+  };
 
   return (
     <div
@@ -18,7 +33,7 @@ const SignInPage = () => {
     >
       <div className="absolute inset-0 backdrop-blur-sm bg-black/40" />
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
-        <div className="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-8 text-white">
+        <div className="w-full max-w-md bg-white/5 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-8 text-white">
           {/* Header */}
           <div className="relative text-center mb-6">
             <div className="flex gap-2 items-center justify-center">
@@ -34,7 +49,10 @@ const SignInPage = () => {
           </div>
 
           {/* Google Sign In */}
-          <button className="w-full flex items-center justify-center gap-2 py-1 px-4 border border-white/20 rounded-lg shadow-sm text-sm font-medium text-white bg-white/10 hover:bg-white/20 transition-colors">
+          <button
+            className="w-full flex items-center justify-center gap-2 py-1 px-4 border border-white/20 rounded-lg shadow-sm text-sm font-medium text-white bg-white/10 hover:bg-white/20 transition-colors"
+            onClick={handleGoogleSignIn}
+          >
             <Image src={"/google.webp"} alt="Google" height={32} width={32} />
             <span>Sign in with Google</span>
           </button>

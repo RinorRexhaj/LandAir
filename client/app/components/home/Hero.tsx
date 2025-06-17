@@ -33,7 +33,9 @@ const Hero = () => {
           {"Create Websites".split("").map((char, index) => (
             <span
               className="animate-textReveal [animation-fill-mode:backwards]"
-              style={{ animationDelay: `${index * 0.03}s` }}
+              style={{
+                animationDelay: `${index * 0.03}s`,
+              }}
               key={`${char}-${index}`}
             >
               {char === " " ? "\u00A0" : char}
@@ -49,7 +51,10 @@ const Hero = () => {
           {"with AI Magic".split("").map((char, index) => (
             <span
               className="animate-textReveal [animation-fill-mode:backwards]"
-              style={{ animationDelay: `${index * 0.03 + 0.3}s` }}
+              style={{
+                animationDelay: `${index * 0.03 + 0.3}s`,
+                marginBottom: `${char === "g" ? "5px" : "0"}px`,
+              }}
               key={`${char}-${index}`}
             >
               {char === " " ? "\u00A0" : char}
