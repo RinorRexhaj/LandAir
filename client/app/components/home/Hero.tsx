@@ -58,7 +58,7 @@ const Hero = () => {
         </h1>
       </div>
       <p
-        className="text-xl text-gray-300/80 max-w-2xl animate-slideIn [animation-fill-mode:backwards]"
+        className="text-xl text-white/80 max-w-2xl animate-slideIn [animation-fill-mode:backwards]"
         style={{ animationDelay: "0.7s" }}
       >
         Transform your ideas into stunning, responsive pages in minutes. Just

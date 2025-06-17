@@ -258,29 +258,10 @@ const Website: React.FC<WebsiteProps> = ({
         htmlEl.onmouseenter = (e) => e.stopPropagation();
         htmlEl.onclick = (e) => {
           e.preventDefault();
-          e.stopPropagation();
         };
         htmlEl.onfocus = (e) => e.preventDefault();
         htmlEl.onmousedown = (e) => e.preventDefault();
         htmlEl.onmouseup = (e) => e.preventDefault();
-      }
-    });
-
-    iframeDoc.querySelectorAll("a").forEach((a) => {
-      const htmlAnchor = a as HTMLAnchorElement;
-      const href = htmlAnchor.getAttribute("href") || "";
-
-      // Disable links with hashes, void, or empty href
-      if (
-        href.startsWith("#") ||
-        href === "" ||
-        href === "#" ||
-        href.startsWith("javascript:void")
-      ) {
-        htmlAnchor.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation(); // Optional: block any bubbling effect
-        });
       }
     });
 
