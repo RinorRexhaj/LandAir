@@ -13,7 +13,6 @@ const SignInPage = () => {
   });
 
   const handleGoogleSignIn = async () => {
-    console.log(window.location.origin);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

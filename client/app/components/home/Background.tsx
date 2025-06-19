@@ -14,8 +14,8 @@ const Background = () => {
       <div
         className="absolute inset-0 bg-black/5"
         style={{
-          backdropFilter: "blur(2px)",
-          WebkitBackdropFilter: "blur(2px)",
+          backdropFilter: "blur(1px)",
+          WebkitBackdropFilter: "blur(1px)",
         }}
       />
     </div>

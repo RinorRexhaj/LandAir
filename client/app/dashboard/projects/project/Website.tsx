@@ -6,6 +6,7 @@ import {
   faSave,
   faXmark,
   faCheck,
+  faImage,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
@@ -38,6 +39,9 @@ const Website: React.FC<WebsiteProps> = ({
     left: number;
   } | null>(null);
   const [changes, setChanges] = useState<ElementChange[]>([]);
+  const [elementType, setElementType] = useState<
+    "text" | "image" | "layout" | null
+  >(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { selectedProject, setSelectedProject } = useProjectStore();
@@ -76,14 +80,46 @@ const Website: React.FC<WebsiteProps> = ({
   const handleSaveChanges = async () => {
     if (!selectedProject) return;
 
+    const iframeDoc = iframeRef.current?.contentDocument;
+    if (!iframeDoc) return;
+
+    // 🧼 CLEANUP: Remove editor background/outline from all elements
+    iframeDoc.querySelectorAll("*").forEach((el) => {
+      if (el instanceof HTMLElement) {
+        if (
+          el.style.backgroundColor === "rgba(29, 45, 255, 0.25)" ||
+          el.style.backgroundColor === "rgba(29, 45, 255, 0.5)"
+        ) {
+          el.style.backgroundColor = "";
+        }
+        if (
+          el.style.outline === "3px dotted #1d2dff" ||
+          el.style.outline === "1px dashed #1d2dff"
+        ) {
+          el.style.outline = "";
+        }
+
+        // Optional: disable contentEditable and remove any data-original-html attributes
+        if (el.contentEditable === "true") {
+          el.contentEditable = "false";
+        }
+        el.removeAttribute("data-original-html");
+      }
+    });
+
+    if (selectedElement) {
+      selectedElement.style.backgroundColor = "";
+      selectedElement.style.background = "";
+      selectedElement.style.outline = "";
+    }
+
     // Update the project file with new changes
-    const updatedHTML =
-      iframeRef.current?.contentDocument?.documentElement.outerHTML || "";
-    const filePath = `${selectedProject?.project_name}`;
+    const updatedHTML = iframeDoc.documentElement.outerHTML || "";
+    const filePath = `${selectedProject.project_name}`;
 
     await post(`/api/storage/`, { content: updatedHTML, filePath });
-    await put(`/api/projects/${selectedProject?.id}`, {
-      new_name: selectedProject?.project_name,
+    await put(`/api/projects/${selectedProject.id}`, {
+      new_name: selectedProject.project_name,
     });
     setSelectedProject({
       ...selectedProject,
@@ -136,6 +172,7 @@ const Website: React.FC<WebsiteProps> = ({
       }
 
       setSelectedElement(null);
+      setElementType(null);
       return;
     } else {
       injectDisableInteractionStyle(iframeDoc);
@@ -189,6 +226,16 @@ const Website: React.FC<WebsiteProps> = ({
       ) as HTMLElement | null;
       if (!target) return;
 
+      if (isImageElement(target)) {
+        setElementType("image");
+      } else if (isTextOnly(target)) {
+        setElementType("text");
+      } else if (isLayoutElement(target)) {
+        setElementType("layout");
+      } else {
+        setElementType("layout");
+      }
+
       updateToolbarPos(target);
 
       // Deselect if clicking the same element
@@ -221,9 +268,9 @@ const Website: React.FC<WebsiteProps> = ({
       setToolBarPos({ top, left: scale * rect.x });
     };
 
+    iframeDoc.addEventListener("click", handleClick);
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
-    iframeDoc.addEventListener("click", handleClick);
     iframeDoc.addEventListener("scroll", () =>
       updateToolbarPos(selectedElement)
     );
@@ -264,6 +311,8 @@ const Website: React.FC<WebsiteProps> = ({
         htmlEl.onmouseup = (e) => e.preventDefault();
       }
     });
+    const overlay = iframeDoc.querySelector(".inset-0");
+    if (overlay) overlay.classList.add("pointer-events-none");
 
     iframeDoc.head.appendChild(styleTag);
   };
@@ -272,25 +321,83 @@ const Website: React.FC<WebsiteProps> = ({
     iframeDoc.getElementById("disable-interaction-style")?.remove();
   };
 
-  const injectLinkFixScript = (html: string | undefined): string => {
-    if (!html) return "";
-    const script = `
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll("a").forEach(a => {
-          a.setAttribute("target", "_self");
-          a.addEventListener("click", function (e) {
-            const href = a.getAttribute("href");
-            if (['#', '', ''javascript:void(0)]'.includes(href) || href.startsWith('#')) {
-              e.preventDefault();
-            }
-          });
-        });
-      });
-    <\/script>
-  `;
-    return html + script;
+  const isTextOnly = (el: HTMLElement): boolean => {
+    return (
+      el.childNodes.length === 1 &&
+      el.childNodes[0].nodeType === Node.TEXT_NODE &&
+      (el.textContent?.trim().length
+        ? el.textContent?.trim().length > 0
+        : false)
+    );
   };
+
+  const isImageElement = (el: HTMLElement): boolean => {
+    const isImgTag = el.tagName === "IMG";
+
+    const hasSingleImgChild =
+      el.querySelectorAll("img").length === 1 && el.children.length === 1;
+
+    const bg = window.getComputedStyle(el).backgroundImage;
+    const hasBackgroundImage = Boolean(
+      bg && bg !== "none" && bg.includes("url(")
+    );
+
+    return isImgTag || hasSingleImgChild || hasBackgroundImage;
+  };
+
+  const isLayoutElement = (el: HTMLElement): boolean => {
+    const layoutTags = ["DIV", "SECTION", "MAIN", "HEADER", "FOOTER"];
+    const hasNoText = !el.textContent?.trim();
+    const hasChildren = el.children.length > 0;
+    return layoutTags.includes(el.tagName) && hasNoText && hasChildren;
+  };
+
+  function injectLinkFixScript(html: string): string {
+    const linkFixScript = `
+    <script>
+    (function () {
+      'use strict';
+
+      const originalWindowOpen = window.open;
+      window.open = function (url, target, features) {
+        if (typeof url === 'string' && url.startsWith('#')) {
+          const el = document.querySelector(url);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+          return null;
+        }
+        return originalWindowOpen.call(window, url, target, features);
+      };
+
+      document.addEventListener('click', function (event) {
+        const anchor = event.target.closest('a');
+        if (!anchor) return;
+
+        const href = anchor.getAttribute('href');
+        if (!href || ['#', '', 'javascript:void(0)'].includes(href)) return;
+
+        event.preventDefault();
+
+        if (href.startsWith('#')) {
+          const el = document.querySelector(href);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        } else {
+          window.open(href, '_blank');
+        }
+      });
+    })();
+    </script>
+  `;
+
+    if (html.includes("</body>")) {
+      return html.replace("</body>", `${linkFixScript}</body>`);
+    } else {
+      return html + linkFixScript;
+    }
+  }
 
   if (!selectedProject) return;
 
@@ -299,7 +406,7 @@ const Website: React.FC<WebsiteProps> = ({
       <iframe
         ref={iframeRef}
         key={selectedProject.file}
-        srcDoc={injectLinkFixScript(selectedProject?.file)}
+        srcDoc={injectLinkFixScript(selectedProject?.file || "")}
         className="rounded-lg shadow-md"
         style={{
           border: "none",
@@ -318,33 +425,74 @@ const Website: React.FC<WebsiteProps> = ({
             top: toolBarPos?.top,
           }}
         >
-          <button
-            onClick={() => {
-              if (!isEditing) {
-                selectedElement.contentEditable = "true";
-                selectedElement.setAttribute(
-                  "data-original-html",
-                  selectedElement.innerHTML
-                );
-                selectedElement.addEventListener("input", () =>
-                  handleContentEdit(selectedElement)
-                );
-                selectedElement.focus();
-              } else {
-                selectedElement.contentEditable = "false";
-                selectedElement.blur();
-              }
-              setIsEditing(!isEditing);
-            }}
-            className="text-gray-700 hover:text-blue-600 flex items-center gap-1"
-            title="Edit"
-          >
-            <FontAwesomeIcon icon={isEditing ? faCheck : faPenToSquare} />
-            <p className={`${mobile === 1 && "hidden"} font-medium`}>
-              {isEditing ? "Save" : "Edit"}
-            </p>
-          </button>
-          <span className="w-px h-4 bg-zinc-400"></span>
+          {elementType !== "layout" && (
+            <>
+              <button
+                onClick={() => {
+                  if (elementType === "image") {
+                    // Trigger hidden file input for images
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+
+                    input.onchange = (e: Event) => {
+                      const target = e.target as HTMLInputElement;
+                      const file = target.files?.[0];
+                      if (!file) return;
+
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        const dataUrl = reader.result as string;
+                        selectedElement.setAttribute("src", dataUrl);
+                        // Optional: store original image src
+                        selectedElement.setAttribute(
+                          "data-original-src",
+                          selectedElement.getAttribute("src") || ""
+                        );
+                      };
+                      reader.readAsDataURL(file);
+                    };
+
+                    input.click();
+                  } else {
+                    // Text or mixed content editing
+                    if (!isEditing) {
+                      selectedElement.contentEditable = "true";
+                      selectedElement.setAttribute(
+                        "data-original-html",
+                        selectedElement.innerHTML
+                      );
+                      selectedElement.addEventListener("input", () =>
+                        handleContentEdit(selectedElement)
+                      );
+                      selectedElement.focus();
+                    } else {
+                      selectedElement.contentEditable = "false";
+                      selectedElement.blur();
+                    }
+                    setIsEditing(!isEditing);
+                  }
+                }}
+                className="text-gray-700 hover:text-blue-600 flex items-center gap-1"
+                title="Edit"
+              >
+                <FontAwesomeIcon
+                  icon={
+                    isEditing
+                      ? faCheck
+                      : elementType === "image"
+                      ? faImage
+                      : faPenToSquare
+                  }
+                />
+                <p className={`${mobile === 1 && "hidden"} font-medium`}>
+                  {isEditing ? "Save" : "Edit"}
+                </p>
+              </button>
+              <span className="w-px h-4 bg-zinc-400"></span>
+            </>
+          )}
+
           <button
             onClick={() => {
               const originalHTML = selectedElement?.outerHTML || "";
