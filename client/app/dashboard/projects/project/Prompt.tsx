@@ -108,7 +108,12 @@ const Prompt: React.FC<PromptProps> = ({
         const content =
           status.updates[status.updates.length - 1]?.output.output.answer;
 
-        await post(`/api/storage/`, { content, filePath });
+        const formData = new FormData();
+        formData.append("content", content);
+        formData.append("filePath", filePath);
+        formData.append("type", "html");
+
+        await post("/api/storage/", formData);
         await put(`/api/projects/${selectedProject?.id}`, {
           new_name: selectedProject?.project_name,
         });

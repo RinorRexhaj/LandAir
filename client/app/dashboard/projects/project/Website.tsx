@@ -1,5 +1,6 @@
-import useApi from "@/app/hooks/useApi";
+import useChange from "@/app/hooks/useChange";
 import { useProjectStore } from "@/app/store/useProjectsStore";
+import { useThemeStore } from "@/app/store/useThemeStore";
 import {
   faPenToSquare,
   faTrash,
@@ -13,21 +14,16 @@ import React, { useEffect, useRef, useState } from "react";
 
 interface WebsiteProps {
   selector: boolean;
+  setSelector: (sel: boolean) => void;
   mobile: number;
   scale: number;
   selectedElement: HTMLElement | null;
   setSelectedElement: (el: HTMLElement | null) => void;
 }
 
-interface ElementChange {
-  element: HTMLElement;
-  originalHTML: string;
-  newHTML: string;
-  type: "edit" | "delete";
-}
-
 const Website: React.FC<WebsiteProps> = ({
   selector,
+  setSelector,
   mobile,
   scale,
   selectedElement,
@@ -38,114 +34,20 @@ const Website: React.FC<WebsiteProps> = ({
     top: number;
     left: number;
   } | null>(null);
-  const [changes, setChanges] = useState<ElementChange[]>([]);
   const [elementType, setElementType] = useState<
     "text" | "image" | "layout" | null
   >(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const { selectedProject, setSelectedProject } = useProjectStore();
-  const { post, put } = useApi();
-
-  // Track changes when content is edited
-  const handleContentEdit = (element: HTMLElement) => {
-    const originalHTML =
-      element.getAttribute("data-original-html") || element.innerHTML;
-    const newHTML = element.innerHTML;
-
-    if (originalHTML !== newHTML) {
-      const existingChangeIndex = changes.findIndex(
-        (change) => change.element === element
-      );
-
-      if (existingChangeIndex >= 0) {
-        const updatedChanges = [...changes];
-        updatedChanges[existingChangeIndex] = {
-          ...updatedChanges[existingChangeIndex],
-          newHTML,
-        };
-        setChanges(updatedChanges);
-      } else {
-        setChanges([
-          ...changes,
-          { element, originalHTML, newHTML, type: "edit" },
-        ]);
-      }
-
-      setHasUnsavedChanges(true);
-    }
-  };
-
-  // Save changes
-  const handleSaveChanges = async () => {
-    if (!selectedProject) return;
-
-    const iframeDoc = iframeRef.current?.contentDocument;
-    if (!iframeDoc) return;
-
-    // 🧼 CLEANUP: Remove editor background/outline from all elements
-    iframeDoc.querySelectorAll("*").forEach((el) => {
-      if (el instanceof HTMLElement) {
-        if (
-          el.style.backgroundColor === "rgba(29, 45, 255, 0.25)" ||
-          el.style.backgroundColor === "rgba(29, 45, 255, 0.5)"
-        ) {
-          el.style.backgroundColor = "";
-        }
-        if (
-          el.style.outline === "3px dotted #1d2dff" ||
-          el.style.outline === "1px dashed #1d2dff"
-        ) {
-          el.style.outline = "";
-        }
-
-        // Optional: disable contentEditable and remove any data-original-html attributes
-        if (el.contentEditable === "true") {
-          el.contentEditable = "false";
-        }
-        el.removeAttribute("data-original-html");
-      }
-    });
-
-    if (selectedElement) {
-      selectedElement.style.backgroundColor = "";
-      selectedElement.style.background = "";
-      selectedElement.style.outline = "";
-    }
-
-    // Update the project file with new changes
-    const updatedHTML = iframeDoc.documentElement.outerHTML || "";
-    const filePath = `${selectedProject.project_name}`;
-
-    await post(`/api/storage/`, { content: updatedHTML, filePath });
-    await put(`/api/projects/${selectedProject.id}`, {
-      new_name: selectedProject.project_name,
-    });
-    setSelectedProject({
-      ...selectedProject,
-      id: selectedProject.id,
-      last_edited: new Date(),
-    });
-    setChanges([]);
-    setHasUnsavedChanges(false);
-  };
-
-  // Discard changes
-  const handleDiscardChanges = () => {
-    if (!iframeRef.current || !selectedProject?.file) return;
-
-    const iframeDoc = iframeRef.current.contentDocument;
-    if (!iframeDoc) return;
-
-    iframeDoc.open();
-    iframeDoc.write(injectLinkFixScript(selectedProject.file));
-    iframeDoc.close();
-
-    setChanges([]);
-    setHasUnsavedChanges(false);
-    setSelectedElement(null);
-    setIsEditing(false);
-  };
+  const {
+    handleContentDelete,
+    handleContentEdit,
+    handleDiscardChanges,
+    handleSaveChanges,
+    injectLinkFixScript,
+  } = useChange();
+  const { selectedProject } = useProjectStore();
+  const { darkMode } = useThemeStore();
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -240,11 +142,13 @@ const Website: React.FC<WebsiteProps> = ({
 
       // Deselect if clicking the same element
       if (selectedElement === target) {
-        target.style.backgroundColor = "";
-        target.style.outline = "";
-        target.contentEditable = "false";
-        setSelectedElement(null);
-        return;
+        if (!isEditing) {
+          target.style.backgroundColor = "";
+          target.style.outline = "";
+          target.contentEditable = "false";
+          setSelectedElement(null);
+          return;
+        }
       }
 
       // Clear previous selection
@@ -283,7 +187,14 @@ const Website: React.FC<WebsiteProps> = ({
       iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
       iframeDoc.removeEventListener("click", handleClick);
     };
-  }, [selector, selectedProject, selectedElement, setSelectedElement, scale]);
+  }, [
+    selector,
+    selectedProject,
+    selectedElement,
+    setSelectedElement,
+    scale,
+    isEditing,
+  ]);
 
   const injectDisableInteractionStyle = (iframeDoc: Document) => {
     const style = iframeDoc.getElementById("disable-interaction-style");
@@ -352,53 +263,6 @@ const Website: React.FC<WebsiteProps> = ({
     return layoutTags.includes(el.tagName) && hasNoText && hasChildren;
   };
 
-  function injectLinkFixScript(html: string): string {
-    const linkFixScript = `
-    <script>
-    (function () {
-      'use strict';
-
-      const originalWindowOpen = window.open;
-      window.open = function (url, target, features) {
-        if (typeof url === 'string' && url.startsWith('#')) {
-          const el = document.querySelector(url);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-          }
-          return null;
-        }
-        return originalWindowOpen.call(window, url, target, features);
-      };
-
-      document.addEventListener('click', function (event) {
-        const anchor = event.target.closest('a');
-        if (!anchor) return;
-
-        const href = anchor.getAttribute('href');
-        if (!href || ['#', '', 'javascript:void(0)'].includes(href)) return;
-
-        event.preventDefault();
-
-        if (href.startsWith('#')) {
-          const el = document.querySelector(href);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-          }
-        } else {
-          window.open(href, '_blank');
-        }
-      });
-    })();
-    </script>
-  `;
-
-    if (html.includes("</body>")) {
-      return html.replace("</body>", `${linkFixScript}</body>`);
-    } else {
-      return html + linkFixScript;
-    }
-  }
-
   if (!selectedProject) return;
 
   return (
@@ -430,7 +294,6 @@ const Website: React.FC<WebsiteProps> = ({
               <button
                 onClick={() => {
                   if (elementType === "image") {
-                    // Trigger hidden file input for images
                     const input = document.createElement("input");
                     input.type = "file";
                     input.accept = "image/*";
@@ -440,16 +303,32 @@ const Website: React.FC<WebsiteProps> = ({
                       const file = target.files?.[0];
                       if (!file) return;
 
+                      if (file.size > 1024 * 1024) {
+                        alert("Image must be less than 1MB");
+                        return;
+                      }
+
                       const reader = new FileReader();
                       reader.onload = () => {
                         const dataUrl = reader.result as string;
+
+                        // Store original HTML if not already stored
+                        if (
+                          !selectedElement.getAttribute("data-original-html")
+                        ) {
+                          selectedElement.setAttribute(
+                            "data-original-html",
+                            selectedElement.outerHTML
+                          );
+                        }
+
                         selectedElement.setAttribute("src", dataUrl);
-                        // Optional: store original image src
-                        selectedElement.setAttribute(
-                          "data-original-src",
-                          selectedElement.getAttribute("src") || ""
-                        );
+
+                        // Call the change tracking function
+                        handleContentEdit(selectedElement);
+                        setHasUnsavedChanges(true);
                       };
+
                       reader.readAsDataURL(file);
                     };
 
@@ -462,9 +341,10 @@ const Website: React.FC<WebsiteProps> = ({
                         "data-original-html",
                         selectedElement.innerHTML
                       );
-                      selectedElement.addEventListener("input", () =>
-                        handleContentEdit(selectedElement)
-                      );
+                      selectedElement.addEventListener("input", () => {
+                        handleContentEdit(selectedElement);
+                        setHasUnsavedChanges(true);
+                      });
                       selectedElement.focus();
                     } else {
                       selectedElement.contentEditable = "false";
@@ -485,7 +365,7 @@ const Website: React.FC<WebsiteProps> = ({
                       : faPenToSquare
                   }
                 />
-                <p className={`${mobile === 1 && "hidden"} font-medium`}>
+                <p className={`md:hidden font-medium`}>
                   {isEditing ? "Save" : "Edit"}
                 </p>
               </button>
@@ -495,23 +375,11 @@ const Website: React.FC<WebsiteProps> = ({
 
           <button
             onClick={() => {
-              const originalHTML = selectedElement?.outerHTML || "";
-
-              setChanges([
-                ...changes,
-                {
-                  element: selectedElement,
-                  originalHTML,
-                  newHTML: "",
-                  type: "delete",
-                },
-              ]);
-
-              selectedElement?.remove();
+              handleContentDelete(selectedElement);
               setSelectedElement(null);
               setHasUnsavedChanges(true);
             }}
-            className="text-gray-700 hover:text-red-600 flex items-center gap-1"
+            className="text-gray-700 hover:text-red-600 flex items-center gap-1 font-semibold"
             title="Delete"
           >
             <FontAwesomeIcon icon={faTrash} />
@@ -520,23 +388,54 @@ const Website: React.FC<WebsiteProps> = ({
         </div>
       )}
       {hasUnsavedChanges && (
-        <div className="fixed bottom-4 right-4 z-50 bg-white px-4 py-2 rounded-lg shadow-lg border-2 border-zinc-200 flex gap-4 items-center">
-          <span className="text-sm text-gray-700">Unsaved changes</span>
-          <button
-            onClick={handleSaveChanges}
-            className="text-green-600 hover:text-green-700 flex items-center gap-1"
-            title="Save Changes"
+        <div
+          className={`fixed top-28 left-[465px] tb:left-80 md:top-[104px] md:left-[274px] flex p-2 md:px-1 rounded-lg items-center gap-1 md:gap-0 md:z-40 border transition-all animate-fade duration-200 ${
+            darkMode
+              ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
+              : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
+          }`}
+          style={
+            {
+              // left: "465px",
+            }
+          }
+        >
+          {/* <button
+            onClick={handleUndoChange}
+            title="Undo"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
-            <FontAwesomeIcon icon={faSave} />
-            <span>Save</span>
+            <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
+          </button> */}
+          <button
+            onClick={async () => {
+              if (selectedElement) {
+                const saved = await handleSaveChanges(
+                  selectedElement,
+                  iframeRef
+                );
+                if (saved) {
+                  setHasUnsavedChanges(false);
+                }
+              }
+            }}
+            title="Save"
+            className="flex items-center gap-1 px-2 py-1.5 md:px-1 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+          >
+            <FontAwesomeIcon icon={faSave} className="w-4 h-4" />
           </button>
           <button
-            onClick={handleDiscardChanges}
-            className="text-red-600 hover:text-red-700 flex items-center gap-1"
-            title="Discard Changes"
+            onClick={() => {
+              handleDiscardChanges(iframeRef);
+              setHasUnsavedChanges(false);
+              setSelector(false);
+              setSelectedElement(null);
+              setIsEditing(false);
+            }}
+            title="Discard"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
-            <FontAwesomeIcon icon={faXmark} />
-            <span>Discard</span>
+            <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
           </button>
         </div>
       )}

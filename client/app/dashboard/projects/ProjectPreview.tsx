@@ -39,6 +39,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const success = await del(`/api/projects/${project.id}`);
+    await del(`/api/storage?filePath=${project.project_name}`);
     if (success) {
       setProjects(projects.filter((p) => p.id !== project.id));
     }

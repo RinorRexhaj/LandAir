@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateRequest } from "../validateRequest";
-import { getFile, uploadFile, deleteFile } from "./storage";
+import { getFile, uploadFile, deleteFile, uploadImage } from "./storage";
 
 export async function GET(req: NextRequest) {
   const validation = await validateRequest(req);
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const path = `${validation.user.id}/${project_name}`;
+  const path = `${validation.user.id}/${project_name}/index.html`;
   const publicUrl = await getFile(path);
   return NextResponse.json(publicUrl);
 }
@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
     return validation;
   }
 
-  const { content, filePath } = await req.json();
+  const formData = await req.formData();
+  const filePath = formData.get("filePath") as string;
+  const type = formData.get("type") as string;
+  const content = formData.get("content");
 
   if (!content || !filePath) {
     return NextResponse.json(
@@ -38,9 +41,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (type === "image") {
+    console.log(content);
+  }
+
   try {
-    await uploadFile(content, `${validation.user.id}/${filePath}`);
-    return NextResponse.json({ success: true });
+    if (type === "html") {
+      await uploadFile(
+        content as string,
+        `${validation.user.id}/${filePath}/index.html`
+      );
+      return NextResponse.json({ success: true });
+    } else if (type === "image") {
+      const url = await uploadImage(
+        content as File,
+        `${validation.user.id}/${filePath}`
+      );
+      return NextResponse.json({ success: true, url });
+    }
   } catch (error) {
     console.error("Upload failed:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
@@ -53,7 +71,7 @@ export async function DELETE(req: NextRequest) {
     return validation;
   }
 
-  const { filePath } = await req.json();
+  const filePath = req.nextUrl.searchParams.get("filePath");
 
   if (!filePath) {
     return NextResponse.json({ error: "Missing filePath" }, { status: 400 });

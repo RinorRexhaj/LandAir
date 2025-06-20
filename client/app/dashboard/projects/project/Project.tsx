@@ -83,7 +83,7 @@ const ProjectPage = () => {
         }`}
       >
         <button
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+          className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
             activeView !== "preview"
               ? "opacity-70 hover:opacity-100"
               : darkMode
@@ -99,7 +99,7 @@ const ProjectPage = () => {
         </button>
 
         <button
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+          className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
             activeView === "prompt"
               ? darkMode
                 ? "bg-zinc-700 text-white"

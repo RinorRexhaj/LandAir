@@ -163,6 +163,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
             selector={selector}
+            setSelector={setSelector}
             mobile={mobile}
             scale={scale}
           />

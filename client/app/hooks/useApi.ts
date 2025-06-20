@@ -28,8 +28,10 @@ const useApi = () => {
           baseURL: url,
           params,
           headers: {
-            "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),
+            ...(data instanceof FormData
+              ? {} // Let Axios auto-set FormData headers
+              : { "Content-Type": "application/json" }),
           },
         };
 
