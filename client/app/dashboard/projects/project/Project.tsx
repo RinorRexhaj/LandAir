@@ -119,7 +119,7 @@ const ProjectPage = () => {
       <div
         className="w-full flex gap-4"
         style={{
-          height: "calc(100vh - 160px)",
+          height: "calc(100vh - 130px)",
         }}
       >
         {/* Desktop Layout */}

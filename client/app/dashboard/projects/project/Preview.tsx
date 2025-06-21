@@ -57,7 +57,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
       className="w-full h-full flex flex-col gap-3 animate-fade"
       ref={mainRef}
     >
-      <div className="flex gap-2 md:gap-1 flex-wrap">
+      <div className="flex gap-1 flex-wrap">
         {/* Device Toggle */}
         <div
           className={`flex px-2 py-1.5 md:gap-1 rounded-lg items-center gap-2 border transition-all duration-200 ${
@@ -157,7 +157,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
       </div>
 
       {/* Preview Area */}
-      <div className={`relative w-full h-full flex shadow-md overflow-hidden`}>
+      <div className={`relative w-full h-full flex overflow-hidden`}>
         {(scale < 1 || mobile) && selectedProject?.file && mobile < 2 && (
           <Website
             selectedElement={selectedElement}

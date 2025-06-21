@@ -10,6 +10,7 @@ import useApi from "@/app/hooks/useApi";
 import { Relevance } from "@/app/types/Relevance";
 import Image from "next/image";
 import { useCreditStore } from "@/app/store/useCreditStore";
+import useToast from "@/app/hooks/useToast";
 
 interface WebsiteRequirements {
   generalDescription: string;
@@ -42,6 +43,7 @@ const Prompt: React.FC<PromptProps> = ({
   const { get, post, put } = useApi();
   const { credits, setCredits } = useCreditStore();
   const { darkMode } = useThemeStore();
+  const toast = useToast();
   const [result, setResult] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
     null
@@ -84,8 +86,6 @@ const Prompt: React.FC<PromptProps> = ({
     setIsGenerating(true);
 
     try {
-      const { credits }: { credits: number } = await put(`/api/credits`);
-      setCredits(credits);
       const taskId: string = await post(`/api/relevance`, {
         prompt: requirements.generalDescription,
         type: "generate",
@@ -104,6 +104,9 @@ const Prompt: React.FC<PromptProps> = ({
 
       if (status?.type === "complete") {
         setResult(true);
+        const { credits }: { credits: number } = await put(`/api/credits`);
+        setCredits(credits);
+        toast.success("Website Generated!");
         const filePath = `${selectedProject?.project_name}`;
         const content =
           status.updates[status.updates.length - 1]?.output.output.answer;
@@ -124,7 +127,7 @@ const Prompt: React.FC<PromptProps> = ({
       }
 
       if (status?.type === "failed") {
-        console.error("Generation failed");
+        toast.error("Generation failed!");
         setIsGenerating(false);
         return;
       }
@@ -132,7 +135,8 @@ const Prompt: React.FC<PromptProps> = ({
       // Wait 5s then recurse
       setTimeout(() => startPolling(taskId), 5000);
     } catch (error) {
-      console.error("Polling error:", error);
+      console.error(error);
+      toast.error("Generation failed!");
       setIsGenerating(false);
     }
   };

@@ -25,6 +25,7 @@
     "next": "15.1.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-toastify": "^11.0.5",
     "stripe": "^18.2.1",
     "supabase": "^2.23.4",
     "three": "^0.177.0",

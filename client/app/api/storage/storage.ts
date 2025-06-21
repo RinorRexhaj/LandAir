@@ -34,8 +34,6 @@ export const uploadImage = async (
     throw new Error("File size exceeds 1MB limit.");
   }
 
-  console.log(file);
-
   const { error } = await supabase.storage
     .from("pages")
     .upload(filePath, file, {

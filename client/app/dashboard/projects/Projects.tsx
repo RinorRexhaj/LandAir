@@ -11,6 +11,7 @@ import ProjectPreview from "./ProjectPreview";
 import Empty from "./Empty";
 import Creating from "./Creating";
 import { useProjectStore } from "@/app/store/useProjectsStore";
+import useToast from "@/app/hooks/useToast";
 
 type SortOption = "Edited" | "Created" | "alphabetical";
 
@@ -20,6 +21,7 @@ const Projects = () => {
   const { projects, setProjects, selectedProject, setSelectedProject } =
     useProjectStore();
   const { darkMode } = useThemeStore();
+  const toast = useToast();
   const { loading, setLoading, get, post } = useApi();
 
   const sortOptions = [
@@ -47,6 +49,7 @@ const Projects = () => {
     setTimeout(() => {
       setCreating(false);
       setSelectedProject(newProject[0]);
+      toast.success("Project Created!");
     }, 300);
   };
 

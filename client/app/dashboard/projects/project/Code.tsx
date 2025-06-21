@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileCode, faCopy } from "@fortawesome/free-solid-svg-icons";
 import useApi from "@/app/hooks/useApi";
 import { useProjectStore } from "@/app/store/useProjectsStore";
+import useToast from "@/app/hooks/useToast";
 
 interface CodeProps {
   file: string;
@@ -19,20 +20,29 @@ const Code: React.FC<CodeProps> = ({ file, getUrl }) => {
   const { darkMode } = useThemeStore();
   const { selectedProject } = useProjectStore();
   const { post, put } = useApi();
+  const toast = useToast();
 
   const saveCode = async () => {
     setIsSaving(true);
-    await post(`/api/storage/`, {
-      content: code,
-      filePath: `${selectedProject?.project_name}`,
-    });
-    await put(`/api/projects/${selectedProject?.id}`, {
-      new_name: selectedProject?.project_name,
-    });
-    setIsSaving(false);
-    setSaved(true);
-    getUrl();
-    setTimeout(() => setSaved(false), 1000);
+    const formData = new FormData();
+    formData.append("content", code);
+    formData.append("filePath", `${selectedProject?.project_name}`);
+    formData.append("type", "html");
+    try {
+      await post(`/api/storage/`, formData);
+      await put(`/api/projects/${selectedProject?.id}`, {
+        new_name: selectedProject?.project_name,
+      });
+      setSaved(true);
+      toast.success("Changes saved!");
+      getUrl();
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong!");
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaved(false), 1000);
+    }
   };
 
   const copyCode = async () => {

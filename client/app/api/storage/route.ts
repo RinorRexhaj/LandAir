@@ -41,10 +41,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (type === "image") {
-    console.log(content);
-  }
-
   try {
     if (type === "html") {
       await uploadFile(

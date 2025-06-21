@@ -7,6 +7,7 @@ import DashboardNavbar from "./navbar/DashboardNavbar";
 import DashboardSidebar from "./DashboardSidebar";
 import Projects from "./projects/Projects";
 import { useThemeStore } from "../store/useThemeStore";
+import { ToastContainer } from "react-toastify";
 
 const Dashboard = () => {
   const [activeLink, setActiveLink] = useState(0);
@@ -59,6 +60,7 @@ const Dashboard = () => {
           setActiveLink={setActiveLink}
           isOpen={isSidebarOpen}
         />
+        <ToastContainer closeOnClick hideProgressBar icon={false} limit={3} />
         <main className="flex-1 px-8 py-6 md:p-4">{<Projects />}</main>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { RefObject, useState } from "react";
 import { useProjectStore } from "../store/useProjectsStore";
 import useApi from "./useApi";
+import useToast from "./useToast";
 
 interface ElementChange {
   element: HTMLElement;
@@ -11,6 +12,7 @@ interface ElementChange {
 
 const useChange = () => {
   const { post, put } = useApi();
+  const toast = useToast();
   const { selectedProject, setSelectedProject } = useProjectStore();
   const [changes, setChanges] = useState<ElementChange[]>([]);
 
@@ -103,6 +105,8 @@ const useChange = () => {
     const iframeDoc = iframeRef.current?.contentDocument;
     if (!iframeDoc) return false;
 
+    const toastId = toast.loading("Saving...");
+
     // Clean up styles
     iframeDoc.querySelectorAll("*").forEach((el) => {
       if (el instanceof HTMLElement) {
@@ -163,6 +167,7 @@ const useChange = () => {
         }
         // Replace src with uploaded URL
         img.setAttribute("src", uploadedUrl);
+        img.removeAttribute("data-original-html");
       }
     }
     // --- IMAGE UPLOAD LOGIC END ---
@@ -186,9 +191,11 @@ const useChange = () => {
       });
 
       setChanges([]);
+      toast.update(toastId, "success", "Changes saved!");
       return true;
     } catch (err) {
       console.error("Save failed:", err);
+      toast.update(toastId, "error", "Save failed...");
       return false;
     }
   };
@@ -207,6 +214,7 @@ const useChange = () => {
     iframeDoc.close();
 
     setChanges([]);
+    toast.info("Changes discarded.");
   };
 
   const handleContentDelete = (selectedElement: HTMLElement) => {

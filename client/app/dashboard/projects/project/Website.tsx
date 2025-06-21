@@ -4,7 +4,6 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import {
   faPenToSquare,
   faTrash,
-  faSave,
   faXmark,
   faCheck,
   faImage,
@@ -121,7 +120,7 @@ const Website: React.FC<WebsiteProps> = ({
       }
     };
 
-    const handleClick = (e: MouseEvent) => {
+    const handleClick = async (e: MouseEvent) => {
       const target = iframeDoc.elementFromPoint(
         e.clientX,
         e.clientY
@@ -375,9 +374,9 @@ const Website: React.FC<WebsiteProps> = ({
 
           <button
             onClick={() => {
+              setHasUnsavedChanges(true);
               handleContentDelete(selectedElement);
               setSelectedElement(null);
-              setHasUnsavedChanges(true);
             }}
             className="text-gray-700 hover:text-red-600 flex items-center gap-1 font-semibold"
             title="Delete"
@@ -389,16 +388,11 @@ const Website: React.FC<WebsiteProps> = ({
       )}
       {hasUnsavedChanges && (
         <div
-          className={`fixed top-28 left-[465px] tb:left-80 md:top-[104px] md:left-[274px] flex p-2 md:px-1 rounded-lg items-center gap-1 md:gap-0 md:z-40 border transition-all animate-fade duration-200 ${
+          className={`fixed top-28 left-[457px] tb:left-[315px] md:top-[104px] md:left-[274px] flex p-2 md:px-1 rounded-lg items-center gap-1 md:gap-0 md:z-40 border transition-all animate-fade duration-200 ${
             darkMode
               ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
               : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
           }`}
-          style={
-            {
-              // left: "465px",
-            }
-          }
         >
           {/* <button
             onClick={handleUndoChange}
@@ -409,20 +403,15 @@ const Website: React.FC<WebsiteProps> = ({
           </button> */}
           <button
             onClick={async () => {
-              if (selectedElement) {
-                const saved = await handleSaveChanges(
-                  selectedElement,
-                  iframeRef
-                );
-                if (saved) {
-                  setHasUnsavedChanges(false);
-                }
+              const saved = await handleSaveChanges(selectedElement, iframeRef);
+              if (saved) {
+                setHasUnsavedChanges(false);
               }
             }}
             title="Save"
             className="flex items-center gap-1 px-2 py-1.5 md:px-1 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
-            <FontAwesomeIcon icon={faSave} className="w-4 h-4" />
+            <FontAwesomeIcon icon={faCheck} className="w-4 h-4" />
           </button>
           <button
             onClick={() => {
