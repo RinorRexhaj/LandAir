@@ -104,7 +104,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
   const getProjectFile = async (): Promise<File> => {
     try {
       // Get the file path from your project data
-      const filePath = `${user?.id}/${selectedProject?.project_name}`;
+      const filePath = `${user?.id}/${selectedProject?.project_name}/index.html`;
 
       // Get the public URL of the file
       const { data: urlData } = supabase.storage

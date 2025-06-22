@@ -1,5 +1,6 @@
 import useApi from "@/app/hooks/useApi";
 import { useTimeAgo } from "@/app/hooks/useTimeAgo";
+import useToast from "@/app/hooks/useToast";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { Project } from "@/app/types/Project";
@@ -17,6 +18,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const { setSelectedProject, projects, setProjects } = useProjectStore();
   const { loading, del } = useApi();
   const { formatTime } = useTimeAgo();
+  const toast = useToast();
   const [hover, setHover] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -38,11 +40,18 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const success = await del(`/api/projects/${project.id}`);
-    await del(`/api/storage?filePath=${project.project_name}`);
-    if (success) {
-      setProjects(projects.filter((p) => p.id !== project.id));
+    try {
+      const success = await del(`/api/projects/${project.id}`);
+      await del(`/api/storage?filePath=${project.project_name}`);
+      if (success) {
+        setProjects(projects.filter((p) => p.id !== project.id));
+        toast.success("Successfully deleted!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
     }
+
     setShowDeleteModal(false);
   };
 

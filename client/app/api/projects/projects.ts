@@ -1,6 +1,6 @@
 import { Project } from "@/app/types/Project";
 import { supabase } from "../supabase";
-import { deleteFile } from "../storage/storage";
+import { deleteFolder } from "../storage/storage";
 
 export const fetchProjects = async (user_id: string): Promise<Project[]> => {
   const { data, error } = await supabase
@@ -73,8 +73,8 @@ export const deleteProject = async (projectId: number, userId: string) => {
     return false;
   }
 
-  if (data) {
-    await deleteFile(`${userId}/${data}`);
+  if (data && data.length > 0) {
+    await deleteFolder(`${userId}/${data[0].project_name}`);
   }
 
   return true;

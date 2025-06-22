@@ -21,9 +21,6 @@ interface PreviewProps {
 const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
   const [mobile, setMobile] = useState(0);
   const [selector, setSelector] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<HTMLElement | null>(
-    null
-  );
   const [scale, setScale] = useState(1);
   const mainRef = useRef<HTMLDivElement | null>(null);
   const { darkMode } = useThemeStore();
@@ -44,7 +41,6 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
 
     if (mobile === 2) {
       setSelector(false);
-      setSelectedElement(null);
     }
 
     window.addEventListener("resize", updateScale);
@@ -160,8 +156,6 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
       <div className={`relative w-full h-full flex overflow-hidden`}>
         {(scale < 1 || mobile) && selectedProject?.file && mobile < 2 && (
           <Website
-            selectedElement={selectedElement}
-            setSelectedElement={setSelectedElement}
             selector={selector}
             setSelector={setSelector}
             mobile={mobile}

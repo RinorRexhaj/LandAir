@@ -16,8 +16,14 @@ interface WebsiteProps {
   setSelector: (sel: boolean) => void;
   mobile: number;
   scale: number;
-  selectedElement: HTMLElement | null;
-  setSelectedElement: (el: HTMLElement | null) => void;
+}
+
+interface ElementPos {
+  element: HTMLElement;
+  height: number;
+  width: number;
+  left: number;
+  top: number;
 }
 
 const Website: React.FC<WebsiteProps> = ({
@@ -25,8 +31,6 @@ const Website: React.FC<WebsiteProps> = ({
   setSelector,
   mobile,
   scale,
-  selectedElement,
-  setSelectedElement,
 }) => {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [toolBarPos, setToolBarPos] = useState<{
@@ -38,6 +42,10 @@ const Website: React.FC<WebsiteProps> = ({
   >(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [hoveredElement, setHoveredElement] = useState<ElementPos | null>(null);
+  const [selectedElement, setSelectedElement] = useState<ElementPos | null>(
+    null
+  );
   const {
     handleContentDelete,
     handleContentEdit,
@@ -47,6 +55,8 @@ const Website: React.FC<WebsiteProps> = ({
   } = useChange();
   const { selectedProject } = useProjectStore();
   const { darkMode } = useThemeStore();
+  const [showTextEditModal, setShowTextEditModal] = useState(false);
+  const [modalTextValue, setModalTextValue] = useState("");
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -57,21 +67,6 @@ const Website: React.FC<WebsiteProps> = ({
 
     if (!selector) {
       removeDisableInteractionStyle(iframeDoc);
-
-      iframeDoc.querySelectorAll("*").forEach((el) => {
-        if (el instanceof HTMLElement) {
-          el.style.backgroundColor = "";
-          el.style.background = "";
-          el.style.outline = "";
-        }
-      });
-
-      if (selectedElement) {
-        selectedElement.style.backgroundColor = "";
-        selectedElement.style.background = "";
-        selectedElement.style.outline = "";
-      }
-
       setSelectedElement(null);
       setElementType(null);
       return;
@@ -79,45 +74,19 @@ const Website: React.FC<WebsiteProps> = ({
       injectDisableInteractionStyle(iframeDoc);
     }
 
-    let lastHoveredElement: HTMLElement | null = null;
-    let lastHoveredOriginalBg = "";
-    let lastHoveredOriginalOutline = "";
-
-    const HOVER_COLOR = "rgba(29, 45, 255, 0.5)";
-    const SELECT_COLOR = "rgba(29, 45, 255, 0.25)";
-    const SELECT_OUTLINE = "3px dotted #1d2dff";
-
     const handleMouseMove = (e: MouseEvent) => {
       const target = iframeDoc.elementFromPoint(
         e.clientX,
         e.clientY
       ) as HTMLElement | null;
 
-      if (!target || target === lastHoveredElement) return;
+      if (!target) return;
 
-      // Restore styles of last hovered element
-      if (lastHoveredElement && lastHoveredElement !== selectedElement) {
-        lastHoveredElement.style.backgroundColor = lastHoveredOriginalBg;
-        lastHoveredElement.style.outline = lastHoveredOriginalOutline;
-      }
-
-      lastHoveredOriginalBg = target.style.backgroundColor || "";
-      lastHoveredOriginalOutline = target.style.outline || "";
-      lastHoveredElement = target;
-
-      // Apply hover styles
-      if (target !== selectedElement) {
-        target.style.backgroundColor = HOVER_COLOR;
-        target.style.outline = "1px dashed #1d2dff";
-      }
+      updateHoverPos(target);
     };
 
     const handleMouseLeave = () => {
-      if (lastHoveredElement && lastHoveredElement !== selectedElement) {
-        lastHoveredElement.style.backgroundColor = lastHoveredOriginalBg;
-        lastHoveredElement.style.outline = lastHoveredOriginalOutline;
-        lastHoveredElement = null;
-      }
+      updateHoverPos(undefined);
     };
 
     const handleClick = async (e: MouseEvent) => {
@@ -137,33 +106,23 @@ const Website: React.FC<WebsiteProps> = ({
         setElementType("layout");
       }
 
+      setIsEditing(false);
       updateToolbarPos(target);
+      updateClickPos(target);
 
       // Deselect if clicking the same element
-      if (selectedElement === target) {
+      if (selectedElement?.element === target) {
         if (!isEditing) {
-          target.style.backgroundColor = "";
-          target.style.outline = "";
           target.contentEditable = "false";
+          setIsEditing(false);
           setSelectedElement(null);
           return;
         }
       }
-
-      // Clear previous selection
-      if (selectedElement) {
-        selectedElement.style.backgroundColor = "";
-        selectedElement.style.outline = "";
-      }
-
-      // Apply selection styles
-      target.style.backgroundColor = SELECT_COLOR;
-      target.style.outline = SELECT_OUTLINE;
-      setSelectedElement(target);
     };
 
-    const updateToolbarPos = (target: HTMLElement | null) => {
-      const element = target || selectedElement;
+    const updateToolbarPos = (target: HTMLElement | null | undefined) => {
+      const element = target || selectedElement?.element;
       if (!element) return;
       const rect = element.getBoundingClientRect();
       const top =
@@ -171,15 +130,115 @@ const Website: React.FC<WebsiteProps> = ({
       setToolBarPos({ top, left: scale * rect.x });
     };
 
+    const updateHoverPos = (target: HTMLElement | undefined) => {
+      if (!target) {
+        setHoveredElement(null);
+        return;
+      }
+      if (!iframeRef.current) return;
+      const rect = target.getBoundingClientRect();
+      const iframeRect = iframeRef.current.getBoundingClientRect();
+
+      // Calculate scaled position and size
+      let left = iframeRect.left + rect.left * scale;
+      let top = iframeRect.top + rect.top * scale;
+      let width = rect.width * scale;
+      let height = rect.height * scale;
+
+      // Clamp to iframe bounds
+      const maxLeft = iframeRect.left + iframeRect.width;
+      const maxTop = iframeRect.top + iframeRect.height;
+
+      if (left < iframeRect.left) {
+        width -= iframeRect.left - left;
+        left = iframeRect.left;
+      }
+      if (top < iframeRect.top) {
+        height -= iframeRect.top - top;
+        top = iframeRect.top;
+      }
+      if (left + width > maxLeft) {
+        width = maxLeft - left;
+      }
+      if (top + height > maxTop) {
+        height = maxTop - top;
+      }
+
+      // Only show if still visible
+      if (width > 0 && height > 0) {
+        setHoveredElement({
+          element: target,
+          height,
+          width,
+          left,
+          top,
+        });
+      } else {
+        setHoveredElement(null);
+      }
+    };
+
+    const updateClickPos = (target: HTMLElement | undefined) => {
+      if (!target) {
+        setSelectedElement(null);
+        return;
+      }
+      if (!iframeRef.current) return;
+      const rect = target.getBoundingClientRect();
+      const iframeRect = iframeRef.current.getBoundingClientRect();
+
+      // Calculate scaled position and size
+      let left = iframeRect.left + rect.left * scale;
+      let top = iframeRect.top + rect.top * scale;
+      let width = rect.width * scale;
+      let height = rect.height * scale;
+
+      // Clamp to iframe bounds
+      const maxLeft = iframeRect.left + iframeRect.width;
+      const maxTop = iframeRect.top + iframeRect.height;
+
+      if (left < iframeRect.left) {
+        width -= iframeRect.left - left;
+        left = iframeRect.left;
+      }
+      if (top < iframeRect.top) {
+        height -= iframeRect.top - top;
+        top = iframeRect.top;
+      }
+      if (left + width > maxLeft) {
+        width = maxLeft - left;
+      }
+      if (top + height > maxTop) {
+        height = maxTop - top;
+      }
+
+      // Only show if still visible
+      if (width > 0 && height > 0) {
+        setSelectedElement({
+          element: target,
+          height,
+          width,
+          left,
+          top,
+        });
+      } else {
+        setSelectedElement(null);
+      }
+    };
+
     iframeDoc.addEventListener("click", handleClick);
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
-    iframeDoc.addEventListener("scroll", () =>
-      updateToolbarPos(selectedElement)
-    );
-    iframe.contentWindow?.addEventListener("resize", () =>
-      updateToolbarPos(selectedElement)
-    );
+    iframeDoc.addEventListener("scroll", () => {
+      updateToolbarPos(selectedElement?.element);
+      updateHoverPos(hoveredElement?.element);
+      updateClickPos(selectedElement?.element);
+    });
+    iframe.contentWindow?.addEventListener("resize", () => {
+      updateToolbarPos(selectedElement?.element);
+      updateHoverPos(hoveredElement?.element);
+      updateClickPos(selectedElement?.element);
+    });
 
     return () => {
       iframeDoc.removeEventListener("mousemove", handleMouseMove);
@@ -193,6 +252,7 @@ const Website: React.FC<WebsiteProps> = ({
     setSelectedElement,
     scale,
     isEditing,
+    hoveredElement?.element,
   ]);
 
   const injectDisableInteractionStyle = (iframeDoc: Document) => {
@@ -221,8 +281,6 @@ const Website: React.FC<WebsiteProps> = ({
         htmlEl.onmouseup = (e) => e.preventDefault();
       }
     });
-    const overlay = iframeDoc.querySelector(".inset-0");
-    if (overlay) overlay.classList.add("pointer-events-none");
 
     iframeDoc.head.appendChild(styleTag);
   };
@@ -280,6 +338,30 @@ const Website: React.FC<WebsiteProps> = ({
           position: "fixed",
         }}
       />
+      {selector && hoveredElement && iframeRef.current && (
+        <div
+          className="bg-blue-500 opacity-50 pointer-events-none"
+          style={{
+            position: "fixed",
+            height: hoveredElement.height,
+            width: hoveredElement.width,
+            left: hoveredElement.left,
+            top: hoveredElement.top,
+          }}
+        ></div>
+      )}
+      {selector && selectedElement && iframeRef.current && (
+        <div
+          className="outline-dotted outline-3 outline-blue-500 opacity-50 pointer-events-none"
+          style={{
+            position: "fixed",
+            height: selectedElement.height,
+            width: selectedElement.width,
+            left: selectedElement.left,
+            top: selectedElement.top,
+          }}
+        ></div>
+      )}
       {selectedElement && selector && (
         <div
           className="absolute z-40 bg-white px-2 py-1 flex gap-2 items-center rounded text-xs shadow-lg border-2 border-zinc-200"
@@ -313,18 +395,21 @@ const Website: React.FC<WebsiteProps> = ({
 
                         // Store original HTML if not already stored
                         if (
-                          !selectedElement.getAttribute("data-original-html")
+                          !selectedElement.element.getAttribute(
+                            "data-original-html"
+                          )
                         ) {
-                          selectedElement.setAttribute(
+                          selectedElement.element.setAttribute(
                             "data-original-html",
-                            selectedElement.outerHTML
+                            selectedElement.element.outerHTML
                           );
                         }
 
-                        selectedElement.setAttribute("src", dataUrl);
+                        selectedElement.element.setAttribute("src", dataUrl);
 
                         // Call the change tracking function
-                        handleContentEdit(selectedElement);
+                        handleContentEdit(selectedElement.element);
+                        setIsEditing(false);
                         setHasUnsavedChanges(true);
                       };
 
@@ -332,22 +417,29 @@ const Website: React.FC<WebsiteProps> = ({
                     };
 
                     input.click();
+                  } else if (elementType === "text") {
+                    // Open modal for text editing
+                    setModalTextValue(
+                      selectedElement.element.textContent || ""
+                    );
+                    setShowTextEditModal(true);
                   } else {
-                    // Text or mixed content editing
+                    // fallback to previous logic for mixed content
                     if (!isEditing) {
-                      selectedElement.contentEditable = "true";
-                      selectedElement.setAttribute(
+                      selectedElement.element.contentEditable = "true";
+                      selectedElement.element.style.outline = "none";
+                      selectedElement.element.setAttribute(
                         "data-original-html",
-                        selectedElement.innerHTML
+                        selectedElement.element.innerHTML
                       );
-                      selectedElement.addEventListener("input", () => {
-                        handleContentEdit(selectedElement);
+                      selectedElement.element.addEventListener("input", () => {
+                        handleContentEdit(selectedElement.element);
                         setHasUnsavedChanges(true);
                       });
-                      selectedElement.focus();
+                      selectedElement.element.focus();
                     } else {
-                      selectedElement.contentEditable = "false";
-                      selectedElement.blur();
+                      selectedElement.element.contentEditable = "false";
+                      selectedElement.element.blur();
                     }
                     setIsEditing(!isEditing);
                   }
@@ -375,7 +467,7 @@ const Website: React.FC<WebsiteProps> = ({
           <button
             onClick={() => {
               setHasUnsavedChanges(true);
-              handleContentDelete(selectedElement);
+              handleContentDelete(selectedElement.element);
               setSelectedElement(null);
             }}
             className="text-gray-700 hover:text-red-600 flex items-center gap-1 font-semibold"
@@ -403,7 +495,10 @@ const Website: React.FC<WebsiteProps> = ({
           </button> */}
           <button
             onClick={async () => {
-              const saved = await handleSaveChanges(selectedElement, iframeRef);
+              const saved = await handleSaveChanges(
+                selectedElement?.element || null,
+                iframeRef
+              );
               if (saved) {
                 setHasUnsavedChanges(false);
               }
@@ -426,6 +521,63 @@ const Website: React.FC<WebsiteProps> = ({
           >
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
           </button>
+        </div>
+      )}
+      {showTextEditModal && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30`}
+        >
+          <div
+            className={`${
+              darkMode ? "bg-zinc-900 text-white" : "bg-white text-zinc-900"
+            } rounded-lg shadow-lg p-6 w-96 flex flex-col gap-4 font-semibold`}
+          >
+            <h3 className="text-lg font-semibold">Edit Text</h3>
+            <textarea
+              className={`${
+                darkMode ? "border-zinc-700" : "border-zinc-300"
+              } border bg-inherit rounded p-2 w-full min-h-[120px] focus:outline-none`}
+              value={modalTextValue}
+              onChange={(e) => setModalTextValue(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                onClick={() => {
+                  if (selectedElement) {
+                    // Store original HTML if not already stored
+                    if (
+                      !selectedElement.element.getAttribute(
+                        "data-original-html"
+                      )
+                    ) {
+                      selectedElement.element.setAttribute(
+                        "data-original-html",
+                        selectedElement.element.innerHTML
+                      );
+                    }
+                    selectedElement.element.textContent = modalTextValue;
+                    handleContentEdit(selectedElement.element);
+                    setHasUnsavedChanges(true);
+                  }
+                  setShowTextEditModal(false);
+                  setSelectedElement(null);
+                }}
+              >
+                Save
+              </button>
+              <button
+                className="px-3 text-white py-1 rounded bg-gray-500 hover:bg-gray-600"
+                onClick={() => {
+                  setShowTextEditModal(false);
+                  setSelectedElement(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>

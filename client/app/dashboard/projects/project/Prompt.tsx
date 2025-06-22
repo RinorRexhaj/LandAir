@@ -1,23 +1,17 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faPaperPlane,
   faSpinner,
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
-import { useThemeStore } from "@/app/store/useThemeStore";
 import { useProjectStore } from "@/app/store/useProjectsStore";
-import useApi from "@/app/hooks/useApi";
-import { Relevance } from "@/app/types/Relevance";
-import Image from "next/image";
+import { useThemeStore } from "@/app/store/useThemeStore";
 import { useCreditStore } from "@/app/store/useCreditStore";
+import useApi from "@/app/hooks/useApi";
 import useToast from "@/app/hooks/useToast";
-
-interface WebsiteRequirements {
-  generalDescription: string;
-  audienceType: string;
-  colorScheme: string;
-  additionalInfo: string;
-}
+import { Relevance } from "@/app/types/Relevance";
+import { ChatMessage } from "@/app/types/Chat";
 
 interface PromptProps {
   isGenerating: boolean;
@@ -32,36 +26,35 @@ const Prompt: React.FC<PromptProps> = ({
   setProjectFile,
   getUrl,
 }) => {
-  const [requirements, setRequirements] = useState<WebsiteRequirements>({
-    generalDescription: "",
-    audienceType: "",
-    colorScheme: "",
-    additionalInfo: "",
-  });
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // const [result, setResult] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
-  const { selectedProject } = useProjectStore();
   const { get, post, put } = useApi();
-  const { credits, setCredits } = useCreditStore();
+  const { selectedProject } = useProjectStore();
   const { darkMode } = useThemeStore();
+  const { credits, setCredits } = useCreditStore();
   const toast = useToast();
-  const [result, setResult] = useState(false);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
-    null
-  );
 
-  const handleInputChange = (
-    field: keyof WebsiteRequirements,
-    value: string
-  ) => {
-    setRequirements((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  useEffect(() => {
+    if (!selectedProject) {
+      setMessages([]);
+      return;
+    }
+    (async () => {
+      try {
+        const msgs: ChatMessage[] = await get(
+          `/api/chat?projectId=${selectedProject.id}`
+        );
+        setMessages(msgs);
+      } catch {
+        setMessages([]);
+      }
+    })();
+  }, [selectedProject, get]);
 
   const pollGenerationStatus = useCallback(
     async (taskId: string) => {
-      if (result) return;
       try {
         const status: {
           type: string;
@@ -69,33 +62,49 @@ const Prompt: React.FC<PromptProps> = ({
         } = await get("/api/relevance?taskId=" + taskId);
         return status;
       } catch (error) {
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
-        }
+        toast.error("Failed to poll generation status");
         throw error;
       }
     },
-    [get, pollingInterval, result]
+    [get, toast]
   );
 
   const handleSubmit = async () => {
-    if (isGenerating || enhancing) return;
-    if (credits < 3) return;
+    if (!input || isGenerating || enhancing || credits < 3 || !selectedProject)
+      return;
 
+    // Optimistically add user message
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        sender: true,
+        message: input,
+        projectId: String(selectedProject.id),
+      },
+    ]);
     setIsGenerating(true);
 
     try {
-      const taskId: string = await post(`/api/relevance`, {
-        prompt: requirements.generalDescription,
-        type: "generate",
+      // Save user message to DB
+      await post(`/api/chat`, {
+        sender: true,
+        message: input,
+        projectId: String(selectedProject.id),
       });
 
+      const taskId: string = await post(`/api/relevance`, {
+        prompt: input,
+        type: "generate",
+      });
       await startPolling(taskId);
     } catch (error) {
       console.error(error);
+      toast.error("Failed to start generation");
       setIsGenerating(false);
     }
+
+    setInput("");
   };
 
   const startPolling = async (taskId: string) => {
@@ -103,14 +112,27 @@ const Prompt: React.FC<PromptProps> = ({
       const status = await pollGenerationStatus(taskId);
 
       if (status?.type === "complete") {
-        setResult(true);
-        const { credits }: { credits: number } = await put(`/api/credits`);
-        setCredits(credits);
+        // setResult(true);
+        const { credits: updatedCredits }: { credits: number } = await put(
+          `/api/credits`
+        );
+        setCredits(updatedCredits);
         toast.success("Website Generated!");
-        const filePath = `${selectedProject?.project_name}`;
+
         const content =
           status.updates[status.updates.length - 1]?.output.output.answer;
+        // Add bot message to DB and UI
+        const botMsg: ChatMessage = {
+          id: Date.now() + 1,
+          sender: false,
+          message:
+            "The website has been generated successfully! We hope it's to your liking. If you need any changes, don't hesitate to ask!",
+          projectId: String(selectedProject?.id || ""),
+        };
+        setMessages((prev) => [...prev, botMsg]);
+        await post(`/api/chat`, botMsg);
 
+        const filePath = `${selectedProject?.project_name}`;
         const formData = new FormData();
         formData.append("content", content);
         formData.append("filePath", filePath);
@@ -120,209 +142,133 @@ const Prompt: React.FC<PromptProps> = ({
         await put(`/api/projects/${selectedProject?.id}`, {
           new_name: selectedProject?.project_name,
         });
+
         getUrl();
         setProjectFile(true);
         setIsGenerating(false);
-        return;
-      }
-
-      if (status?.type === "failed") {
+      } else if (status?.type === "failed") {
         toast.error("Generation failed!");
         setIsGenerating(false);
-        return;
+      } else {
+        setTimeout(() => startPolling(taskId), 4000);
       }
-
-      // Wait 5s then recurse
-      setTimeout(() => startPolling(taskId), 5000);
     } catch (error) {
       console.error(error);
-      toast.error("Generation failed!");
+      toast.error("Polling failed!");
       setIsGenerating(false);
     }
   };
 
-  // Cleanup polling interval on component unmount
-  useEffect(() => {
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-    };
-  }, [pollingInterval]);
+  const enhanceLastMessage = async () => {
+    if (enhancing || isGenerating || !messages.length) return;
 
-  const enhanceDescription = async () => {
-    if (isGenerating || enhancing) return;
-    if (!requirements.generalDescription) return;
+    const last = messages[messages.length - 1];
+    if (!last.sender) return;
+
     setEnhancing(true);
-    const enhanced: Relevance = await post(`/api/relevance`, {
-      type: "enhance",
-      prompt: requirements.generalDescription,
-    });
-    setRequirements({ ...requirements, generalDescription: enhanced.answer });
-    setEnhancing(false);
+
+    try {
+      const enhanced: Relevance = await post(`/api/relevance`, {
+        type: "enhance",
+        prompt: last.message,
+      });
+
+      const botMsg: ChatMessage = {
+        id: Date.now() + 2,
+        sender: false,
+        message: `✨ Enhanced Idea: ${enhanced.answer}`,
+        projectId: String(selectedProject?.id || ""),
+      };
+      setMessages((prev) => [...prev, botMsg]);
+      await post(`/api/chat`, botMsg);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to enhance description");
+    } finally {
+      setEnhancing(false);
+    }
   };
 
   return (
     <div
-      className={`flex flex-col justify-between h-full w-full mx-auto ${
-        darkMode
-          ? "bg-zinc-900 border-zinc-600/80"
-          : "bg-white border-zinc-600/20"
-      } border rounded-lg shadow-md overflow-hidden animate-fade p-6`}
+      className={`flex flex-col justify-between h-full w-full mx-auto border rounded-lg shadow-md overflow-hidden animate-fade p-4 ${
+        darkMode ? "bg-zinc-900 border-zinc-600/80" : "bg-white border-zinc-200"
+      }`}
     >
-      <div className="space-y-4">
-        <div className="relative">
-          <div className="w-full flex justify-between items-center mb-1">
-            <label
-              className={`block text-sm font-medium ${
-                darkMode ? "text-gray-200" : "text-gray-700"
-              } ${enhancing && "animate-glow"}`}
-            >
-              {enhancing ? "Enhancing..." : "General Description"}
-            </label>
-            <div className="bg-transparent tb:bg-zinc-900 tb:p-1.5 rounded-md tb:border tb:border-zinc-500/50 tb:absolute tb:top-6 tb:right-0">
+      <div className="flex-1 overflow-y-auto mb-4 space-y-2 max-h-[60vh]">
+        {messages.map((msg, i) => (
+          <div
+            key={String(msg.id) || String(i)}
+            className={`px-4 py-2 rounded-xl max-w-[80%] text-sm whitespace-pre-wrap ${
+              msg.sender
+                ? "bg-blue-600 text-white self-end ml-auto"
+                : "bg-zinc-200 text-black dark:bg-zinc-800 dark:text-white self-start mr-auto"
+            }`}
+          >
+            {msg.message}
+          </div>
+        ))}
+        {(isGenerating || enhancing) && (
+          <div className="relative flex items-center gap-2 text-sm top-2 text-zinc-500 dark:text-zinc-400">
+            <FontAwesomeIcon
+              icon={faSpinner}
+              className="animate-spin w-4 h-4"
+            />
+            {enhancing ? "Enhancing..." : "Generating..."}
+          </div>
+        )}
+      </div>
+
+      <div
+        className={`w-full flex gap-4 p-2 border rounded-lg mt-2 ${
+          darkMode ? "bg-zinc-800 border-zinc-700" : "bg-white border-zinc-300"
+        }`}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          className="flex flex-col items-center flex-1"
+        >
+          <textarea
+            value={input}
+            rows={2}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Describe your website idea..."
+            className={`w-full bg-transparent px-2 py-2 text-sm focus:outline-none placeholder-gray-400 ${
+              darkMode ? "text-white" : "text-zinc-900"
+            }`}
+          />
+          <div className="w-full flex items-center gap-0 justify-between">
+            <p className="ml-2 flex items-center text-zinc-500">
+              {input.length}/500
+            </p>
+            <div>
               <button
-                className={`px-2 py-1.5 bg-violet-700/80 hover:bg-violet-700 transition-colors rounded-md flex items-center justify-center text-gray-100 `}
-                disabled={
-                  !requirements.generalDescription || isGenerating || enhancing
-                }
-                onClick={enhanceDescription}
+                type="submit"
+                className="ml-2 px-3 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
+                disabled={!input || isGenerating || credits < 3}
+                title={credits < 3 ? "Not enough credits" : "Generate"}
               >
-                <FontAwesomeIcon
-                  icon={faWandMagicSparkles}
-                  className="w-4 h-4"
-                  beatFade={enhancing}
-                />
+                {isGenerating ? (
+                  <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                ) : (
+                  <FontAwesomeIcon icon={faPaperPlane} />
+                )}
+              </button>
+              <button
+                onClick={enhanceLastMessage}
+                disabled={enhancing || isGenerating || !input}
+                className="ml-2 px-3 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-60"
+                title="Enhance"
+              >
+                <FontAwesomeIcon icon={faWandMagicSparkles} />
               </button>
             </div>
           </div>
-          <textarea
-            value={requirements.generalDescription}
-            onChange={(e) =>
-              handleInputChange("generalDescription", e.target.value)
-            }
-            required
-            placeholder="Describe your website's purpose and main features..."
-            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              darkMode
-                ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
-                : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
-            } ${enhancing && "animate-glow"}`}
-            rows={5}
-          />
-        </div>
-
-        <div>
-          <label
-            className={`block text-sm font-medium mb-1 ${
-              darkMode ? "text-gray-200" : "text-gray-700"
-            }`}
-          >
-            Target Audience / Business Type
-          </label>
-          <input
-            type="text"
-            value={requirements.audienceType}
-            onChange={(e) => handleInputChange("audienceType", e.target.value)}
-            placeholder="e.g., Small Business, E-commerce, Portfolio..."
-            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              darkMode
-                ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
-                : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
-            }`}
-          />
-        </div>
-
-        <div>
-          <label
-            className={`block text-sm font-medium mb-1 ${
-              darkMode ? "text-gray-200" : "text-gray-700"
-            }`}
-          >
-            Color Scheme
-          </label>
-          <input
-            type="text"
-            value={requirements.colorScheme}
-            onChange={(e) => handleInputChange("colorScheme", e.target.value)}
-            placeholder="e.g., Blue and White, Dark Theme, Pastel Colors..."
-            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              darkMode
-                ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
-                : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
-            }`}
-          />
-        </div>
-
-        <div>
-          <label
-            className={`block text-sm font-medium mb-1 ${
-              darkMode ? "text-gray-200" : "text-gray-700"
-            }`}
-          >
-            Additional Info
-          </label>
-          <textarea
-            value={requirements.additionalInfo}
-            onChange={(e) =>
-              handleInputChange("additionalInfo", e.target.value)
-            }
-            placeholder="List any contact or other info..."
-            className={`w-full rounded-lg px-4 py-2 text-sm leading-relaxed transition-all border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              darkMode
-                ? "bg-zinc-800 text-white placeholder-gray-400 border-zinc-700"
-                : "bg-white text-zinc-900 placeholder-gray-500 border-zinc-300"
-            }`}
-            rows={2}
-          />
-        </div>
+        </form>
       </div>
-      <button
-        onClick={handleSubmit}
-        disabled={
-          isGenerating || !requirements.generalDescription || credits < 3
-        }
-        title={
-          credits < 3
-            ? "Not enough credits"
-            : !requirements.generalDescription
-            ? "General Description is required"
-            : ""
-        }
-        className={`w-full py-3 rounded-lg transition-colors bg-blue-600 hover:bg-blue-700 text-white font-medium ${
-          isGenerating
-            ? "animate-glow cursor-not-allowed"
-            : !requirements.generalDescription || credits < 3
-            ? "opacity-70 cursor-not-allowed"
-            : ""
-        }`}
-      >
-        {isGenerating ? (
-          <span className="flex items-center justify-center gap-2">
-            <FontAwesomeIcon
-              icon={faSpinner}
-              className="w-4 h-4 animate-spin"
-            />
-            Generating Website...
-          </span>
-        ) : (
-          <span className="flex items-center justify-center gap-2">
-            <FontAwesomeIcon icon={faWandMagicSparkles} />
-            Generate Website{" "}
-            <span className="flex gap-1">
-              (3{" "}
-              <Image
-                src={"credit.svg"}
-                alt="Credits"
-                width={16}
-                height={16}
-                className="-mr-1 mt-0.5"
-              />
-              )
-            </span>
-          </span>
-        )}
-      </button>
     </div>
   );
 };

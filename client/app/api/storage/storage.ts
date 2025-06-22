@@ -53,3 +53,38 @@ export const deleteFile = async (filePath: string): Promise<boolean> => {
   const deleted = await supabase.storage.from("pages").remove([filePath]);
   return deleted.error !== null;
 };
+
+export const deleteFolder = async (folderPath: string): Promise<boolean> => {
+  console.log(folderPath);
+  const collectFiles = async (path: string): Promise<string[]> => {
+    const { data, error } = await supabase.storage.from("pages").list(path);
+    if (error || !data) return [];
+
+    const filesToDelete: string[] = [];
+
+    for (const item of data) {
+      if (item.name) {
+        if (item.metadata) {
+          // It's a file
+          filesToDelete.push(`${path}/${item.name}`);
+        } else {
+          // It's a folder — recurse into it
+          const subFiles = await collectFiles(`${path}/${item.name}`);
+          filesToDelete.push(...subFiles);
+        }
+      }
+    }
+
+    return filesToDelete;
+  };
+
+  const filesToDelete = await collectFiles(folderPath);
+
+  if (filesToDelete.length === 0) return true;
+
+  const { error: deleteError } = await supabase.storage
+    .from("pages")
+    .remove(filesToDelete);
+
+  return deleteError === null;
+};
