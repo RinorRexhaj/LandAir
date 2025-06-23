@@ -5,7 +5,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import useApi from "@/app/hooks/useApi";
 import { Project } from "@/app/types/Project";
 import CustomSelect from "./CustomSelect";
-import ProjectPage from "./project/Project";
+import ProjectPage from "../../project/Project";
 import SkeletonProjects from "./SkeletonProjects";
 import ProjectPreview from "./ProjectPreview";
 import Empty from "./Empty";
@@ -41,16 +41,24 @@ const Projects = () => {
   }, [setProjects, setLoading, get]);
 
   const createProject = async () => {
-    if (projects.length >= 4) return;
+    if (projects.length >= 4) {
+      toast.warning("Only 4 or less projects allowed.");
+      return;
+    }
     setCreating(true);
-    const newProject: Project[] = await post("/api/projects/");
-    newProject[0].created = true;
-    setProjects([newProject[0], ...projects]);
-    setTimeout(() => {
-      setCreating(false);
-      setSelectedProject(newProject[0]);
-      toast.success("Project Created!");
-    }, 300);
+    try {
+      const newProject: Project[] = await post("/api/projects/");
+      newProject[0].created = true;
+      setProjects([newProject[0], ...projects]);
+      setTimeout(() => {
+        setCreating(false);
+        setSelectedProject(newProject[0]);
+        toast.success("Project Created!");
+      }, 300);
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
+    }
   };
 
   const sortProjects = (projects: Project[]): Project[] => {
@@ -75,7 +83,7 @@ const Projects = () => {
 
   return (
     <div
-      className={`transition-colors ${
+      className={`transition-colors flex flex-col gap-10 ${
         darkMode ? "text-gray-300" : "text-zinc-900"
       }`}
     >
@@ -84,59 +92,61 @@ const Projects = () => {
       ) : (
         <>
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <h2
-              className={`text-xl font-semibold ${
-                darkMode ? "text-white" : "text-zinc-900"
-              } animate-fade [animation-fill-mode:backwards]`}
-              style={{
-                animationDelay: "0.1s",
-              }}
-            >
-              Projects
-            </h2>
-            <button
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                darkMode
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
-              } animate-fade [animation-fill-mode:backwards]`}
-              style={{
-                animationDelay: "0.2s",
-              }}
-              onClick={createProject}
-            >
-              <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-              New Project
-            </button>
-          </div>
+          <div>
+            <div className="flex items-center justify-between">
+              <h2
+                className={`text-xl font-semibold ${
+                  darkMode ? "text-white" : "text-zinc-900"
+                } animate-fade [animation-fill-mode:backwards]`}
+                style={{
+                  animationDelay: "0.1s",
+                }}
+              >
+                Projects
+              </h2>
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  darkMode
+                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                } animate-fade [animation-fill-mode:backwards]`}
+                style={{
+                  animationDelay: "0.2s",
+                }}
+                onClick={createProject}
+              >
+                <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+                New Project
+              </button>
+            </div>
 
-          <CustomSelect
-            value={sortBy}
-            onChange={setSortBy}
-            options={sortOptions}
-            darkMode={darkMode}
-          />
+            <CustomSelect
+              value={sortBy}
+              onChange={setSortBy}
+              options={sortOptions}
+              darkMode={darkMode}
+            />
 
-          {/* Projects List */}
-          <div
-            className="grid sm:grid-cols-1 md:grid-cols-2 grid-cols-4 gap-4 animate-fade [animation-fill-mode:backwards]"
-            style={{ animationDelay: "0.15s" }}
-          >
-            {loading && !creating ? (
-              <SkeletonProjects />
-            ) : (
-              !creating &&
-              sortProjects(projects).map((project) => (
-                <ProjectPreview
-                  key={"project-" + project.id}
-                  project={project}
-                  sortBy={sortBy}
-                />
-              ))
-            )}
-            {!loading && projects.length <= 0 && !creating && <Empty />}
-            {creating && <Creating />}
+            {/* Projects List */}
+            <div
+              className="grid sm:grid-cols-1 md:grid-cols-2 grid-cols-4 gap-4 animate-fade [animation-fill-mode:backwards]"
+              style={{ animationDelay: "0.15s" }}
+            >
+              {loading && !creating ? (
+                <SkeletonProjects />
+              ) : (
+                !creating &&
+                sortProjects(projects).map((project) => (
+                  <ProjectPreview
+                    key={"project-" + project.id}
+                    project={project}
+                    sortBy={sortBy}
+                  />
+                ))
+              )}
+              {!loading && projects.length <= 0 && !creating && <Empty />}
+              {creating && <Creating />}
+            </div>
           </div>
         </>
       )}

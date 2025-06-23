@@ -9,6 +9,7 @@ import {
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "../store/useThemeStore";
+import { useProjectStore } from "../store/useProjectsStore";
 
 interface NavItem {
   name: string;
@@ -19,6 +20,7 @@ interface DashboardSidebarProps {
   activeLink: number;
   setActiveLink: (link: number) => void;
   isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
 }
 
 const navItems: NavItem[] = [
@@ -33,12 +35,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeLink,
   setActiveLink,
   isOpen,
+  setIsOpen,
 }) => {
   const { darkMode } = useThemeStore();
+  const { setSelectedProject } = useProjectStore();
 
   return (
     <aside
-      className={`fixed top-[49px] left-0 h-[calc(100vh-57px)] transition-all z-40 duration-300 ease-in-out ${
+      className={`fixed top-[49px] left-0 h-[calc(100vh-48px)] transition-all z-40 duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       } w-48 md:w-40 border-r ${
         darkMode
@@ -50,7 +54,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         {navItems.map((item, index) => (
           <button
             key={item.name}
-            onClick={() => setActiveLink(index)}
+            onClick={() => {
+              setActiveLink(index);
+              setSelectedProject(null);
+              setIsOpen(false);
+            }}
             className={`w-40 md:w-32 flex items-center text-sm gap-3.5 px-4 py-2 rounded-lg transition-colors group ${
               index === activeLink
                 ? darkMode

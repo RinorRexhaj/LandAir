@@ -335,7 +335,7 @@ const Website: React.FC<WebsiteProps> = ({
           border: "none",
           width: mobile ? "430px" : "1440px",
           transform: `scale(${scale})`,
-          height: mobile ? "calc(100vh - 100px)" : "100vh",
+          height: mobile ? `${scale * 100}vh` : "calc(100vh + 148px)",
           transformOrigin: "top left",
           position: "fixed",
         }}
@@ -482,7 +482,7 @@ const Website: React.FC<WebsiteProps> = ({
       )}
       {hasUnsavedChanges && (
         <div
-          className={`fixed top-28 left-[457px] tb:left-[315px] md:top-[104px] md:left-[274px] flex p-2 md:px-1 rounded-lg items-center gap-1 md:gap-0 md:z-40 border transition-all animate-fade duration-200 ${
+          className={`fixed ml-2.5 top-16 left-60 md:ml-1.5 md:-mt-2 flex p-1 rounded-lg items-center md:z-40 border transition-all animate-fade duration-200 ${
             darkMode
               ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
               : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
@@ -494,7 +494,7 @@ const Website: React.FC<WebsiteProps> = ({
               if (noChanges) setHasUnsavedChanges(false);
             }}
             title="Undo"
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className="flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
             <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
           </button>
@@ -509,7 +509,7 @@ const Website: React.FC<WebsiteProps> = ({
               }
             }}
             title="Save"
-            className="flex items-center gap-1 px-2 py-1.5 md:px-1 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className="flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
             <FontAwesomeIcon icon={faCheck} className="w-4 h-4" />
           </button>
@@ -522,7 +522,7 @@ const Website: React.FC<WebsiteProps> = ({
               setIsEditing(false);
             }}
             title="Discard"
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className="flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
           </button>

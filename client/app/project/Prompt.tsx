@@ -197,8 +197,8 @@ const Prompt: React.FC<PromptProps> = ({
 
   return (
     <div
-      className={`flex flex-col justify-between h-full w-full mx-auto border rounded-lg shadow-md overflow-hidden animate-fade p-4 ${
-        darkMode ? "bg-zinc-900 border-zinc-600/80" : "bg-white border-zinc-200"
+      className={`flex flex-col justify-between h-full w-full mx-auto rounded-lg shadow-md overflow-hidden animate-fade ${
+        darkMode ? "bg-zinc-900" : "bg-white "
       }`}
     >
       <div className="flex-1 overflow-y-auto mb-4 space-y-2 max-h-[60vh]">

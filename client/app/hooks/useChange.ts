@@ -177,6 +177,7 @@ const useChange = () => {
 
       setSelectedProject({
         ...selectedProject,
+        file: updatedHTML,
         last_edited: new Date(),
       });
 

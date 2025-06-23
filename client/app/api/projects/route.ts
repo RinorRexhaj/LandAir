@@ -9,6 +9,10 @@ export async function GET(req: NextRequest) {
   }
 
   const projects = await fetchProjects(validation.user.id);
+
+  if ("error" in projects) {
+    return NextResponse.json({ error: projects.error }, { status: 500 });
+  }
   return NextResponse.json(projects);
 }
 
@@ -18,5 +22,8 @@ export async function POST(req: NextRequest) {
     return validation;
   }
   const result = await addProject(validation.user.id);
+  if ("error" in result) {
+    return NextResponse.json({ error: result.error }, { status: 500 });
+  }
   return NextResponse.json(result);
 }

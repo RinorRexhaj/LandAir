@@ -6,7 +6,7 @@ const SkeletonProjects = () => {
   return Array.from({ length: 4 }).map((_, i) => (
     <div
       key={"skeleton-project-" + i}
-      className={`flex items-center justify-between p-4 rounded-xl transition-colors animate-pulse ${
+      className={`flex items-center justify-between h-20 p-4 rounded-xl transition-colors animate-pulse ${
         darkMode ? "bg-zinc-700/30" : "bg-gray-50"
       }`}
     >

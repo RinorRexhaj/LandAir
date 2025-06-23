@@ -7,6 +7,9 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import BuyCreditsModal from "./BuyCreditsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faWindowRestore } from "@fortawesome/free-solid-svg-icons";
+import { useProjectStore } from "@/app/store/useProjectsStore";
+import NameModal from "./NameModal";
+import ProjectHeader from "@/app/project/ProjectHeader";
 
 interface DashboardNavbarProps {
   userName: string;
@@ -25,7 +28,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 }) => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isBuyCreditsModalOpen, setIsBuyCreditsModalOpen] = useState(false);
+  const { selectedProject } = useProjectStore();
   const { darkMode, setDarkMode } = useThemeStore();
+  const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false);
 
   useEffect(() => {
     // Check system preference
@@ -46,7 +51,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             : "bg-white border-zinc-900/10"
         } backdrop-blur-md border-b`}
       >
-        <div className="w-full py-1.5 px-6 md:px-4">
+        <div className="w-full py-1.5 px-4">
           <div className="flex items-center justify-between">
             {/* Left side - Brand and Navigation */}
             <div className="flex items-center gap-2">
@@ -69,22 +74,29 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <h1
                 className={`text-xl overflow-hidden font-bold ${
                   darkMode ? "text-white" : "text-zinc-900"
-                } animate-fade`}
+                } animate-fade cursor-pointer flex items-center gap-2`}
+                onClick={() => {
+                  if (selectedProject) {
+                    setIsEditNameModalOpen(true);
+                  }
+                }}
+                title="Edit project name"
               >
-                LandAir
+                {selectedProject ? selectedProject.project_name : "LandAir"}
               </h1>
             </div>
 
             {/* Right side - User and Sign Out */}
-            <div className="flex items-center gap-2.5 md:gap-1">
+            <div className="flex items-center gap-2 md:gap-1">
               <CreditsDisplay
                 darkMode={darkMode}
                 setIsBuyCreditsModalOpen={setIsBuyCreditsModalOpen}
               />
+              <ProjectHeader />
               <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
-                className={`flex items-center gap-2 px-2.5 py-1 md:px-1.5 rounded-lg ${
+                className={`flex items-center gap-2 px-1.5 py-1 rounded-md ${
                   darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
                 } transition-colors animate-slideDown [animation-fill-mode:backwards]`}
                 style={{ animationDelay: "0.3s" }}
@@ -111,7 +123,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     </div>
                   )}
                 </div>
-                <span
+                {/* <span
                   className={`md:hidden font-medium ${
                     darkMode
                       ? "text-gray-300 hover group-hover:text-white"
@@ -119,7 +131,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   } transition-colors`}
                 >
                   {userName}
-                </span>
+                </span> */}
               </button>
             </div>
           </div>
@@ -137,6 +149,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         isOpen={isBuyCreditsModalOpen}
         onClose={() => setIsBuyCreditsModalOpen(false)}
       />
+
+      {isEditNameModalOpen && (
+        <NameModal setIsEditNameModalOpen={setIsEditNameModalOpen} />
+      )}
     </>
   );
 };

@@ -8,12 +8,15 @@ import DashboardSidebar from "./DashboardSidebar";
 import Projects from "./projects/Projects";
 import { useThemeStore } from "../store/useThemeStore";
 import { ToastContainer } from "react-toastify";
+import Templates from "./Templates";
+import { useProjectStore } from "../store/useProjectsStore";
 
 const Dashboard = () => {
   const [activeLink, setActiveLink] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { selectedProject } = useProjectStore();
   const { darkMode } = useThemeStore();
 
   const [isClient, setIsClient] = useState(false);
@@ -59,9 +62,17 @@ const Dashboard = () => {
           activeLink={activeLink}
           setActiveLink={setActiveLink}
           isOpen={isSidebarOpen}
+          setIsOpen={setIsSidebarOpen}
         />
         <ToastContainer closeOnClick hideProgressBar icon={false} limit={3} />
-        <main className="flex-1 px-8 py-6 md:p-4">{<Projects />}</main>
+        <main
+          className={`flex flex-col gap-8 flex-1 ${
+            selectedProject ? "px-4" : "px-8"
+          } py-6 md:p-4`}
+        >
+          <Projects />
+          {!selectedProject && <Templates />}
+        </main>
       </div>
     </div>
   );

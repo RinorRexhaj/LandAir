@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import ProjectHeader from "./ProjectHeader";
 // import Empty from "./EmptyProject";
 import Prompt from "./Prompt";
 // import Generating from "./Generating";
@@ -17,7 +16,6 @@ import Loading from "./Loading";
 const ProjectPage = () => {
   const { selectedProject, setSelectedProject } = useProjectStore();
   const [projectFile, setProjectFile] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeView, setActiveView] = useState<"preview" | "prompt">("preview");
   const { darkMode } = useThemeStore();
@@ -40,12 +38,6 @@ const ProjectPage = () => {
       setProjectFile(false);
     }
   }, [get, selectedProject, setLoading, setSelectedProject]);
-
-  useEffect(() => {
-    if (selectedProject?.created) {
-      setIsEditing(true);
-    }
-  }, [selectedProject]);
 
   useEffect(() => {
     if (
@@ -71,12 +63,9 @@ const ProjectPage = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <ProjectHeader isEditing={isEditing} setIsEditing={setIsEditing} />
-
       {/* Toggle Preview/Prompt */}
       <div
-        className={`absolute right-8 top-[72px] md:right-4 md:top-16 hidden z-40 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
+        className={`absolute right-4 hidden z-40 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
           darkMode
             ? "bg-zinc-800/20 border-gray-200/20"
             : "bg-zinc-100/80 border-gray-300/50"
@@ -119,7 +108,7 @@ const ProjectPage = () => {
       <div
         className="w-full flex gap-4"
         style={{
-          height: "calc(100vh - 130px)",
+          height: "calc(100vh - 80px)",
         }}
       >
         {/* Desktop Layout */}

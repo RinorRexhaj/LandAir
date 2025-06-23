@@ -7,6 +7,7 @@ import { Project } from "@/app/types/Project";
 import { faClock, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface ProjectPreviewProps {
   project: Project;
@@ -21,6 +22,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const toast = useToast();
   const [hover, setHover] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const router = useRouter();
 
   const formatProjectDate = (project: Project) => {
     const date =
@@ -63,7 +65,10 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
             ? "bg-zinc-700/30 hover:bg-zinc-700/50"
             : "bg-gray-200/60 hover:bg-gray-200"
         } hover:-translate-y-1 transition-transform`}
-        onClick={() => setSelectedProject(project)}
+        onClick={() => {
+          setSelectedProject(project);
+          router.push(`/dashboard/projects/project/${project.id}`);
+        }}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
       >

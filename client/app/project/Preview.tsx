@@ -29,11 +29,18 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
   useEffect(() => {
     const updateScale = () => {
       if (mainRef.current) {
-        const containerWidth = mainRef.current.clientWidth;
+        let containerWidth = mainRef.current.clientWidth;
         const smallDevice = document.body.clientWidth < 1000;
         let divider = 1440;
+        const clientWidth = document.body.clientWidth;
+        if (clientWidth < 500 && mobile === 0) {
+          setMobile(1);
+        }
         if (mobile) {
-          divider = smallDevice ? 430 : 430 * 2.5;
+          divider = 1000;
+          if (!smallDevice) {
+            containerWidth = 900;
+          }
         }
         setScale(containerWidth / divider);
       }
@@ -56,7 +63,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
       <div className="flex gap-1 flex-wrap">
         {/* Device Toggle */}
         <div
-          className={`flex px-2 py-1.5 md:gap-1 rounded-lg items-center gap-2 border transition-all duration-200 ${
+          className={`flex px-1.5 gap-1 rounded-lg items-center border transition-all duration-200 ${
             darkMode
               ? "bg-zinc-800/20 border-gray-200/20"
               : "bg-zinc-100/80 border-gray-300/50"
@@ -65,7 +72,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
           <button
             onClick={() => setMobile(0)}
             title="Desktop"
-            className={`flex items-center gap-1 px-3 md:px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+            className={`flex sm:hidden items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
               mobile !== 0
                 ? "opacity-70 hover:opacity-100"
                 : darkMode
@@ -74,12 +81,11 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
             }`}
           >
             <FontAwesomeIcon icon={faLaptop} className="w-4 h-4" />
-            <span className="tb:hidden">Desktop</span>
           </button>
           <button
             onClick={() => setMobile(1)}
             title="Mobile"
-            className={`flex items-center gap-1 px-3 md:px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
               mobile === 1
                 ? darkMode
                   ? "bg-zinc-700 text-white"
@@ -88,11 +94,10 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
             }`}
           >
             <FontAwesomeIcon icon={faMobileScreen} className="w-4 h-4" />
-            <span className="tb:hidden">Mobile</span>
           </button>
           <button
             title="View Code"
-            className={`flex items-center gap-1 px-3 md:px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+            className={`flex items-center gap-1 px-2  py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
               mobile === 2
                 ? darkMode
                   ? "bg-zinc-700 text-white"
@@ -102,13 +107,12 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
             onClick={() => setMobile(2)}
           >
             <FontAwesomeIcon icon={faCode} className="w-4 h-4" />
-            <span className="tb:hidden">Code</span>
           </button>
         </div>
 
         {/* Action Buttons */}
         <div
-          className={`flex px-2 py-1.5 rounded-lg items-center gap-1 md:gap-0.5 md:z-40 border transition-all duration-200 ${
+          className={`flex px-1.5 py-1 rounded-lg items-center gap-1 md:gap-0.5 border transition-all duration-200 ${
             darkMode
               ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
               : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
@@ -121,7 +125,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
           >
             <FontAwesomeIcon
               icon={faArrowUpRightFromSquare}
-              className="w-4 h-4"
+              className="w-3.5 h-3.5"
             />
           </button>
           <button
@@ -129,7 +133,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
             title="Download"
             className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
-            <FontAwesomeIcon icon={faDownload} className="w-4 h-4" />
+            <FontAwesomeIcon icon={faDownload} className="w-3.5 h-3.5w-3.5" />
           </button>
           <button
             onClick={() => setSelector(!selector)}
@@ -145,8 +149,8 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
             <Image
               src={`${darkMode ? "/select-dark.png" : "/select.png"}`}
               alt="Selector"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
           </button>
         </div>
