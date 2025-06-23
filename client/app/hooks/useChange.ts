@@ -49,51 +49,41 @@ const useChange = () => {
     }
   };
 
-  //   const handleUndoChange = () => {
-  //     if (changes.length === 0) return;
+  const handleUndoChange = () => {
+    if (changes.length === 0) return;
 
-  //     const lastChange = changes[changes.length - 1];
-  //     const remainingChanges = changes.slice(0, -1);
+    const lastChange = changes[changes.length - 1];
+    const remainingChanges = changes.slice(0, -1);
 
-  //     if (lastChange.type === "edit") {
-  //       const tagName = lastChange.element.tagName.toLowerCase();
-  //       const isVoid = ["img", "input", "br", "hr", "meta", "link"].includes(
-  //         tagName
-  //       );
+    if (lastChange.type === "edit") {
+      const tagName = lastChange.element.tagName.toLowerCase();
+      const isVoid = ["img", "input", "br", "hr", "meta", "link"].includes(
+        tagName
+      );
 
-  //       if (isVoid) {
-  //         // For void elements, replace outerHTML
-  //         const wrapper = document.createElement("div");
-  //         wrapper.innerHTML = lastChange.originalHTML;
-  //         const restored = wrapper.firstElementChild;
-  //         if (restored && lastChange.element.parentNode) {
-  //           lastChange.element.parentNode.replaceChild(
-  //             restored,
-  //             lastChange.element
-  //           );
-  //         }
-  //       } else {
-  //         // For text elements, revert innerHTML
-  //         lastChange.element.innerHTML = lastChange.originalHTML;
-  //       }
-  //     } else if (lastChange.type === "delete") {
-  //       // Re-insert the deleted element
-  //       const wrapper = document.createElement("div");
-  //       wrapper.innerHTML = lastChange.originalHTML;
-  //       const restored = wrapper.firstElementChild;
-  //       if (restored && lastChange.element.parentNode) {
-  //         lastChange.element.parentNode.insertBefore(
-  //           restored,
-  //           lastChange.element.nextSibling
-  //         );
-  //       } else if (restored && lastChange.element) {
-  //         // If no parent is available, try appending to <body>
-  //         document.body.appendChild(restored);
-  //       }
-  //     }
+      if (isVoid) {
+        // For void elements, replace outerHTML
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = lastChange.originalHTML;
+        const restored = wrapper.firstElementChild;
+        if (restored && lastChange.element.parentNode) {
+          lastChange.element.parentNode.replaceChild(
+            restored,
+            lastChange.element
+          );
+        }
+      } else {
+        // For text elements, revert innerHTML
+        lastChange.element.innerHTML = lastChange.originalHTML;
+      }
+    } else if (lastChange.type === "delete") {
+      // Re-insert the deleted element
+      lastChange.element.style.display = "block";
+    }
 
-  //     setChanges(remainingChanges);
-  //   };
+    setChanges(remainingChanges);
+    return remainingChanges.length === 0;
+  };
 
   // Save changes
   const handleSaveChanges = async (
@@ -230,7 +220,7 @@ const useChange = () => {
       },
     ]);
 
-    selectedElement?.remove();
+    selectedElement.style.display = "none";
   };
 
   function injectLinkFixScript(html: string): string {
@@ -283,7 +273,7 @@ const useChange = () => {
 
   return {
     handleContentEdit,
-    // handleUndoChange,
+    handleUndoChange,
     handleDiscardChanges,
     handleSaveChanges,
     handleContentDelete,

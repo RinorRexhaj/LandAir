@@ -31,7 +31,7 @@ const Prompt: React.FC<PromptProps> = ({
   // const [result, setResult] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
   const { get, post, put } = useApi();
-  const { selectedProject } = useProjectStore();
+  const { selectedProject, changeProject } = useProjectStore();
   const { darkMode } = useThemeStore();
   const { credits, setCredits } = useCreditStore();
   const toast = useToast();
@@ -118,6 +118,13 @@ const Prompt: React.FC<PromptProps> = ({
         );
         setCredits(updatedCredits);
         toast.success("Website Generated!");
+        setIsGenerating(false);
+        if (selectedProject)
+          changeProject({
+            ...selectedProject,
+            id: selectedProject?.id,
+            last_edited: new Date(),
+          });
 
         const content =
           status.updates[status.updates.length - 1]?.output.output.answer;
@@ -145,7 +152,6 @@ const Prompt: React.FC<PromptProps> = ({
 
         getUrl();
         setProjectFile(true);
-        setIsGenerating(false);
       } else if (status?.type === "failed") {
         toast.error("Generation failed!");
         setIsGenerating(false);
@@ -199,11 +205,12 @@ const Prompt: React.FC<PromptProps> = ({
         {messages.map((msg, i) => (
           <div
             key={String(msg.id) || String(i)}
-            className={`px-4 py-2 rounded-xl max-w-[80%] text-sm whitespace-pre-wrap ${
+            className={`px-4 py-2 rounded-xl max-w-[80%] w-fit text-sm whitespace-pre-wrap animate-fade [animation-fill-mode:backwards] ${
               msg.sender
                 ? "bg-blue-600 text-white self-end ml-auto"
                 : "bg-zinc-200 text-black dark:bg-zinc-800 dark:text-white self-start mr-auto"
             }`}
+            style={{ animationDelay: i * 0.1 + "s" }}
           >
             {msg.message}
           </div>

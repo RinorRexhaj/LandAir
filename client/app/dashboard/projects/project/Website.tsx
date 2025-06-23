@@ -7,6 +7,7 @@ import {
   faXmark,
   faCheck,
   faImage,
+  faUndo,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
@@ -49,6 +50,7 @@ const Website: React.FC<WebsiteProps> = ({
   const {
     handleContentDelete,
     handleContentEdit,
+    handleUndoChange,
     handleDiscardChanges,
     handleSaveChanges,
     injectLinkFixScript,
@@ -486,13 +488,16 @@ const Website: React.FC<WebsiteProps> = ({
               : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
           }`}
         >
-          {/* <button
-            onClick={handleUndoChange}
+          <button
+            onClick={() => {
+              const noChanges = handleUndoChange();
+              if (noChanges) setHasUnsavedChanges(false);
+            }}
             title="Undo"
             className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
           >
             <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
-          </button> */}
+          </button>
           <button
             onClick={async () => {
               const saved = await handleSaveChanges(

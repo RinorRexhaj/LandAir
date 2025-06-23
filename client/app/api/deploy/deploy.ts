@@ -1,3 +1,4 @@
+import { DeploymentDetails } from "@/app/types/Deployment";
 import { supabase } from "../supabase";
 
 const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
@@ -29,15 +30,15 @@ export async function deploy(
   ];
 
   const deployment = await createDeployment(files, project_name);
-  if ("error" in deployment) return deployment;
+  if ("error" in deployment) return { error: "Error in deployment" };
 
-  // Get production domain (preferred over `deployment.url`)
-  const productionDomain = deployment?.alias?.[0] || deployment?.url;
+  const details = await getDeploymentDetails(project_name);
+  if ("error" in details) return { error: "Error in deployment" };
 
   // Update project in Supabase
-  await updateProjectUrl(user_id, project_id, productionDomain);
+  await updateProjectUrl(user_id, project_id, details.url);
 
-  return { url: productionDomain };
+  return { url: details.url };
 }
 
 async function createDeployment(files: DeployFile[], name: string) {
@@ -68,11 +69,40 @@ async function createDeployment(files: DeployFile[], name: string) {
   return json;
 }
 
+export async function getDeploymentDetails(
+  projectName: string
+): Promise<DeploymentDetails | { error: string }> {
+  const res = await fetch(
+    `https://api.vercel.com/v10/projects/${projectName}/domains`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
+      },
+    }
+  );
+
+  const json = await res.json();
+
+  if (!res.ok || !json.domains?.length) {
+    return { error: json.error?.message || "Failed to fetch deployment" };
+  }
+
+  const mainDomain = json.domains[0];
+
+  return {
+    url: mainDomain.name,
+    createdAt: mainDomain.createdAt,
+    updatedAt: mainDomain.updatedAt,
+    verified: mainDomain.verified,
+  };
+}
+
 export const updateProjectUrl = async (
   user_id: string,
   project_id: number,
   url: string
-): Promise<void> => {
+): Promise<boolean | { error: string }> => {
   const { error } = await supabase
     .from("Projects")
     .update({
@@ -86,4 +116,5 @@ export const updateProjectUrl = async (
   if (error) {
     console.error("Error updating project URL:", error.message);
   }
+  return true;
 };
