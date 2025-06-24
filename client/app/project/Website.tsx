@@ -322,6 +322,17 @@ const Website: React.FC<WebsiteProps> = ({
     return layoutTags.includes(el.tagName) && hasNoText && hasChildren;
   };
 
+  const getWidth = () => {
+    const width = document.body.clientWidth;
+    return mobile ? (width > 500 ? "430px" : "100vw") : "1440px";
+  };
+
+  const getHeight = () => {
+    // const width = document.body.clientWidth;
+    const height = document.body.clientHeight;
+    return height * (1 / scale) - 180;
+  };
+
   if (!selectedProject) return;
 
   return (
@@ -333,9 +344,9 @@ const Website: React.FC<WebsiteProps> = ({
         className="rounded-lg shadow-md"
         style={{
           border: "none",
-          width: mobile ? "430px" : "1440px",
+          width: getWidth(),
+          height: mobile ? `${scale * 100}vh` : getHeight(),
           transform: `scale(${scale})`,
-          height: mobile ? `${scale * 100}vh` : "calc(100vh + 148px)",
           transformOrigin: "top left",
           position: "fixed",
         }}

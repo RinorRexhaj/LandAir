@@ -30,9 +30,11 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
     const updateScale = () => {
       if (mainRef.current) {
         let containerWidth = mainRef.current.clientWidth;
-        const smallDevice = document.body.clientWidth < 1000;
+        const smallDevice = document.body.clientWidth < 500;
+        // const mediumDevice = document.body.clientWidth < 1000;
         let divider = 1440;
         const clientWidth = document.body.clientWidth;
+        const clientHeight = document.body.clientHeight;
         if (clientWidth < 500 && mobile === 0) {
           setMobile(1);
         }
@@ -40,8 +42,17 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
           divider = 1000;
           if (!smallDevice) {
             containerWidth = 900;
+          } else {
+            containerWidth =
+              divider * (0.9 + clientWidth / (clientHeight * 20));
           }
         }
+        // else {
+        //   if (mediumDevice) {
+        //     containerWidth = 800;
+        //   } else {
+        //   }
+        // }
         setScale(containerWidth / divider);
       }
     };

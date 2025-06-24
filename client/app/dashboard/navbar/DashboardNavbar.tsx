@@ -54,11 +54,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         <div className="w-full py-1.5 px-4">
           <div className="flex items-center justify-between">
             {/* Left side - Brand and Navigation */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-0">
               {/* Menu Button */}
               <button
                 onClick={toggleSidebar}
-                className={`p-2 md:-ml-2 mt-0.5 flex items-center justify-center rounded-lg ${
+                className={`p-2 sm:-ml-1 mt-0.5 flex items-center justify-center rounded-lg ${
                   darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
                 } transition-colors`}
                 title="Toggle Menu"
@@ -96,7 +96,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
-                className={`flex items-center gap-2 px-1.5 py-1 rounded-md ${
+                className={`flex items-center gap-2 px-1 py-1 rounded-md ${
                   darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
                 } transition-colors animate-slideDown [animation-fill-mode:backwards]`}
                 style={{ animationDelay: "0.3s" }}

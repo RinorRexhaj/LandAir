@@ -65,14 +65,14 @@ const ProjectPage = () => {
     <div className="flex flex-col h-full">
       {/* Toggle Preview/Prompt */}
       <div
-        className={`absolute right-4 hidden z-40 tb:flex w-fit px-2 py-1.5 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
+        className={`absolute right-4 hidden z-40 tb:flex w-fit px-1 py-1 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
           darkMode
             ? "bg-zinc-800/20 border-gray-200/20"
             : "bg-zinc-100/80 border-gray-300/50"
         }`}
       >
         <button
-          className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+          className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
             activeView !== "preview"
               ? "opacity-70 hover:opacity-100"
               : darkMode
@@ -88,7 +88,7 @@ const ProjectPage = () => {
         </button>
 
         <button
-          className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
+          className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
             activeView === "prompt"
               ? darkMode
                 ? "bg-zinc-700 text-white"
