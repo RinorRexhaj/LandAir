@@ -99,12 +99,11 @@ const useChange = () => {
 
     // Clean up styles
     iframeDoc.querySelectorAll("*").forEach((el) => {
-      if (el instanceof HTMLElement) {
-        el.style.backgroundColor = "";
-        el.style.outline = "";
-        if (el.contentEditable === "true") el.contentEditable = "false";
-        el.removeAttribute("data-original-html");
-      }
+      const elem = el as HTMLElement;
+      elem.style.backgroundColor = "";
+      elem.style.outline = "";
+      if (elem.contentEditable === "true") elem.contentEditable = "false";
+      elem.removeAttribute("data-original-html");
     });
 
     if (selectedElement) {

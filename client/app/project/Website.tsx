@@ -324,11 +324,17 @@ const Website: React.FC<WebsiteProps> = ({
 
   const getWidth = () => {
     const width = document.body.clientWidth;
-    return mobile ? (width > 500 ? "430px" : "100vw") : "1440px";
+    return mobile
+      ? width > 500
+        ? "430px"
+        : "100vw"
+      : width > 1800
+      ? "1920px"
+      : "1440px";
   };
 
   const getHeight = () => {
-    // const width = document.body.clientWidth;
+    if (mobile) return `${scale * 100}vh`;
     const height = document.body.clientHeight;
     return height * (1 / scale) - 180;
   };
@@ -345,7 +351,7 @@ const Website: React.FC<WebsiteProps> = ({
         style={{
           border: "none",
           width: getWidth(),
-          height: mobile ? `${scale * 100}vh` : getHeight(),
+          height: getHeight(),
           transform: `scale(${scale})`,
           transformOrigin: "top left",
           position: "fixed",
