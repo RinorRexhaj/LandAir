@@ -2,6 +2,7 @@ import { Project } from "@/app/types/Project";
 import { supabase } from "../supabase";
 import { deleteFolder } from "../storage/storage";
 import { deleteChat } from "../chat/chat";
+import { deleteProjectFromVercel } from "../deploy/deploy";
 
 export const fetchProjects = async (
   user_id: string
@@ -86,6 +87,7 @@ export const deleteProject = async (projectId: number, userId: string) => {
   if (data && data.length > 0) {
     await deleteFolder(`${userId}/${data[0].project_name}`);
     await deleteChat(projectId);
+    await deleteProjectFromVercel(data[0].project_name);
   }
 
   return true;

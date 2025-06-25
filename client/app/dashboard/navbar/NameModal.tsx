@@ -5,7 +5,7 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import { Project } from "@/app/types/Project";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface NameModalProps {
   setIsEditNameModalOpen: (open: boolean) => void;
@@ -13,6 +13,7 @@ interface NameModalProps {
 
 const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
   const [saving, setSaving] = useState(false);
+  const nameRef = useRef<HTMLInputElement | null>(null);
   const { selectedProject, changeProject } = useProjectStore();
   const { put } = useApi();
   const toast = useToast();
@@ -20,6 +21,27 @@ const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
   const [newProjectName, setNewProjectName] = useState(
     selectedProject?.project_name || ""
   );
+
+  const saveName = async (e: React.FormEvent<HTMLFormElement> | null) => {
+    e?.preventDefault();
+    if (!selectedProject || !newProjectName.trim()) return;
+    setSaving(true);
+    try {
+      const updatedProject: Project[] = await put(
+        `/api/projects/${selectedProject.id}`,
+        { new_name: newProjectName.trim() }
+      );
+      changeProject(updatedProject[0]);
+    } catch {
+      toast.error("Something went wrong!");
+    }
+    setSaving(false);
+    setIsEditNameModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (nameRef.current) nameRef.current.focus();
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -53,18 +75,21 @@ const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
         >
           Edit Project Name
         </h2>
-        <input
-          type="text"
-          value={newProjectName}
-          onChange={(e) => setNewProjectName(e.target.value)}
-          className={`w-full px-4 py-2 rounded-lg border focus:outline-none mb-4 ${
-            darkMode
-              ? "bg-zinc-800 text-white border-zinc-700 focus:border-blue-500"
-              : "bg-white text-zinc-900 border-zinc-300 focus:border-blue-600"
-          }`}
-          disabled={saving}
-          maxLength={50}
-        />
+        <form onSubmit={saveName}>
+          <input
+            type="text"
+            ref={nameRef}
+            value={newProjectName}
+            onChange={(e) => setNewProjectName(e.target.value)}
+            className={`w-full px-4 py-2 rounded-lg border focus:outline-none mb-4 ${
+              darkMode
+                ? "bg-zinc-800 text-white border-zinc-700 focus:border-blue-500"
+                : "bg-white text-zinc-900 border-zinc-300 focus:border-blue-600"
+            }`}
+            disabled={saving}
+            maxLength={50}
+          />
+        </form>
         <div className="flex justify-end gap-2">
           <button
             onClick={() => setIsEditNameModalOpen(false)}
@@ -78,21 +103,7 @@ const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
             Cancel
           </button>
           <button
-            onClick={async () => {
-              if (!selectedProject || !newProjectName.trim()) return;
-              setSaving(true);
-              try {
-                const updatedProject: Project[] = await put(
-                  `/api/projects/${selectedProject.id}`,
-                  { new_name: newProjectName.trim() }
-                );
-                changeProject(updatedProject[0]);
-              } catch {
-                toast.error("Something went wrong!");
-              }
-              setSaving(false);
-              setIsEditNameModalOpen(false);
-            }}
+            onClick={() => saveName(null)}
             className={`px-4 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 text-white ${
               saving && "animate-glow cursor-not-allowed"
             }`}

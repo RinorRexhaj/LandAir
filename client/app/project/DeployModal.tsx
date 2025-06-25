@@ -64,9 +64,12 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
 
       setTimeout(() => appendLog("Uploading project files..."), 500);
       setTimeout(() => appendLog("Deploying..."), 1000);
+      const projectName = selectedProject.project_name
+        .toLowerCase()
+        .replace(/\s+/g, "-");
 
       const { url }: { url: string } = await post("/api/deploy", {
-        project_name: selectedProject.project_name.toLowerCase(),
+        project_name: projectName,
         content: selectedProject.file,
         project_id: selectedProject.id,
       });

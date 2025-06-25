@@ -118,3 +118,26 @@ export const updateProjectUrl = async (
   }
   return true;
 };
+
+export async function deleteProjectFromVercel(
+  projectName: string
+): Promise<{ success: true } | { error: string }> {
+  const res = await fetch(
+    `https://api.vercel.com/v10/projects/${projectName}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const json = await res.json();
+    return {
+      error: json?.error?.message || "Failed to delete project",
+    };
+  }
+
+  return { success: true };
+}

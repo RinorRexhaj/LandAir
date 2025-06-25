@@ -10,6 +10,7 @@ import { faBars, faWindowRestore } from "@fortawesome/free-solid-svg-icons";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import NameModal from "./NameModal";
 import ProjectHeader from "@/app/project/ProjectHeader";
+import DeployModal from "@/app/project/DeployModal";
 
 interface DashboardNavbarProps {
   userName: string;
@@ -28,6 +29,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 }) => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isBuyCreditsModalOpen, setIsBuyCreditsModalOpen] = useState(false);
+  const [showDeployModal, setShowDeployModal] = useState(false);
   const { selectedProject } = useProjectStore();
   const { darkMode, setDarkMode } = useThemeStore();
   const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false);
@@ -92,7 +94,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 darkMode={darkMode}
                 setIsBuyCreditsModalOpen={setIsBuyCreditsModalOpen}
               />
-              <ProjectHeader />
+              <ProjectHeader setShowDeployModal={setShowDeployModal} />
               <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
@@ -149,6 +151,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         isOpen={isBuyCreditsModalOpen}
         onClose={() => setIsBuyCreditsModalOpen(false)}
       />
+      {/* Deploy Modal */}
+      {showDeployModal && (
+        <DeployModal setShowDeployModal={setShowDeployModal} />
+      )}
 
       {isEditNameModalOpen && (
         <NameModal setIsEditNameModalOpen={setIsEditNameModalOpen} />
