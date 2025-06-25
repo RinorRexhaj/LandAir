@@ -57,12 +57,12 @@ export async function POST(req: NextRequest) {
     const userId = session.metadata?.supabaseUserId;
     const priceId = session?.metadata?.priceId;
 
-    if (!userId || !priceId) {
-      return new Response("Missing metadata", { status: 401 });
-    }
-
     if (!priceId) {
       return new Response("Missing metadata", { status: 403 });
+    }
+
+    if (!userId) {
+      return new Response("Missing metadata", { status: 401 });
     }
 
     const creditsToAdd = CREDIT_MAP[priceId];
