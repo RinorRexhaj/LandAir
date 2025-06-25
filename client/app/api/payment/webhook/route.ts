@@ -58,14 +58,14 @@ export async function POST(req: NextRequest) {
     const priceId = session?.metadata?.priceId;
 
     if (!userId || !priceId) {
-      return new Response("Missing metadata", { status: 400 });
+      return new Response("Missing metadata", { status: 401 });
     }
 
     const creditsToAdd = CREDIT_MAP[priceId];
 
     if (!creditsToAdd) {
       console.warn(`No credit mapping found for priceId: ${priceId}`);
-      return new Response("Unknown priceId", { status: 400 });
+      return new Response("Unknown priceId", { status: 402 });
     }
 
     const { error } = await supabase
