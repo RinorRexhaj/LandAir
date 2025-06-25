@@ -61,6 +61,10 @@ export async function POST(req: NextRequest) {
       return new Response("Missing metadata", { status: 401 });
     }
 
+    if (!priceId) {
+      return new Response("Missing metadata", { status: 403 });
+    }
+
     const creditsToAdd = CREDIT_MAP[priceId];
 
     if (!creditsToAdd) {
