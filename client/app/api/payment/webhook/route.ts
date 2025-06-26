@@ -14,8 +14,8 @@ const CREDIT_MAP: Record<string, number> = {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+  const event = body.meta?.event_name;
 
-  const event = req.headers.get("x-lemonsqueezy-event");
   if (event !== "order_created") {
     return new Response("Unhandled event type", { status: 202 });
   }
