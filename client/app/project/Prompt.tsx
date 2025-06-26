@@ -197,7 +197,7 @@ const Prompt: React.FC<PromptProps> = ({
 
   return (
     <div
-      className={`flex flex-col justify-between mt-14 w-full mx-auto rounded-lg shadow-md overflow-hidden animate-fade ${
+      className={`flex flex-col justify-between mt-14 w-full mx-auto rounded-lg overflow-hidden animate-fade ${
         darkMode ? "bg-zinc-900" : "bg-white "
       }`}
       style={{
@@ -246,12 +246,12 @@ const Prompt: React.FC<PromptProps> = ({
             rows={2}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe your website idea..."
-            className={`w-full bg-transparent px-2 py-2 text-sm focus:outline-none placeholder-gray-400 ${
+            className={`w-full bg-transparent p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
               darkMode ? "text-white" : "text-zinc-900"
             }`}
           />
           <div className="w-full flex items-center gap-0 justify-between">
-            <p className="ml-2 flex items-center text-zinc-500">
+            <p className="ml-1 mt-4 text-xs flex items-center text-zinc-500">
               {input.length}/500
             </p>
             <div>

@@ -2,23 +2,19 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
-import { loadStripe } from "@stripe/stripe-js";
-import useApi from "@/app/hooks/useApi";
+// import useApi from "@/app/hooks/useApi";
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
 
 const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
   isOpen,
   onClose,
 }) => {
   const { darkMode } = useThemeStore();
-  const { post } = useApi();
+  // const { post } = useApi();
   const [redirecting, setRedirecting] = useState(false);
   const [activePlan, setActivePlan] = useState(0);
 
@@ -49,16 +45,11 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
     setRedirecting(true);
     let priceId;
     if (type === "growth") {
-      priceId = process.env.NEXT_PUBLIC_STRIPE_GROWTH;
+      priceId = process.env.NEXT_PUBLIC_GROWTH;
     } else if (type === "scale") {
-      priceId = process.env.NEXT_PUBLIC_STRIPE_SCALE;
+      priceId = process.env.NEXT_PUBLIC_SCALE;
     }
-    const { sessionId }: { sessionId: string } = await post(`/api/payment`, {
-      priceId,
-    });
-    const stripe = await stripePromise;
-    await stripe?.redirectToCheckout({ sessionId });
-    setRedirecting(false);
+    if (priceId) window.location.href = priceId;
   };
 
   return (
