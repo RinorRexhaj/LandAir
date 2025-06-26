@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const event = req.headers.get("x-lemonsqueezy-event");
   if (event !== "order_created") {
-    return new Response("Unhandled event type", { status: 200 });
+    return new Response("Unhandled event type", { status: 202 });
   }
 
   const order = body.data;
