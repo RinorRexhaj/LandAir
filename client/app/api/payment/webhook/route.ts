@@ -7,9 +7,9 @@ const supabase = createClient(
 );
 
 // Map LemonSqueezy product IDs to credits
-const CREDIT_MAP: Record<string, number> = {
-  product_id_growth: 15,
-  product_id_scale: 35,
+const CREDIT_MAP: Record<number, number> = {
+  561452: 15,
+  561453: 35,
 };
 
 export async function POST(req: NextRequest) {
@@ -48,19 +48,30 @@ export async function POST(req: NextRequest) {
 
   const userId = userRow.id;
 
+  // Get current credits
+  const { data, error: creditsFetchError } = await supabase
+    .from("Credits")
+    .select("credits")
+    .eq("user_id", userId)
+    .single();
+
+  if (creditsFetchError || !data) {
+    console.error("❌ Credits not found for user!", creditsFetchError?.message);
+    return new Response("Credits not found", { status: 404 });
+  }
+
+  const currentCredits = data.credits;
+  const newCredits = currentCredits + creditsToAdd;
+
+  // Update credits
   const { error: updateError } = await supabase
     .from("Credits")
-    .update({
-      credits: supabase.rpc("increment_credits", {
-        uid: userId,
-        amount: creditsToAdd,
-      }),
-    })
+    .update({ credits: newCredits })
     .eq("user_id", userId);
 
   if (updateError) {
-    console.error("Supabase update failed:", updateError.message);
-    return new Response("DB update failed", { status: 500 });
+    console.error("❌ Failed to update credits:", updateError.message);
+    return new Response("Failed to update credits", { status: 500 });
   }
 
   console.log(`✅ Added ${creditsToAdd} credits to user ${userId}`);
