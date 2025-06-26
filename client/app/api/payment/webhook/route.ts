@@ -35,18 +35,14 @@ export async function POST(req: NextRequest) {
   }
 
   // You must map email to your Supabase user_id
-  const { data: userRow, error: fetchError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("email", email)
-    .single();
+  const { data: userId, error } = await supabase.rpc("get_user_id_by_email", {
+    input_email: email,
+  });
 
-  if (fetchError || !userRow) {
-    console.error("User not found for email:", email);
+  if (error || !userId) {
+    console.error("❌ Could not find user for email", error?.message);
     return new Response("User not found", { status: 404 });
   }
-
-  const userId = userRow.id;
 
   // Get current credits
   const { data, error: creditsFetchError } = await supabase
