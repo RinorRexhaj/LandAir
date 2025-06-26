@@ -20,8 +20,12 @@ export async function POST(req: NextRequest) {
     return new Response("Unhandled event type", { status: 202 });
   }
 
-  const order = body.data;
-  const productId = order.relationships.product.data.id;
+  if (!body.data) {
+    return new Response("No body data", { status: 401 });
+  }
+
+  const order = body?.data;
+  const productId = order.attributes.first_order_item.product_id;
   const email = order.attributes.user_email;
 
   const creditsToAdd = CREDIT_MAP[productId];
