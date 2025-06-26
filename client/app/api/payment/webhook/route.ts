@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   // You must map email to your Supabase user_id
   const { data: userRow, error: fetchError } = await supabase
-    .from("Users")
+    .from("users")
     .select("id")
     .eq("email", email)
     .single();
