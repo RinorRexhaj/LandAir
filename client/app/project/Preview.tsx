@@ -1,18 +1,15 @@
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import {
-  faArrowUpRightFromSquare,
   faCode,
-  faDownload,
   faLaptop,
   faMobileScreen,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
 import Code from "./Code";
-import { handleDownload, handleOpenFullSize } from "@/app/utils/ProjectActions";
-import Image from "next/image";
 import Website from "./Website";
+import ActionButtons from "./ActionButtons";
 
 interface PreviewProps {
   getUrl: () => void;
@@ -122,49 +119,10 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
         </div>
 
         {/* Action Buttons */}
-        <div
-          className={`flex px-1.5 py-1 rounded-lg items-center gap-1 md:gap-0.5 border transition-all duration-200 ${
-            darkMode
-              ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
-              : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
-          }`}
-        >
-          <button
-            onClick={() => handleOpenFullSize(selectedProject)}
-            title="Open Full Size Page"
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
-          >
-            <FontAwesomeIcon
-              icon={faArrowUpRightFromSquare}
-              className="w-3.5 h-3.5"
-            />
-          </button>
-          <button
-            onClick={() => handleDownload(selectedProject)}
-            title="Download"
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
-          >
-            <FontAwesomeIcon icon={faDownload} className="w-3.5 h-3.5w-3.5" />
-          </button>
-          <button
-            onClick={() => setSelector(!selector)}
-            title="Selector"
-            className={`relative flex items-center justify-center pl-1.5 pt-1.5 pr-0.5 pb-0.5 gap-1 rounded-md text-sm font-medium transition-all duration-200  ${
-              selector
-                ? darkMode
-                  ? "bg-zinc-700 text-white"
-                  : "bg-white text-black shadow"
-                : "opacity-70 hover:opacity-100"
-            } focus:outline-none hover:opacity-100`}
-          >
-            <Image
-              src={`${darkMode ? "/select-dark.png" : "/select.png"}`}
-              alt="Selector"
-              width={20}
-              height={20}
-            />
-          </button>
-        </div>
+        <ActionButtons
+          selector={selector}
+          toggleSelector={() => setSelector(!selector)}
+        />
       </div>
 
       {/* Preview Area */}

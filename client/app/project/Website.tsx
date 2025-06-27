@@ -499,7 +499,7 @@ const Website: React.FC<WebsiteProps> = ({
       )}
       {hasUnsavedChanges && (
         <div
-          className={`fixed ml-2.5 top-16 left-60 md:ml-1.5 md:-mt-2 flex p-1 rounded-lg items-center md:z-40 border transition-all animate-fade duration-200 ${
+          className={`fixed ml-2.5 top-16 left-60 md:ml-1.5 md:-mt-2 sm:left-28 sm:ml-4 flex p-1 rounded-lg items-center md:z-40 border transition-all animate-fade duration-200 ${
             darkMode
               ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
               : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
