@@ -19,7 +19,7 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
     <div className="flex items-center gap-2">
       {selectedProject.url && (
         <a
-          href={"https://" + selectedProject.url}
+          href={selectedProject.url}
           target="_blank"
           rel="noopener noreferrer"
           className={`px-2 py-1.5 rounded-md ${

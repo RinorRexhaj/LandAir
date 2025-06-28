@@ -44,7 +44,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
     e.stopPropagation();
     try {
       const success = await del(`/api/projects/${project.id}`);
-      await del(`/api/storage?filePath=${project.project_name}`);
+      await del(`/api/storage?filePath=${project.id}`);
       if (success) {
         setProjects(projects.filter((p) => p.id !== project.id));
         toast.success("Successfully deleted!");

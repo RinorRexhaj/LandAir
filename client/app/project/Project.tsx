@@ -25,9 +25,7 @@ const ProjectPage = () => {
   const getUrl = useCallback(async () => {
     if (!selectedProject) return;
     setLoading(true);
-    const url = await get(
-      `/api/storage?project_name=${selectedProject.project_name}`
-    );
+    const url = await get(`/api/storage?project_id=${selectedProject.id}`);
     const content: string = await get(`${url}?v=${Date.now()}`);
 
     if (url && content) {

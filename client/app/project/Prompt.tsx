@@ -139,7 +139,7 @@ const Prompt: React.FC<PromptProps> = ({
         setMessages((prev) => [...prev, botMsg]);
         await post(`/api/chat`, botMsg);
 
-        const filePath = `${selectedProject?.project_name}`;
+        const filePath = `${selectedProject?.id}`;
         const formData = new FormData();
         formData.append("content", content);
         formData.append("filePath", filePath);

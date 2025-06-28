@@ -20,6 +20,17 @@ export const fetchProjects = async (
   return data || [];
 };
 
+export const getProjectUrl = async (
+  project_id: string
+): Promise<{ url: string }> => {
+  const { data } = await supabase
+    .from("Projects")
+    .select("url")
+    .eq("id", project_id);
+
+  return { url: data ? data[0].url : "" };
+};
+
 export const addProject = async (
   user_id: string
 ): Promise<Project[] | { error: string }> => {
@@ -52,7 +63,7 @@ export const addProject = async (
 
 export const updateProject = async (
   user_id: string,
-  project_id: number,
+  project_id: string,
   new_name: string
 ): Promise<Project[] | { error: string }> => {
   const { data, error } = await supabase
@@ -69,7 +80,7 @@ export const updateProject = async (
   return data;
 };
 
-export const deleteProject = async (projectId: number, userId: string) => {
+export const deleteProject = async (projectId: string, userId: string) => {
   const { data } = await supabase
     .from("Projects")
     .select("project_name")

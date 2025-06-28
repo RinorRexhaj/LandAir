@@ -14,7 +14,9 @@ export async function PUT(
   const { new_name } = await req.json();
   const updated = await updateProject(
     validation.user.id,
-    parseInt((await params).id),
+    (
+      await params
+    ).id,
     new_name
   );
   return NextResponse.json(updated);
@@ -29,9 +31,6 @@ export async function DELETE(
     return validation;
   }
 
-  const success = await deleteProject(
-    parseInt((await params).id),
-    validation.user.id
-  );
+  const success = await deleteProject((await params).id, validation.user.id);
   return NextResponse.json({ success });
 }

@@ -9,16 +9,13 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const project_name = searchParams.get("project_name");
+  const project_id = searchParams.get("project_id");
 
-  if (!project_name) {
-    return NextResponse.json(
-      { error: "Missing project_name" },
-      { status: 400 }
-    );
+  if (!project_id) {
+    return NextResponse.json({ error: "Missing project_id" }, { status: 400 });
   }
 
-  const path = `${validation.user.id}/${project_name}/index.html`;
+  const path = `${validation.user.id}/${project_id}/index.html`;
   const publicUrl = await getFile(path);
   return NextResponse.json(publicUrl);
 }

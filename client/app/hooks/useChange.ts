@@ -131,7 +131,7 @@ const useChange = () => {
         // Use a unique filename for each image
         const ext = mimeType.split("/")[1] || "png";
         const imageName = `${
-          selectedProject.project_name
+          selectedProject.id
         }/images/${Date.now()}-${Math.floor(Math.random() * 10000)}.${ext}`;
         const file = new File([byteArray], imageName, { type: mimeType });
         // Upload image
@@ -162,7 +162,7 @@ const useChange = () => {
     // --- IMAGE UPLOAD LOGIC END ---
 
     const updatedHTML = iframeDoc.documentElement.outerHTML || "";
-    const filePath = `${selectedProject.project_name}`;
+    const filePath = `${selectedProject.id}`;
 
     try {
       const formData = new FormData();

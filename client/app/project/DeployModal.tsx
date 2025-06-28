@@ -107,7 +107,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
   const getProjectFile = async (): Promise<File> => {
     try {
       // Get the file path from your project data
-      const filePath = `${user?.id}/${selectedProject?.project_name}/index.html`;
+      const filePath = `${user?.id}/${selectedProject?.id}/index.html`;
 
       // Get the public URL of the file
       const { data: urlData } = supabase.storage
@@ -149,11 +149,11 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
             darkMode ? "text-white" : "text-zinc-900"
           }`}
         >
-          Deploy Project
+          {selectedProject?.url ? "Update" : "Deploy"} Project
         </h3>
 
         <p className={`${darkMode ? "text-gray-300" : "text-zinc-600"}`}>
-          Are you ready to deploy &ldquo;
+          Are you ready to {selectedProject?.url ? "update" : "deploy"} &ldquo;
           <span className="font-bold">{selectedProject?.project_name}</span>
           &rdquo;?
         </p>
@@ -165,7 +165,11 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
               checked={confirmation}
               onChange={() => setConfirmation(!confirmation)}
             />
-            I understand this will make the project live.
+            I understand this will{" "}
+            {selectedProject?.url
+              ? "update the live project"
+              : "make the project live"}
+            .
           </label>
         </div>
 
@@ -193,7 +197,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
         </div>
         {url && (
           <a
-            href={`https://${url}`}
+            href={`${url}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-sm gap-1 text-blue-600 hover:underline hover:text-blue-800 transition-colors duration-200"
@@ -237,7 +241,7 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
             ) : (
               <>
                 <FontAwesomeIcon icon={faRocket} className="w-4 h-4" />
-                Deploy
+                {selectedProject?.url ? "Update" : "Deploy"}
                 <span className="flex gap-1">
                   (3{" "}
                   <Image

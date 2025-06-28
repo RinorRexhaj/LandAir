@@ -1,6 +1,6 @@
 import { supabase } from "../supabase";
 
-export const deleteChat = async (project_id: number) => {
+export const deleteChat = async (project_id: string) => {
   const { error } = await supabase
     .from("Chats")
     .delete()
