@@ -11,13 +11,18 @@ export async function PUT(
     return validation;
   }
 
-  const { new_name } = await req.json();
+  const { new_name, url } = await req.json();
+  const updates: { new_name?: string; url?: string } = {};
+
+  if (new_name) updates.new_name = new_name;
+  if (url) updates.url = url;
+
   const updated = await updateProject(
     validation.user.id,
     (
       await params
     ).id,
-    new_name
+    updates
   );
   return NextResponse.json(updated);
 }

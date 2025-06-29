@@ -64,17 +64,33 @@ export const addProject = async (
 export const updateProject = async (
   user_id: string,
   project_id: string,
-  new_name: string
+  updates: { new_name?: string; url?: string }
 ): Promise<Project[] | { error: string }> => {
+  const updateData: {
+    project_name?: string;
+    url?: string;
+    last_edited: string;
+  } = {
+    last_edited: new Date().toISOString(),
+  };
+
+  if (updates.new_name) {
+    updateData.project_name = updates.new_name;
+  }
+
+  if (updates.url) {
+    updateData.url = updates.url;
+  }
+
   const { data, error } = await supabase
     .from("Projects")
-    .update({ project_name: new_name, last_edited: new Date().toISOString() })
+    .update(updateData)
     .eq("id", project_id)
     .eq("user_id", user_id)
     .select();
 
   if (error) {
-    return { error: "Error adding project:" + error.message };
+    return { error: "Error updating project:" + error.message };
   }
 
   return data;

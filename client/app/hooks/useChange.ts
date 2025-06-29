@@ -2,6 +2,7 @@ import { RefObject, useState } from "react";
 import { useProjectStore } from "../store/useProjectsStore";
 import useApi from "./useApi";
 import useToast from "./useToast";
+import { takeScreenshot } from "../utils/Screenshot";
 
 interface ElementChange {
   element: HTMLElement;
@@ -173,6 +174,20 @@ const useChange = () => {
       await put(`/api/projects/${selectedProject.id}`, {
         new_name: selectedProject.project_name,
       });
+
+      if (iframeRef.current) {
+        const screenshot = await takeScreenshot(iframeRef.current);
+        if (screenshot) {
+          const screenshotData = new FormData();
+          screenshotData.append("content", screenshot);
+          screenshotData.append(
+            "filePath",
+            `${selectedProject.id}/screenshot.png`
+          );
+          screenshotData.append("type", "image");
+          await post(`/api/storage/`, screenshotData);
+        }
+      }
 
       setSelectedProject({
         ...selectedProject,

@@ -6,5 +6,6 @@ export interface Project {
   last_edited: Date;
   created?: boolean;
   file?: string;
+  image?: string;
   url?: string;
 }

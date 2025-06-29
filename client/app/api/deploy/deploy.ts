@@ -176,6 +176,32 @@ async function isSubdomainTaken(
   return taken;
 }
 
+export async function checkDomainAvailability(
+  subdomain: string
+): Promise<{ available: boolean } | { error: string }> {
+  try {
+    // Basic validation
+    const domainRegex = /^[a-z0-9-]+$/;
+    if (!domainRegex.test(subdomain)) {
+      return { error: "Invalid domain format" };
+    }
+
+    if (subdomain.length < 3 || subdomain.length > 63) {
+      return { error: "Domain must be between 3 and 63 characters" };
+    }
+
+    // Check if subdomain is already taken
+    const taken = await isSubdomainTaken(subdomain);
+    if (typeof taken === "object" && "error" in taken) {
+      return { error: taken.error };
+    }
+
+    return { available: !taken };
+  } catch {
+    return { error: "Failed to check domain availability" };
+  }
+}
+
 async function generateUniqueSubdomain(baseName: string): Promise<string> {
   const base = baseName.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 

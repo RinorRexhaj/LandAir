@@ -6,9 +6,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { useThemeStore } from "../store/useThemeStore";
-import { handleDownload, handleOpenFullSize } from "../utils/ProjectActions";
-import { useProjectStore } from "../store/useProjectsStore";
+import { useThemeStore } from "../../store/useThemeStore";
+import { handleDownload, handleOpenFullSize } from "../../utils/ProjectActions";
+import { useProjectStore } from "../../store/useProjectsStore";
 
 interface ActionButtonsProps {
   selector: boolean;

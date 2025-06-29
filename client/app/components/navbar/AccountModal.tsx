@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faUser,
+  // faUser,
   faSignOutAlt,
   faTimes,
   faSpinner,
@@ -51,7 +51,7 @@ const AccountModal: React.FC<AccountModalProps> = ({
 
       {/* Modal */}
       <div
-        className={`relative w-full md:w-10/12 max-w-md p-6  rounded-xl border ${
+        className={`relative w-full md:w-10/12 max-w-md p-6 rounded-xl border ${
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-700/20"
@@ -110,7 +110,7 @@ const AccountModal: React.FC<AccountModalProps> = ({
 
         {/* Actions */}
         <div className="space-y-2">
-          <button
+          {/* <button
             className={`w-full flex items-center gap-3 px-4 py-3 ${
               darkMode
                 ? "text-gray-300 hover:text-white hover:bg-white/5"
@@ -119,7 +119,7 @@ const AccountModal: React.FC<AccountModalProps> = ({
           >
             <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
             <span>Profile Settings</span>
-          </button>
+          </button> */}
           <div className="h-px bg-white/10 my-2" />
           <button
             onClick={handleSignOut}

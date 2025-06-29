@@ -5,7 +5,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import useApi from "@/app/hooks/useApi";
 import { Project } from "@/app/types/Project";
 import CustomSelect from "./CustomSelect";
-import ProjectPage from "../../project/Project";
+import ProjectPage from "../../project/[id]/Project";
 import SkeletonProjects from "./SkeletonProjects";
 import ProjectPreview from "./ProjectPreview";
 import Empty from "./Empty";

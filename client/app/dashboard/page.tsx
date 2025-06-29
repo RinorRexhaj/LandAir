@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
 import Loading from "../components/Loading";
 import { useRouter } from "next/navigation";
-import DashboardNavbar from "./navbar/DashboardNavbar";
+import DashboardNavbar from "../components/navbar/DashboardNavbar";
 import DashboardSidebar from "./DashboardSidebar";
 import Projects from "./projects/Projects";
 import { useThemeStore } from "../store/useThemeStore";
@@ -71,7 +71,7 @@ const Dashboard = () => {
           } py-6 md:p-4`}
         >
           <Projects />
-          {!selectedProject && <Templates />}
+          {!loading && <Templates />}
         </main>
       </div>
     </div>

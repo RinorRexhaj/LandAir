@@ -16,10 +16,14 @@ import Image from "next/image";
 import React, { useState } from "react";
 
 interface DeployModalProps {
+  isOpen: boolean;
   setShowDeployModal: (deploying: boolean) => void;
 }
 
-const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
+const DeployModal: React.FC<DeployModalProps> = ({
+  isOpen,
+  setShowDeployModal,
+}) => {
   const [isDeploying, setIsDeploying] = useState(false);
   const [confirmation, setConfirmation] = useState(false);
   const [statusMessage, setStatusMessage] = useState<null | {
@@ -137,10 +141,18 @@ const DeployModal: React.FC<DeployModalProps> = ({ setShowDeployModal }) => {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div
-        className={`p-6 rounded-xl max-w-md w-full mx-4 space-y-4 ${
+        className={`absolute inset-0 ${
+          darkMode ? "bg-black/50" : "bg-white/5"
+        } backdrop-blur-sm`}
+        onClick={() => setShowDeployModal(false)}
+      />
+      <div
+        className={`relative p-6 rounded-xl max-w-md w-full mx-4 space-y-4 ${
           darkMode ? "bg-zinc-800" : "bg-white"
         }`}
       >

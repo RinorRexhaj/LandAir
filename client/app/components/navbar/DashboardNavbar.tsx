@@ -9,8 +9,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faWindowRestore } from "@fortawesome/free-solid-svg-icons";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import NameModal from "./NameModal";
-import ProjectHeader from "@/app/project/ProjectHeader";
-import DeployModal from "@/app/project/DeployModal";
+import ProjectHeader from "./ProjectHeader";
+import DeployModal from "./DeployModal";
+import SettingsModal from "./SettingsModal";
 
 interface DashboardNavbarProps {
   userName: string;
@@ -30,6 +31,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isBuyCreditsModalOpen, setIsBuyCreditsModalOpen] = useState(false);
   const [showDeployModal, setShowDeployModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const { selectedProject } = useProjectStore();
   const { darkMode, setDarkMode } = useThemeStore();
   const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false);
@@ -94,7 +96,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 darkMode={darkMode}
                 setIsBuyCreditsModalOpen={setIsBuyCreditsModalOpen}
               />
-              <ProjectHeader setShowDeployModal={setShowDeployModal} />
+              <ProjectHeader
+                setShowDeployModal={setShowDeployModal}
+                setShowSettingsModal={setShowSettingsModal}
+              />
               <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
@@ -147,13 +152,21 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         userEmail={userEmail}
         userImage={image}
       />
-      <BuyCreditsModal
-        isOpen={isBuyCreditsModalOpen}
-        onClose={() => setIsBuyCreditsModalOpen(false)}
-      />
-      {/* Deploy Modal */}
+      {isBuyCreditsModalOpen && (
+        <BuyCreditsModal
+          isOpen={isBuyCreditsModalOpen}
+          onClose={() => setIsBuyCreditsModalOpen(false)}
+        />
+      )}
       {showDeployModal && (
-        <DeployModal setShowDeployModal={setShowDeployModal} />
+        <DeployModal
+          isOpen={showDeployModal}
+          setShowDeployModal={setShowDeployModal}
+        />
+      )}
+
+      {showSettingsModal && (
+        <SettingsModal setShowSettingsModal={setShowSettingsModal} />
       )}
 
       {isEditNameModalOpen && (

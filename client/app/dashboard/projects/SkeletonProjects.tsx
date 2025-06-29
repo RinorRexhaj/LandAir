@@ -3,39 +3,40 @@ import React from "react";
 
 const SkeletonProjects = () => {
   const { darkMode } = useThemeStore();
-  return Array.from({ length: 4 }).map((_, i) => (
-    <div
-      key={"skeleton-project-" + i}
-      className={`flex items-center justify-between h-20 p-4 rounded-xl transition-colors animate-pulse ${
-        darkMode ? "bg-zinc-700/30" : "bg-gray-50"
-      }`}
-    >
-      <div className="flex items-center gap-4 w-1/2">
+
+  return (
+    <>
+      {Array.from({ length: 4 }).map((_, i) => (
         <div
-          className={`p-3 rounded-lg ${
-            darkMode ? "bg-zinc-600/50" : "bg-gray-200"
+          key={`skeleton-project-${i}`}
+          className={`relative rounded-xl overflow-hidden animate-pulse transition-transform hover:-translate-y-1 ${
+            darkMode ? "bg-zinc-700/30" : "bg-gray-200/60"
           }`}
         >
-          {/* Skeleton for icon */}
-          <div className="w-5 h-5 bg-gray-400 rounded"></div>
-        </div>
-        <div className="flex-1 space-y-2">
-          {/* Skeleton for project name */}
+          {/* Screenshot Placeholder */}
           <div
-            className={`h-5 rounded bg-gray-400 ${
+            className={`w-full h-40 ${
               darkMode ? "bg-zinc-600" : "bg-gray-300"
             }`}
           />
-          {/* Skeleton for created_at */}
-          <div
-            className={`w-24 h-4 rounded bg-gray-400 ${
-              darkMode ? "bg-zinc-600" : "bg-gray-300"
-            }`}
-          />
+
+          {/* Text Skeleton */}
+          <div className="p-4 flex flex-col gap-2">
+            <div
+              className={`h-5 rounded ${
+                darkMode ? "bg-zinc-600" : "bg-gray-300"
+              } w-3/4`}
+            />
+            <div
+              className={`h-4 rounded ${
+                darkMode ? "bg-zinc-600" : "bg-gray-300"
+              } w-1/3`}
+            />
+          </div>
         </div>
-      </div>
-    </div>
-  ));
+      ))}
+    </>
+  );
 };
 
 export default SkeletonProjects;
