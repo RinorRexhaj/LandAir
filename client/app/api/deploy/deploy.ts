@@ -1,4 +1,3 @@
-import { DeploymentDetails } from "@/app/types/Deployment";
 import { supabase } from "../supabase";
 import { greekLetters } from "./letters";
 import { getProjectUrl } from "../projects/projects";
@@ -19,7 +18,8 @@ export async function deploy(
   project_name: string,
   project_id: string,
   content: string,
-  user_id: string
+  user_id: string,
+  new_name?: string
 ): Promise<{ url: string } | { error: string }> {
   const buffer = Buffer.from(content, "utf-8");
 
@@ -32,7 +32,11 @@ export async function deploy(
   ];
 
   const deployed = await getProjectUrl(project_id);
+  if (new_name) {
+    await deleteProjectFromVercel(project_name);
+  }
   const subdomain =
+    new_name ||
     deployed.url?.replace(/^https?:\/\/|\.landair\.app$/g, "") ||
     (await generateUniqueSubdomain(project_name));
 
@@ -58,6 +62,7 @@ async function createDeployment(files: DeployFile[], name: string) {
     },
     body: JSON.stringify({
       name,
+      project: name,
       target: "production",
       files,
       projectSettings: {
@@ -75,35 +80,6 @@ async function createDeployment(files: DeployFile[], name: string) {
   }
 
   return json;
-}
-
-export async function getDeploymentDetails(
-  projectName: string
-): Promise<DeploymentDetails | { error: string }> {
-  const res = await fetch(
-    `https://api.vercel.com/v10/projects/${projectName}/domains`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${VERCEL_TOKEN}`,
-      },
-    }
-  );
-
-  const json = await res.json();
-
-  if (!res.ok || !json.domains?.length) {
-    return { error: json.error?.message || "Failed to fetch deployment" };
-  }
-
-  const mainDomain = json.domains[0];
-
-  return {
-    url: mainDomain.name,
-    createdAt: mainDomain.createdAt,
-    updatedAt: mainDomain.updatedAt,
-    verified: mainDomain.verified,
-  };
 }
 
 async function waitUntilReady(
@@ -241,6 +217,7 @@ export const updateProjectUrl = async (
 export async function deleteProjectFromVercel(
   projectName: string
 ): Promise<{ success: true } | { error: string }> {
+  console.log(projectName);
   const res = await fetch(
     `https://api.vercel.com/v10/projects/${projectName}`,
     {

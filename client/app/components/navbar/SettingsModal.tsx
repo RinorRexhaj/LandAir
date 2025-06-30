@@ -27,7 +27,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const { darkMode } = useThemeStore();
   const { selectedProject } = useProjectStore();
-  const { put, get } = useApi();
+  const { post, get } = useApi();
 
   const [deploymentStatus, setDeploymentStatus] = useState<DeploymentStatus>({
     status: "loading",
@@ -191,12 +191,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       const newUrl = `https://${customDomain}.landair.app`;
 
       // Update the project with new URL
-      const result = await put(`/api/projects/${selectedProject.id}`, {
-        url: newUrl,
+      const { url }: { url: string } = await post("/api/deploy", {
+        project_name: selectedProject.project_name,
+        content: selectedProject.file,
+        project_id: selectedProject.id,
+        new_name: customDomain,
       });
 
-      if (result && typeof result === "object" && "error" in result) {
-        throw new Error((result as { error: string }).error);
+      if (!url) {
+        throw new Error("Deployment failed");
       }
 
       // Update the project store

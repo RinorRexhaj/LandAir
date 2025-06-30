@@ -3,10 +3,11 @@ import { useTimeAgo } from "@/app/hooks/useTimeAgo";
 import useToast from "@/app/hooks/useToast";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
+import { useModalStore } from "@/app/store/useModalStore";
 import { Project } from "@/app/types/Project";
-import { faImage } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faImage, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import useAuth from "@/app/hooks/useAuth";
@@ -20,16 +21,20 @@ interface ProjectPreviewProps {
 const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const { darkMode } = useThemeStore();
   const { setSelectedProject, projects, setProjects } = useProjectStore();
+  const { activeModal, setActiveModal } = useModalStore();
   const { loading, del } = useApi();
   const { formatTime } = useTimeAgo();
   const toast = useToast();
-  // const [hover, setHover] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [rename, setRename] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const deleteModalId = `delete-${project.id}`;
+  const renameModalId = `rename-${project.id}`;
+  const showDeleteModal = activeModal === deleteModalId;
+  const showRenameModal = activeModal === renameModalId;
 
   const imageUrl = imgError
     ? ""
@@ -65,13 +70,80 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
       toast.error("Something went wrong!");
     }
 
-    setShowDeleteModal(false);
+    setActiveModal(null);
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
+
+  // Close modals when clicking outside
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveModal(null);
+        setShowMenu(false);
+      }
+    };
+
+    if (showDeleteModal || showRenameModal) {
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showDeleteModal, showRenameModal, setActiveModal]);
+
+  // Cleanup modals when component unmounts
+  useEffect(() => {
+    return () => {
+      if (activeModal === deleteModalId || activeModal === renameModalId) {
+        setActiveModal(null);
+      }
+    };
+  }, [activeModal, deleteModalId, renameModalId, setActiveModal]);
+
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu(!showMenu);
+  };
+
+  const handleRenameClick = () => {
+    setShowMenu(false);
+    setActiveModal(renameModalId);
+  };
+
+  const handleDeleteClick = () => {
+    setShowMenu(false);
+    setActiveModal(deleteModalId);
+  };
+
+  const closeDeleteModal = () => {
+    setActiveModal(null);
+  };
+
+  const closeRenameModal = () => {
+    setActiveModal(null);
   };
 
   return (
     <>
       <div
-        className={`relative rounded-xl overflow-hidden group transition-transform hover:-translate-y-1 cursor-pointer bg-gray-100 ${
+        className={`relative rounded-xl group transition-transform hover:-translate-y-1 cursor-pointer bg-gray-100 ${
           darkMode
             ? "bg-zinc-700/30 hover:bg-zinc-700/50"
             : "bg-gray-200/60 hover:bg-gray-200"
@@ -83,12 +155,13 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
       >
         {/* Action Menu */}
         <div
+          ref={menuRef}
           onClick={(e) => e.stopPropagation()}
-          className="absolute bottom-10 right-2 z-10 transition-opacity"
+          className="transition-opacity absolute bottom-10 right-2"
         >
-          <div className="relative inline-block text-left">
+          <div className="text-left">
             <button
-              onClick={() => setShowMenu((prev) => !prev)}
+              onClick={handleMenuClick}
               className={`px-2 py-1 rounded-lg ${
                 darkMode
                   ? "text-gray-400 hover:bg-zinc-700"
@@ -99,36 +172,32 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
             </button>
             {showMenu && (
               <div
-                className={`absolute right-0 mt-2 w-32 rounded-md shadow-lg z-40 ${
+                className={`absolute right-0 top-8 w-32 rounded-md animate-fadeFast shadow-lg z-40 ${
                   darkMode ? "bg-zinc-800" : "bg-white"
                 }`}
               >
                 <div className="py-1">
                   <button
-                    className={`w-full text-left px-4 py-2 text-sm ${
+                    className={`w-full flex gap-2 items-center text-left px-4 py-2 text-sm ${
                       darkMode
                         ? "hover:bg-zinc-700 text-gray-200"
                         : "hover:bg-gray-100 text-zinc-800"
                     }`}
-                    onClick={() => {
-                      setShowMenu(false);
-                      setRename(true);
-                    }}
+                    onClick={handleRenameClick}
                   >
-                    Rename
+                    <FontAwesomeIcon icon={faEdit} />
+                    <p className="">Rename</p>
                   </button>
                   <button
-                    className={`w-full text-left px-4 py-2 text-sm ${
+                    className={`w-full flex gap-2 items-center text-left px-4 py-2 text-sm ${
                       darkMode
                         ? "hover:bg-red-500/20 text-red-400"
                         : "hover:bg-red-500/10 text-red-500"
                     }`}
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowDeleteModal(true);
-                    }}
+                    onClick={handleDeleteClick}
                   >
-                    Delete
+                    <FontAwesomeIcon icon={faTrash} />
+                    <p className="">Delete</p>
                   </button>
                 </div>
               </div>
@@ -137,7 +206,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         </div>
 
         {/* Screenshot */}
-        <div className="w-full h-40 relative">
+        <div className="w-full h-40 relative rounded-tl-xl rounded-tr-xl overflow-hidden">
           {imageUrl && !authLoading ? (
             <Image
               src={imageUrl}
@@ -178,8 +247,12 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={closeDeleteModal}
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             className={`p-6 rounded-xl max-w-md w-full mx-4 ${
               darkMode ? "bg-zinc-800" : "bg-white"
             }`}
@@ -201,7 +274,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={() => setShowDeleteModal(false)}
+                onClick={closeDeleteModal}
                 className={`px-4 py-2 rounded-lg font-medium ${
                   darkMode
                     ? "bg-zinc-700 hover:bg-zinc-600 text-white"
@@ -224,7 +297,13 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         </div>
       )}
 
-      {rename && <NameModal setIsEditNameModalOpen={setRename} />}
+      {/* Rename Modal */}
+      {showRenameModal && (
+        <NameModal
+          setIsEditNameModalOpen={closeRenameModal}
+          project={project}
+        />
+      )}
     </>
   );
 };

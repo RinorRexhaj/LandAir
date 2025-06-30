@@ -5,33 +5,39 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import { Project } from "@/app/types/Project";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface NameModalProps {
   setIsEditNameModalOpen: (open: boolean) => void;
+  project?: Project;
 }
 
-const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
+const NameModal: React.FC<NameModalProps> = ({
+  setIsEditNameModalOpen,
+  project,
+}) => {
   const [saving, setSaving] = useState(false);
   const nameRef = useRef<HTMLInputElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
   const { selectedProject, changeProject } = useProjectStore();
   const { put } = useApi();
   const toast = useToast();
   const { darkMode } = useThemeStore();
   const [newProjectName, setNewProjectName] = useState(
-    selectedProject?.project_name || ""
+    selectedProject?.project_name || project?.project_name || ""
   );
 
   const saveName = async (e: React.FormEvent<HTMLFormElement> | null) => {
     e?.preventDefault();
-    if (!selectedProject || !newProjectName.trim()) return;
+    if ((!selectedProject && !project) || !newProjectName.trim()) return;
     setSaving(true);
     try {
       const updatedProject: Project[] = await put(
-        `/api/projects/${selectedProject.id}`,
+        `/api/projects/${selectedProject?.id || project?.id}`,
         { new_name: newProjectName.trim() }
       );
       changeProject(updatedProject[0]);
+      toast.success("Project name updated successfully!");
     } catch {
       toast.error("Something went wrong!");
     }
@@ -39,19 +45,52 @@ const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
     setIsEditNameModalOpen(false);
   };
 
+  const handleClose = useCallback(() => {
+    if (!saving) {
+      setIsEditNameModalOpen(false);
+    }
+  }, [saving, setIsEditNameModalOpen]);
+
+  // Handle click outside modal
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        handleClose();
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [saving, handleClose]);
+
   useEffect(() => {
     if (nameRef.current) nameRef.current.focus();
-  });
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className={`absolute inset-0 ${
-          darkMode ? "bg-black/50" : "bg-white/5"
+          darkMode ? "bg-black/50" : "bg-black/30"
         } backdrop-blur-sm`}
-        onClick={() => !saving && setIsEditNameModalOpen(false)}
+        onClick={handleClose}
       />
       <div
+        ref={modalRef}
         className={`relative w-full max-w-md p-6 rounded-xl border shadow-2xl ${
           darkMode
             ? "bg-zinc-900 border-white/10"
@@ -59,12 +98,13 @@ const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
         }`}
       >
         <button
-          onClick={() => !saving && setIsEditNameModalOpen(false)}
+          onClick={handleClose}
           className={`absolute top-4 right-4 ${
             darkMode
               ? "text-gray-400 hover:text-white"
               : "text-zinc-700 hover:text-zinc-900"
           } transition-colors`}
+          disabled={saving}
         >
           <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
         </button>
@@ -88,11 +128,12 @@ const NameModal: React.FC<NameModalProps> = ({ setIsEditNameModalOpen }) => {
             }`}
             disabled={saving}
             maxLength={50}
+            placeholder="Enter project name"
           />
         </form>
         <div className="flex justify-end gap-2">
           <button
-            onClick={() => setIsEditNameModalOpen(false)}
+            onClick={handleClose}
             className={`px-4 py-2 rounded-lg font-medium ${
               darkMode
                 ? "bg-zinc-700 hover:bg-zinc-600 text-white"

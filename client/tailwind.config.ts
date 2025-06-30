@@ -185,6 +185,7 @@ export default {
         "spin-3": "spin 3s linear infinite",
         flip: "flip 1s linear",
         fade: "fadeIn 0.5s ease-in-out",
+        fadeFast: "fadeIn 0.2s ease-in-out",
         "fade-in-slow": "fadeInSlow 1s ease-out forwards",
         fadeOut: "fadeOut 0.3s ease-in-out",
         typing: "type 1s infinite",
