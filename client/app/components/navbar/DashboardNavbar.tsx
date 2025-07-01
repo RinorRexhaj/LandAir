@@ -107,7 +107,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 style={{ animationDelay: "0.3s" }}
                 title="Account"
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5">
+                <div className="w-8 h-8 rounded-md overflow-hidden bg-white/5">
                   {image ? (
                     <Image
                       src={image}
@@ -118,7 +118,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     />
                   ) : (
                     <div
-                      className={`w-full max-w-48 h-full flex items-center rounded-full font-semibold justify-center text-sm  truncate ${
+                      className={`w-full max-w-48 h-full flex items-center rounded-md font-semibold justify-center text-sm  truncate ${
                         darkMode
                           ? "text-gray-300 bg-white/5 hover:bg-white/10"
                           : "text-zinc-800 bg-black/10 hover:bg-black/20"

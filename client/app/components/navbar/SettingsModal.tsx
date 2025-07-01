@@ -287,7 +287,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         onClick={() => setShowSettingsModal(false)}
       />
       <div
-        className={`relative p-6 rounded-xl max-w-md w-full mx-4 space-y-6 ${
+        className={`relative p-6 rounded-xl max-w-md w-full mx-4 space-y-6 animate-fadeFast ${
           darkMode ? "bg-zinc-800" : "bg-white"
         }`}
       >

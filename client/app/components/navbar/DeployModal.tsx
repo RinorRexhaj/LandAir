@@ -152,7 +152,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
         onClick={() => setShowDeployModal(false)}
       />
       <div
-        className={`relative p-6 rounded-xl max-w-md w-full mx-4 space-y-4 ${
+        className={`relative p-6 rounded-xl max-w-md w-full mx-4 space-y-4 animate-fadeFast ${
           darkMode ? "bg-zinc-800" : "bg-white"
         }`}
       >

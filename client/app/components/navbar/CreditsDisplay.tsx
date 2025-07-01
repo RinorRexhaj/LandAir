@@ -27,7 +27,7 @@ const CreditsDisplay: React.FC<CreditsDisplayProps> = ({
 
   return (
     <div
-      className="h-8 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group cursor-pointer animate-slideDown [animation-fill-mode:backwards]"
+      className="h-8 flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors group cursor-pointer animate-slideDown [animation-fill-mode:backwards]"
       style={{
         animationDelay: "0.1s",
       }}

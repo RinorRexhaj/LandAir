@@ -79,7 +79,7 @@ const useChange = () => {
       }
     } else if (lastChange.type === "delete") {
       // Re-insert the deleted element
-      lastChange.element.style.display = "block";
+      lastChange.element.style.display = "";
     }
 
     setChanges(remainingChanges);

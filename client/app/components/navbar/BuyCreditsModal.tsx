@@ -66,7 +66,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-xl md:w-10/12 p-6 rounded-xl border ${
+        className={`relative w-full max-w-xl md:w-10/12 p-6 rounded-xl border animate-fadeFast ${
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-700/20"

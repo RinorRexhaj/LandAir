@@ -26,7 +26,9 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             className={`px-2.5 py-2 rounded-md ${
-              darkMode ? "bg-white/5 text-white" : "bg-gray-200 text-zinc-900"
+              darkMode
+                ? "bg-zinc-800 hover:bg-zinc-900 text-white"
+                : "bg-zinc-200 hover:bg-zinc-400/20 text-zinc-900"
             } flex items-center justify-center`}
             title="View Live Page"
           >

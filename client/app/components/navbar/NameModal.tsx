@@ -91,7 +91,7 @@ const NameModal: React.FC<NameModalProps> = ({
       />
       <div
         ref={modalRef}
-        className={`relative w-full max-w-md p-6 rounded-xl border shadow-2xl ${
+        className={`relative w-full max-w-md p-6 rounded-xl border shadow-2xl animate-fadeFast ${
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-700/20"

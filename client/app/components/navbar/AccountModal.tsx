@@ -51,7 +51,7 @@ const AccountModal: React.FC<AccountModalProps> = ({
 
       {/* Modal */}
       <div
-        className={`relative w-full md:w-10/12 max-w-md p-6 rounded-xl border ${
+        className={`relative w-full md:w-10/12 max-w-md p-6 rounded-xl border animate-fadeFast ${
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-700/20"

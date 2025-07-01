@@ -253,7 +253,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className={`p-6 rounded-xl max-w-md w-full mx-4 ${
+            className={`p-6 rounded-xl animate-fadeFast max-w-md w-full mx-4 ${
               darkMode ? "bg-zinc-800" : "bg-white"
             }`}
           >
