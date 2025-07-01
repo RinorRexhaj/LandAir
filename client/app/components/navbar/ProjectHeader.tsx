@@ -25,12 +25,12 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
             href={selectedProject.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`px-2 py-1.5 rounded-md ${
+            className={`px-2.5 py-2 rounded-md ${
               darkMode ? "bg-white/5 text-white" : "bg-gray-200 text-zinc-900"
             } flex items-center justify-center`}
             title="View Live Page"
           >
-            <FontAwesomeIcon icon={faGlobe} className="h-5 w-5" />
+            <FontAwesomeIcon icon={faGlobe} className="h-4 w-4" />
           </a>
           <button
             onClick={() => setShowSettingsModal(true)}
@@ -48,11 +48,11 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
 
       <button
         onClick={() => setShowDeployModal(true)}
-        className={`flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-md font-medium transition-colors animate-fade bg-blue-600 hover:bg-blue-700 text-white`}
+        className={`flex items-center justify-center gap-2 px-2.5 py-2 rounded-md font-medium transition-colors animate-fade bg-blue-600 hover:bg-blue-700 text-white`}
         title="Deploy"
       >
         <FontAwesomeIcon icon={faRocket} className="w-4 h-4" />
-        <p className="text-sm md:hidden">Deploy</p>
+        {/* <p className="text-sm md:hidden">Deploy</p> */}
       </button>
     </div>
   );

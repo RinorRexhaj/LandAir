@@ -8,7 +8,7 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
-      className={`w-9 h-8 flex items-center justify-center rounded animate-slideDown [animation-fill-mode:backwards] transition-colors ${
+      className={`w-9 h-8 flex items-center justify-center rounded-md animate-slideDown [animation-fill-mode:backwards] transition-colors ${
         darkMode
           ? "bg-white/5 hover:bg-white/10"
           : "bg-zinc-200 hover:bg-zinc-400/20"
@@ -18,7 +18,7 @@ const ThemeToggle = () => {
     >
       <FontAwesomeIcon
         icon={darkMode ? faSun : faMoon}
-        className={`w-5 h-5 ${
+        className={`w-4 h-4 ${
           darkMode ? "text-gray-400 hover:text-white" : "text-zinc-900"
         } transition-colors`}
       />

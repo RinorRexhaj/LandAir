@@ -18,8 +18,7 @@ export async function deploy(
   project_name: string,
   project_id: string,
   content: string,
-  user_id: string,
-  new_name?: string
+  user_id: string
 ): Promise<{ url: string } | { error: string }> {
   const buffer = Buffer.from(content, "utf-8");
 
@@ -32,17 +31,14 @@ export async function deploy(
   ];
 
   const deployed = await getProjectUrl(project_id);
-  if (new_name) {
-    await deleteProjectFromVercel(project_name);
-  }
   const subdomain =
-    new_name ||
     deployed.url?.replace(/^https?:\/\/|\.landair\.app$/g, "") ||
     (await generateUniqueSubdomain(project_name));
 
   const deployment = await createDeployment(files, subdomain);
-  if ("error" in deployment)
+  if ("error" in deployment) {
     return { error: "Error in deployment: " + deployment.error };
+  }
 
   await waitUntilReady(deployment.id);
   const aliasRes = await aliasDeployment(deployment.id, subdomain);
@@ -80,6 +76,60 @@ async function createDeployment(files: DeployFile[], name: string) {
   }
 
   return json;
+}
+
+export async function updateDeployment(
+  user_id: string,
+  project_id: string,
+  projectName: string,
+  newName: string
+): Promise<{ success: true } | { error: string }> {
+  const project = projectName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  const { url } = await getProjectUrl(project_id);
+
+  const del = await fetch(
+    `https://api.vercel.com/v9/projects/${project}/domains/${url.slice(8)}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const deleted = await del.json();
+
+  if ("error" in del) {
+    return { error: deleted.error.message || "Failed to update deployment" };
+  }
+
+  const res = await fetch(
+    `https://api.vercel.com/v10/projects/${project}/domains`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
+        "Content-Type": "application/json", // required
+      },
+      body: JSON.stringify({
+        name: `${newName}.landair.app`, // make sure newName is a valid project name
+      }),
+    }
+  );
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    return { error: json.error?.message || "Failed to update deployment" };
+  }
+
+  await updateProjectUrl(user_id, project_id, "https://" + json.name);
+
+  return { success: true };
 }
 
 async function waitUntilReady(

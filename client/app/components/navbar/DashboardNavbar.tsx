@@ -103,13 +103,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <ThemeToggle />
               <button
                 onClick={() => setIsAccountModalOpen(true)}
-                className={`flex items-center gap-2 px-1 py-1 rounded-md ${
-                  darkMode ? "hover:bg-white/5" : "hover:bg-zinc-400/20"
-                } transition-colors animate-slideDown [animation-fill-mode:backwards]`}
+                className={`flex items-center gap-2 rounded-md animate-slideDown [animation-fill-mode:backwards]`}
                 style={{ animationDelay: "0.3s" }}
                 title="Account"
               >
-                <div className="w-7 h-7 rounded-full overflow-hidden bg-white/5">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5">
                   {image ? (
                     <Image
                       src={image}
@@ -122,8 +120,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     <div
                       className={`w-full max-w-48 h-full flex items-center rounded-full font-semibold justify-center text-sm  truncate ${
                         darkMode
-                          ? "text-gray-300 bg-white/5"
-                          : "text-zinc-800 bg-black/10"
+                          ? "text-gray-300 bg-white/5 hover:bg-white/10"
+                          : "text-zinc-800 bg-black/10 hover:bg-black/20"
                       }`}
                     >
                       {userName.charAt(0).toUpperCase()}
