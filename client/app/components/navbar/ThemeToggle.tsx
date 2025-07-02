@@ -19,7 +19,7 @@ const ThemeToggle = () => {
       <FontAwesomeIcon
         icon={darkMode ? faSun : faMoon}
         className={`w-4 h-4 ${
-          darkMode ? "text-gray-400 hover:text-white" : "text-zinc-900"
+          darkMode ? "text-white" : "text-zinc-900"
         } transition-colors`}
       />
     </button>

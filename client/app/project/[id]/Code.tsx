@@ -26,7 +26,7 @@ const Code: React.FC<CodeProps> = ({ file, getUrl }) => {
     setIsSaving(true);
     const formData = new FormData();
     formData.append("content", code);
-    formData.append("filePath", `${selectedProject?.project_name}`);
+    formData.append("filePath", `${selectedProject?.id}`);
     formData.append("type", "html");
     try {
       await post(`/api/storage/`, formData);
