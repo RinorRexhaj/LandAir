@@ -110,7 +110,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="/privacy-policy"
                   className="text-gray-300/80 hover:text-white transition-colors"
                 >
                   Privacy Policy
@@ -118,13 +118,13 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/terms-of-service"
                   className="text-gray-300/80 hover:text-white transition-colors"
                 >
                   Terms of Service
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a
                   href="#"
                   className="text-gray-300/80 hover:text-white transition-colors"
@@ -139,7 +139,7 @@ const Footer = () => {
                 >
                   GDPR
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -185,13 +185,11 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-white/10">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex justify-between items-center gap-4">
             <p className="text-gray-300/80 text-sm">
               © {new Date().getFullYear()} LandAir. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 text-sm text-gray-300/80">
-              <span>Licensed under MIT</span>
-              <span>•</span>
               <span>Version 1.0.0</span>
             </div>
           </div>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://landair.app/sitemap.xml

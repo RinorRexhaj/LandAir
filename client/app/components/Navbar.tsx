@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
 import { handleScroll } from "../utils/Scroll";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const links = ["Features", "How it Works", "Pricing", "Get Started"];
 
@@ -11,6 +12,15 @@ const Navbar: React.FC = () => {
   const [activeLink, setActiveLink] = useState<string>("");
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mainPage, setMainPage] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    console.log(window.location.href, process.env.NEXT_PUBLIC_URL);
+    if (window.location.href !== process.env.NEXT_PUBLIC_URL) {
+      setMainPage(false);
+    }
+  }, [setMainPage]);
 
   useEffect(() => {
     const handleScrollEvent = () => {
@@ -58,6 +68,10 @@ const Navbar: React.FC = () => {
   }, [activeLink]);
 
   const scroll = (id: string) => {
+    if (!mainPage) {
+      router.push("/");
+      return;
+    }
     const element = document.getElementById(id);
     if (element) {
       handleScroll(element);
@@ -99,29 +113,31 @@ const Navbar: React.FC = () => {
         </button>
 
         {/* Desktop Links */}
-        <ul className="md:hidden flex items-center font-medium gap-1">
-          {links.map((link, index) => (
-            <li key={link}>
-              <a
-                href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  scroll(link.toLowerCase().replace(/\s+/g, "-"));
-                }}
-                className={`cursor-pointer transition text-lg animate-slideIn p-2 px-4 hover:bg-gray-600 rounded-md [animation-fill-mode:backwards] ${
-                  activeLink === link
-                    ? "text-meta-5 bg-gray-500/80"
-                    : "hover:text-meta-5"
-                }`}
-                style={{ animationDelay: `${index * 0.3 + 0.1}s` }}
-                aria-current={activeLink === link ? "page" : undefined}
-                title={`Go to ${link} section`}
-              >
-                {link}
-              </a>
-            </li>
-          ))}
-        </ul>
+        {mainPage && (
+          <ul className="md:hidden flex items-center font-medium gap-1">
+            {links.map((link, index) => (
+              <li key={link}>
+                <a
+                  href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scroll(link.toLowerCase().replace(/\s+/g, "-"));
+                  }}
+                  className={`cursor-pointer transition text-lg animate-slideIn p-2 px-4 hover:bg-gray-600 rounded-md [animation-fill-mode:backwards] ${
+                    activeLink === link
+                      ? "text-meta-5 bg-gray-500/80"
+                      : "hover:text-meta-5"
+                  }`}
+                  style={{ animationDelay: `${index * 0.3 + 0.1}s` }}
+                  aria-current={activeLink === link ? "page" : undefined}
+                  title={`Go to ${link} section`}
+                >
+                  {link}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-4">
@@ -134,26 +150,28 @@ const Navbar: React.FC = () => {
           >
             Sign Up
           </Link>
-          <button
-            className="hidden md:block animate-fade [animation-fill-mode:backwards]"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle mobile navigation menu"
-            title="Toggle menu"
-            style={{
-              animationDelay: "1s",
-            }}
-          >
-            {isMobileMenuOpen ? (
-              <FontAwesomeIcon className="w-7 h-7" icon={faXmark} />
-            ) : (
-              <FontAwesomeIcon className="w-7 h-7" icon={faBars} />
-            )}
-          </button>
+          {mainPage && (
+            <button
+              className="hidden md:block animate-fade [animation-fill-mode:backwards]"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile navigation menu"
+              title="Toggle menu"
+              style={{
+                animationDelay: "1s",
+              }}
+            >
+              {isMobileMenuOpen ? (
+                <FontAwesomeIcon className="w-7 h-7" icon={faXmark} />
+              ) : (
+                <FontAwesomeIcon className="w-7 h-7" icon={faBars} />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile Dropdown */}
-      {isMobileMenuOpen && (
+      {isMobileMenuOpen && mainPage && (
         <ul className="hidden md:flex mt-4 px-6 py-4 flex-col space-y-4 text-sm font-medium bg-white/5 backdrop-blur-sm border-t border-white/10 animate-fade [animation-fill-mode:backwards]">
           {links.map((link) => (
             <li key={link}>

@@ -107,7 +107,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 style={{ animationDelay: "0.3s" }}
                 title="Account"
               >
-                <div className="w-8 h-8 rounded-md overflow-hidden bg-white/5">
+                <div
+                  className={`w-8 h-8 overflow-hidden bg-white/5 ${
+                    image ? "rounded-full" : "rounded-md"
+                  }`}
+                >
                   {image ? (
                     <Image
                       src={image}
