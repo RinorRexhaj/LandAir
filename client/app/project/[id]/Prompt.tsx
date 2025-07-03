@@ -12,6 +12,7 @@ import useApi from "@/app/hooks/useApi";
 import useToast from "@/app/hooks/useToast";
 import { Relevance } from "@/app/types/Relevance";
 import { ChatMessage } from "@/app/types/Chat";
+import ReactMarkdown from "react-markdown";
 
 interface PromptProps {
   isGenerating: boolean;
@@ -197,25 +198,57 @@ const Prompt: React.FC<PromptProps> = ({
 
   return (
     <div
-      className={`flex flex-col justify-between mt-14 w-full mx-auto rounded-lg overflow-hidden animate-fade ${
+      className={`flex flex-col justify-between mt-14 w-full mx-auto overflow-hidden animate-fade ${
         darkMode ? "bg-zinc-900" : "bg-white "
       }`}
       style={{
-        height: `calc(100% - 50px)`,
+        maxHeight: `calc(100% - 50px)`,
       }}
     >
-      <div className="flex-1 overflow-y-auto mb-4 space-y-2 max-h-[60vh]">
+      <div
+        className="flex-1 overflow-y-auto mb-2 space-y-2"
+        style={{
+          height: `calc(100vh - 150px)`,
+        }}
+      >
         {messages.map((msg, i) => (
           <div
             key={String(msg.id) || String(i)}
-            className={`px-4 py-2 rounded-xl max-w-[80%] tb:max-w-[60%] w-fit text-sm whitespace-pre-wrap animate-fade [animation-fill-mode:backwards] ${
+            className={`px-4 py-2 rounded-xl text-sm whitespace-pre-wrap animate-fade [animation-fill-mode:backwards] ${
               msg.sender
-                ? "bg-blue-600 text-white self-end ml-auto"
-                : "bg-zinc-200 text-black dark:bg-zinc-800 dark:text-white self-start mr-auto"
+                ? "bg-blue-600 text-white self-end ml-auto max-w-[80%] tb:max-w-[60%] w-fit"
+                : `w-full mt-4 bg-transparent self-start mr-auto ${
+                    darkMode ? "text-white" : "text-zinc-900"
+                  }`
             }`}
             style={{ animationDelay: i * 0.1 + "s" }}
           >
-            {msg.message}
+            {msg.sender ? (
+              msg.message
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  components={{
+                    code({ className, children, ...props }) {
+                      const isInline = !className;
+
+                      return (
+                        <code
+                          className={`bg-zinc-800 text-white p-1 rounded ${
+                            isInline ? "inline" : "block mt-2 mb-2"
+                          }`}
+                          {...props}
+                        >
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >
+                  {msg.message}
+                </ReactMarkdown>
+              </div>
+            )}
           </div>
         ))}
         {(isGenerating || enhancing) && (
@@ -254,7 +287,8 @@ const Prompt: React.FC<PromptProps> = ({
             <p className="ml-1 mt-4 text-xs flex items-center text-zinc-500">
               {input.length}/500
             </p>
-            <div>
+            <div className="flex items-center">
+              <p className="mt-4 flex items-center text-zinc-300">(3 C)</p>
               <button
                 type="submit"
                 className="ml-2 px-3 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"

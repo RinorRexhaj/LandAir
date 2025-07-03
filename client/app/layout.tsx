@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         url: "/og/og-image.png", // Recommended 1200x630
         width: 1200,
         height: 630,
-        alt: "LandAir – AI Landing Page Generator",
+        alt: "Instantly Generate & Deploy AI-Powered Landing Pages",
       },
     ],
     type: "website",

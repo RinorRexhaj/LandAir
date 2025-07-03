@@ -227,6 +227,7 @@ const Website: React.FC<WebsiteProps> = ({
         setSelectedElement(null);
       }
     };
+    console.log(selectedProject.file);
 
     iframeDoc.addEventListener("click", handleClick);
     iframeDoc.addEventListener("mousemove", handleMouseMove);

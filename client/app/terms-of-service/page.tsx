@@ -126,7 +126,7 @@ const Terms = () => {
           not share your credentials. You agree that we may store and process
           your prompts, generated content, and usage data to provide and improve
           the Service, as outlined in our{" "}
-          <a href="/privacy-policy" className="text-blue-600 underline">
+          <a href="/privacy-policy" className="text-blue-500 hover:underline">
             Privacy Policy
           </a>
           .

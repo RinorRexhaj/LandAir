@@ -171,7 +171,11 @@ const DeployModal: React.FC<DeployModalProps> = ({
         </p>
 
         <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm">
+          <label
+            className={`${
+              darkMode ? "text-white" : "text-zinc-900"
+            } flex items-center gap-2 text-sm`}
+          >
             <input
               type="checkbox"
               checked={confirmation}
@@ -185,7 +189,11 @@ const DeployModal: React.FC<DeployModalProps> = ({
           </label>
         </div>
 
-        <div className="bg-black/10 rounded-md p-2 text-xs h-24 overflow-y-auto whitespace-pre-wrap font-mono">
+        <div
+          className={`${
+            darkMode ? "bg-black/10" : "bg-black/5 text-zinc-900"
+          } rounded-md p-2 text-xs h-24 overflow-y-auto whitespace-pre-wrap font-mono`}
+        >
           {logs.length > 0
             ? logs.join("\n")
             : "Deployment logs will appear here..."}
@@ -257,7 +265,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
                 <span className="flex gap-1">
                   (3{" "}
                   <Image
-                    src={"credit.svg"}
+                    src={"/img/credit.svg"}
                     alt="Credits"
                     width={16}
                     height={16}

@@ -63,7 +63,10 @@ const PrivacyPolicy = () => {
           <li>To improve the platform experience and performance</li>
           <li>
             To enforce our{" "}
-            <a href="/terms-of-service" className="text-blue-600 underline">
+            <a
+              href="/terms-of-service"
+              className="text-blue-500 hover:underline"
+            >
               Terms of Service
             </a>{" "}
             and ensure security

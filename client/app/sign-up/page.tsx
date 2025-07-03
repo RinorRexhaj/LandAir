@@ -49,12 +49,27 @@ const SignInPage = () => {
 
           {/* Google Sign In */}
           <button
-            className="w-full flex items-center justify-center gap-2 py-1 px-4 border border-white/20 rounded-lg shadow-sm text-sm font-medium text-white bg-white/10 hover:bg-white/20 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-1 px-3 border border-white/20 rounded-lg shadow-sm text-sm font-medium text-white bg-white/10 hover:bg-white/20 transition-colors"
             onClick={handleGoogleSignIn}
           >
-            <Image src={"/google.webp"} alt="Google" height={32} width={32} />
+            <Image
+              src={"/img/google.webp"}
+              alt="Google"
+              height={32}
+              width={32}
+            />
             <span>Sign in with Google</span>
           </button>
+
+          <p className="text-center text-sm mt-4 text-white/50">
+            By signing up you agree to our{" "}
+            <a
+              href="/terms-of-service"
+              className="text-blue-400 hover:underline"
+            >
+              terms of service
+            </a>
+          </p>
         </div>
       </div>
     </div>

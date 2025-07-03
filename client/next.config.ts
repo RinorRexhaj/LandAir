@@ -4,7 +4,7 @@ const nextConfig = {
     domains: [
       "lh3.googleusercontent.com",
       "atpfuhvsarovlvblsjdp.supabase.co",
-      "placehold.co",
+      "ykzubtnhyebwtqzaawan.supabase.co",
     ],
   },
 };

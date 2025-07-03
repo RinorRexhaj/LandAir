@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { handleScroll } from "../utils/Scroll";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const links = ["Features", "How it Works", "Pricing", "Get Started"];
 
@@ -16,7 +17,6 @@ const Navbar: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    console.log(window.location.href, process.env.NEXT_PUBLIC_URL);
     if (window.location.href !== process.env.NEXT_PUBLIC_URL) {
       setMainPage(false);
     }
@@ -95,7 +95,18 @@ const Navbar: React.FC = () => {
             e.preventDefault();
             scroll("hero");
           }}
+          className="flex items-center gap-2"
         >
+          <Image
+            src={"/icons/favicon-120x120.png"}
+            alt="LandAir"
+            width={32}
+            height={32}
+            className="animate-fade [animation-fill-mode:backwards]"
+            style={{
+              animationDelay: "0.25s",
+            }}
+          />
           <h1
             className="flex text-3xl md:text-2xl font-semibold overflow-hidden"
             aria-label="LandAir logo"

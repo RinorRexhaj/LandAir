@@ -45,9 +45,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       className={`fixed top-[49px] left-0 h-[calc(100vh-48px)] transition-all z-40 duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       } w-48 md:w-40 border-r ${
-        darkMode
-          ? "border-white/10 bg-zinc-900"
-          : "border-zinc-900/10 bg-white/10"
+        darkMode ? "border-white/10 bg-zinc-900" : "border-zinc-900/10 bg-white"
       } px-5 py-6 md:p-4`}
     >
       <nav className="space-y-1.5 flex flex-col items-center">

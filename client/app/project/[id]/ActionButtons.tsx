@@ -65,7 +65,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           }`}
         >
           <Image
-            src={darkMode ? "/select-dark.png" : "/select.png"}
+            src={darkMode ? "/img/select-dark.png" : "/img/select.png"}
             alt="Selector"
             width={20}
             height={20}
@@ -89,7 +89,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               ${
                 darkMode
                   ? "bg-zinc-900 border-gray-200/20"
-                  : "bg-zinc-100/80 border-gray-300/50"
+                  : "bg-zinc-50 border-gray-300/50"
               }`}
           >
             <button
@@ -125,7 +125,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               className="text-left px-2 py-1.5 hover:bg-zinc-700/20 rounded flex items-center"
             >
               <Image
-                src={darkMode ? "/select-dark.png" : "/select.png"}
+                src={darkMode ? "/img/select-dark.png" : "/img/select.png"}
                 alt="Selector"
                 width={16}
                 height={16}
