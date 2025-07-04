@@ -227,7 +227,6 @@ const Website: React.FC<WebsiteProps> = ({
         setSelectedElement(null);
       }
     };
-    console.log(selectedProject.file);
 
     iframeDoc.addEventListener("click", handleClick);
     iframeDoc.addEventListener("mousemove", handleMouseMove);
@@ -335,15 +334,20 @@ const Website: React.FC<WebsiteProps> = ({
   };
 
   const getHeight = () => {
-    if (mobile) return `${scale * 100}vh`;
     const height = document.body.clientHeight;
-    return height * (1 / scale) - 180;
+    const width = document.body.clientWidth;
+    const extra = (height * 200) / width + 21.5;
+    const mobileExtra =
+      (height > width ? height / width : width / height) +
+      (height > width ? height / width : width / height) * 3;
+    if (mobile) return `calc(${scale * 100 + mobileExtra}vh)`;
+    return height * (1 / scale) - extra;
   };
 
   if (!selectedProject) return;
 
   return (
-    <>
+    <div className="relative">
       <iframe
         ref={iframeRef}
         key={selectedProject.file}
@@ -500,10 +504,10 @@ const Website: React.FC<WebsiteProps> = ({
       )}
       {hasUnsavedChanges && (
         <div
-          className={`fixed ml-2.5 top-16 left-60 md:ml-1.5 md:-mt-2 sm:left-28 sm:ml-4 flex p-1 rounded-lg items-center md:z-40 border transition-all animate-fade duration-200 ${
+          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[166px] md:ml-[100px] flex p-1 rounded-lg items-center md:z-40 transition-all animate-fade duration-200 ${
             darkMode
-              ? "bg-zinc-800/20 md:bg-zinc-900 border-gray-200/20"
-              : "bg-zinc-100/80 md:bg-zinc-100 border-gray-300/50"
+              ? "bg-zinc-800/80 border-gray-200/20"
+              : "bg-zinc-100/80 border-gray-300/50"
           }`}
         >
           <button
@@ -512,7 +516,9 @@ const Website: React.FC<WebsiteProps> = ({
               if (noChanges) setHasUnsavedChanges(false);
             }}
             title="Undo"
-            className="flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className={`flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
+              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+            }`}
           >
             <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
           </button>
@@ -527,7 +533,9 @@ const Website: React.FC<WebsiteProps> = ({
               }
             }}
             title="Save"
-            className="flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className={`flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
+              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+            }`}
           >
             <FontAwesomeIcon icon={faCheck} className="w-4 h-4" />
           </button>
@@ -540,7 +548,9 @@ const Website: React.FC<WebsiteProps> = ({
               setIsEditing(false);
             }}
             title="Discard"
-            className="flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100"
+            className={`flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
+              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+            }`}
           >
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
           </button>
@@ -603,7 +613,7 @@ const Website: React.FC<WebsiteProps> = ({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

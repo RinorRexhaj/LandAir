@@ -4,7 +4,6 @@ import useAuth from "../hooks/useAuth";
 import Loading from "../components/Loading";
 import { useRouter } from "next/navigation";
 import DashboardNavbar from "../components/navbar/DashboardNavbar";
-import DashboardSidebar from "./DashboardSidebar";
 import Projects from "./projects/Projects";
 import { useThemeStore } from "../store/useThemeStore";
 import { ToastContainer } from "react-toastify";
@@ -12,7 +11,7 @@ import Templates from "./Templates";
 import { useProjectStore } from "../store/useProjectsStore";
 
 const Dashboard = () => {
-  const [activeLink, setActiveLink] = useState(0);
+  // const [activeLink, setActiveLink] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -58,12 +57,12 @@ const Dashboard = () => {
           height: "calc(100vh - 40px)",
         }}
       >
-        <DashboardSidebar
+        {/* <DashboardSidebar
           activeLink={activeLink}
           setActiveLink={setActiveLink}
           isOpen={isSidebarOpen}
           setIsOpen={setIsSidebarOpen}
-        />
+        /> */}
         <ToastContainer closeOnClick hideProgressBar icon={false} limit={3} />
         <main
           className={`flex flex-col gap-8 flex-1 ${
@@ -71,7 +70,7 @@ const Dashboard = () => {
           } py-6 md:p-4`}
         >
           <Projects />
-          {!loading && <Templates />}
+          {!loading && !selectedProject && <Templates />}
         </main>
       </div>
     </div>

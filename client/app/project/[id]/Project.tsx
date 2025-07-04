@@ -60,12 +60,12 @@ const ProjectPage = () => {
   if (!selectedProject) return null;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative md:pt-1 flex flex-col h-full">
       {/* Toggle Preview/Prompt */}
       <div
-        className={`absolute right-4 hidden z-40 tb:flex w-fit px-1 py-1 rounded-lg items-center justify-center gap-2 border transition-all duration-200 ${
+        className={`absolute right-12 -top-14 md:-top-12 md:right-10 hidden z-40 tb:flex w-fit px-1 py-1 rounded-lg items-center justify-center gap-2 transition-all duration-200 ${
           darkMode
-            ? "bg-zinc-800/20 border-gray-200/20"
+            ? "bg-zinc-800/80 border-gray-200/20"
             : "bg-zinc-100/80 border-gray-300/50"
         }`}
       >
@@ -82,7 +82,7 @@ const ProjectPage = () => {
           disabled={loading}
         >
           <FontAwesomeIcon icon={faDisplay} className="w-4 h-4" />
-          <p className="md:hidden">Preview</p>
+          {/* <p className="md:hidden">Preview</p> */}
         </button>
 
         <button
@@ -98,7 +98,7 @@ const ProjectPage = () => {
           disabled={loading}
         >
           <FontAwesomeIcon icon={faRobot} className="w-4 h-4" />
-          <p className="md:hidden">Generate</p>
+          {/* <p className="md:hidden">Generate</p> */}
         </button>
       </div>
 
@@ -126,7 +126,7 @@ const ProjectPage = () => {
           )}
         </div>
         <div
-          className={`w-4/12 ${
+          className={`relative w-4/12 ${
             activeView === "prompt" ? "tb:w-full" : "tb:hidden"
           }`}
         >

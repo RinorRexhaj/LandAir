@@ -1,15 +1,8 @@
 import { useProjectStore } from "@/app/store/useProjectsStore";
-import { useThemeStore } from "@/app/store/useThemeStore";
-import {
-  faCode,
-  faLaptop,
-  faMobileScreen,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
 import Code from "./Code";
 import Website from "./Website";
-import ActionButtons from "./ActionButtons";
+import PreviewHeader from "./PreviewHeader";
 
 interface PreviewProps {
   getUrl: () => void;
@@ -20,7 +13,6 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
   const [selector, setSelector] = useState(false);
   const [scale, setScale] = useState(1);
   const mainRef = useRef<HTMLDivElement | null>(null);
-  const { darkMode } = useThemeStore();
   const { selectedProject } = useProjectStore();
 
   useEffect(() => {
@@ -65,65 +57,15 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
 
   return (
     <div
-      className="w-full h-full flex flex-col gap-3 animate-fade"
+      className="relative w-full h-full flex flex-col gap-3 animate-fade"
       ref={mainRef}
     >
-      <div className="flex gap-1 flex-wrap">
-        {/* Device Toggle */}
-        <div
-          className={`flex px-1.5 gap-1 rounded-lg items-center border transition-all duration-200 ${
-            darkMode
-              ? "bg-zinc-800/20 border-gray-200/20"
-              : "bg-zinc-100/80 border-gray-300/50"
-          }`}
-        >
-          <button
-            onClick={() => setMobile(0)}
-            title="Desktop"
-            className={`flex sm:hidden items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
-              mobile !== 0
-                ? "opacity-70 hover:opacity-100"
-                : darkMode
-                ? "bg-zinc-700 text-white"
-                : "bg-white text-black shadow"
-            }`}
-          >
-            <FontAwesomeIcon icon={faLaptop} className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setMobile(1)}
-            title="Mobile"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
-              mobile === 1
-                ? darkMode
-                  ? "bg-zinc-700 text-white"
-                  : "bg-white text-black shadow"
-                : "opacity-70 hover:opacity-100"
-            }`}
-          >
-            <FontAwesomeIcon icon={faMobileScreen} className="w-4 h-4" />
-          </button>
-          <button
-            title="View Code"
-            className={`flex items-center gap-1 px-2  py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none ${
-              mobile === 2
-                ? darkMode
-                  ? "bg-zinc-700 text-white"
-                  : "bg-white text-black shadow"
-                : "opacity-70 hover:opacity-100"
-            }`}
-            onClick={() => setMobile(2)}
-          >
-            <FontAwesomeIcon icon={faCode} className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Action Buttons */}
-        <ActionButtons
-          selector={selector}
-          toggleSelector={() => setSelector(!selector)}
-        />
-      </div>
+      <PreviewHeader
+        mobile={mobile}
+        setMobile={setMobile}
+        selector={selector}
+        setSelector={setSelector}
+      />
 
       {/* Preview Area */}
       <div className={`relative w-full h-full flex overflow-hidden`}>

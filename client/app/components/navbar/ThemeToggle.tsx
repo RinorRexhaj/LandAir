@@ -8,7 +8,7 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
-      className={`w-9 h-8 flex items-center justify-center rounded-md animate-slideDown [animation-fill-mode:backwards] transition-colors ${
+      className={`w-9 h-8 tb:w-full flex items-center tb:justify-start tb:p-2 tb:gap-2 justify-center rounded-md animate-slideDown [animation-fill-mode:backwards] transition-colors ${
         darkMode
           ? "bg-white/5 hover:bg-white/10"
           : "bg-zinc-200 hover:bg-zinc-400/20"
@@ -22,6 +22,7 @@ const ThemeToggle = () => {
           darkMode ? "text-white" : "text-zinc-900"
         } transition-colors`}
       />
+      <p className="hidden tb:block">Theme</p>
     </button>
   );
 };

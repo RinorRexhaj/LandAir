@@ -14,7 +14,7 @@ const Terms = () => {
         }}
       >
         <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
-        <p className="mb-4 text-sm">Effective Date: [Insert Date]</p>
+        {/* <p className="mb-4 text-sm">Effective Date: [Insert Date]</p> */}
 
         <p className="mb-6">
           Welcome to <strong>LandAir</strong> (“we,” “us,” or “our”). These

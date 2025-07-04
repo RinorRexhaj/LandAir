@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const promptEnhancerURL = process.env.PROMPT_ENHANCER || "";
+const summaryURL = process.env.WEBSITE_SUMMARY || "";
 const websiteGeneratorURL = process.env.WEBSITE_GENERATOR || "";
 const relevanceKey = process.env.RELEVANCE_KEY || "";
 
@@ -8,6 +9,15 @@ export const enhancePrompt = async (prompt: string) => {
   const response = await axios.post(
     promptEnhancerURL,
     { user_prompt: prompt },
+    { headers: { Authorization: relevanceKey } }
+  );
+  return response.data;
+};
+
+export const generateSummary = async (code: string) => {
+  const response = await axios.post(
+    summaryURL,
+    { code: code },
     { headers: { Authorization: relevanceKey } }
   );
   return response.data;

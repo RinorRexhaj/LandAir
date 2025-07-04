@@ -2,10 +2,11 @@
 import React, { useState } from "react";
 import {
   faArrowUpRightFromSquare,
+  faCrosshairs,
   faDownload,
+  faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Image from "next/image";
 import { useThemeStore } from "../../store/useThemeStore";
 import { handleDownload, handleOpenFullSize } from "../../utils/ProjectActions";
 import { useProjectStore } from "../../store/useProjectsStore";
@@ -25,10 +26,10 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 
   return (
     <div
-      className={`relative flex items-center border rounded-lg transition-all duration-200
+      className={`relative flex items-center  rounded-lg transition-all duration-200
         ${
           darkMode
-            ? "bg-zinc-800/20 border-gray-200/20"
+            ? "bg-zinc-800/80 border-gray-200/20"
             : "bg-zinc-100/80 border-gray-300/50"
         }`}
     >
@@ -37,7 +38,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           onClick={() => handleOpenFullSize(selectedProject)}
           title="Open Full Size Page"
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 hover:opacity-100"
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 hover:opacity-100 ${
+            darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+          }`}
         >
           <FontAwesomeIcon
             icon={faArrowUpRightFromSquare}
@@ -48,7 +51,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           onClick={() => handleDownload(selectedProject)}
           title="Download"
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 hover:opacity-100"
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 hover:opacity-100 ${
+            darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+          }`}
         >
           <FontAwesomeIcon icon={faDownload} className="w-3.5 h-3.5" />
         </button>
@@ -56,20 +61,17 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         <button
           onClick={toggleSelector}
           title="Selector"
-          className={`relative flex items-center justify-center pl-1.5 pt-1.5 pr-0.5 pb-0.5 gap-1 rounded-md text-sm font-medium transition-all duration-200 ${
-            selector
-              ? darkMode
-                ? "bg-zinc-700 text-white"
-                : "bg-white text-black shadow"
-              : "opacity-70 hover:opacity-100"
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 hover:opacity-100 ${
+            !selector
+              ? `opacity-70 hover:opacity-100 ${
+                  darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+                }`
+              : darkMode
+              ? "bg-zinc-700 text-white"
+              : "bg-white text-black shadow"
           }`}
         >
-          <Image
-            src={darkMode ? "/img/select-dark.png" : "/img/select.png"}
-            alt="Selector"
-            width={20}
-            height={20}
-          />
+          <FontAwesomeIcon icon={faCrosshairs} className="w-4 h-4" />
         </button>
       </div>
 
@@ -77,10 +79,10 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <div className="hidden sm:flex relative">
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
-          className="p-2 text-sm opacity-80 hover:opacity-100"
+          className="p-2 text-sm opacity-80 hover:opacity-100 "
           title="Actions Menu"
         >
-          ⋮
+          <FontAwesomeIcon icon={faEllipsisVertical} />
         </button>
 
         {menuOpen && (
@@ -122,15 +124,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 toggleSelector();
                 setMenuOpen(false);
               }}
-              className="text-left px-2 py-1.5 hover:bg-zinc-700/20 rounded flex items-center"
+              className="text-left px-2 py-1.5 hover:bg-zinc-700/20 rounded"
             >
-              <Image
-                src={darkMode ? "/img/select-dark.png" : "/img/select.png"}
-                alt="Selector"
-                width={16}
-                height={16}
-                className="mr-2"
-              />
+              <FontAwesomeIcon icon={faCrosshairs} className="mr-2 w-4 h-4" />
               Selector
             </button>
           </div>

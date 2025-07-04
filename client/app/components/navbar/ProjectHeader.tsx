@@ -29,14 +29,15 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
               darkMode
                 ? "bg-zinc-800 hover:bg-zinc-900 text-white"
                 : "bg-zinc-200 hover:bg-zinc-400/20 text-zinc-900"
-            } flex items-center justify-center`}
+            } flex items-center animate-slideDown justify-center`}
             title="View Live Page"
           >
             <FontAwesomeIcon icon={faGlobe} className="h-4 w-4" />
+            <p className="hidden tb:block">Live Page</p>
           </a>
           <button
             onClick={() => setShowSettingsModal(true)}
-            className={`flex items-center gap-2 px-2.5 py-2 rounded-md font-medium transition-colors animate-fade ${
+            className={`flex items-center gap-2 px-2.5 py-2 rounded-md font-medium transition-colors animate-slideDown ${
               darkMode
                 ? "bg-zinc-800 hover:bg-zinc-900 text-white"
                 : "bg-zinc-200 hover:bg-zinc-400/20 text-zinc-900"
@@ -44,17 +45,18 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
             title="Settings"
           >
             <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
+            <p className="hidden tb:block">Settings</p>
           </button>
         </>
       )}
 
       <button
         onClick={() => setShowDeployModal(true)}
-        className={`flex items-center justify-center gap-2 px-2.5 py-2 rounded-md font-medium transition-colors animate-fade bg-blue-600 hover:bg-blue-700 text-white`}
+        className={`flex items-center justify-center gap-2 px-2.5 py-2 rounded-md font-medium transition-colors animate-slideDown bg-blue-600 hover:bg-blue-700 text-white`}
         title="Deploy"
       >
         <FontAwesomeIcon icon={faRocket} className="w-4 h-4" />
-        {/* <p className="text-sm md:hidden">Deploy</p> */}
+        <p className="hidden tb:block">Deploy</p>
       </button>
     </div>
   );

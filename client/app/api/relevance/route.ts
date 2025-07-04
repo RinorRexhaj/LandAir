@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateRequest } from "../validateRequest";
-import { checkCompletion, enhancePrompt, generateWebsite } from "./relevance";
+import {
+  checkCompletion,
+  enhancePrompt,
+  generateSummary,
+  generateWebsite,
+} from "./relevance";
 
 export async function GET(req: NextRequest) {
   const validation = await validateRequest(req);
@@ -20,10 +25,13 @@ export async function POST(req: NextRequest) {
   if (validation instanceof NextResponse) {
     return validation;
   }
-  const { type, prompt } = await req.json();
+  const { type, prompt, code } = await req.json();
   if (type === "generate") {
     const website = await generateWebsite(prompt);
     return NextResponse.json(website);
+  } else if (type === "summary") {
+    const summary = await generateSummary(code);
+    return NextResponse.json(summary);
   } else {
     const enhanced = await enhancePrompt(prompt);
     return NextResponse.json(enhanced);

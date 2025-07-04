@@ -127,10 +127,13 @@ const NameModal: React.FC<NameModalProps> = ({
                 : "bg-white text-zinc-900 border-zinc-300 focus:border-blue-600"
             }`}
             disabled={saving}
-            maxLength={50}
+            maxLength={20}
             placeholder="Enter project name"
           />
         </form>
+        <p className={`mb-4 ${!darkMode ? "text-zinc-700" : "text-zinc-200"}`}>
+          The project name should be 20 chars max.
+        </p>
         <div className="flex justify-end gap-2">
           <button
             onClick={handleClose}

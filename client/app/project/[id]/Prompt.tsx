@@ -1,18 +1,20 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faArrowDown,
   faPaperPlane,
   faSpinner,
-  faWandMagicSparkles,
+  // faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { useCreditStore } from "@/app/store/useCreditStore";
 import useApi from "@/app/hooks/useApi";
 import useToast from "@/app/hooks/useToast";
-import { Relevance } from "@/app/types/Relevance";
+// import { Relevance } from "@/app/types/Relevance";
 import { ChatMessage } from "@/app/types/Chat";
 import ReactMarkdown from "react-markdown";
+import Image from "next/image";
 
 interface PromptProps {
   isGenerating: boolean;
@@ -30,11 +32,13 @@ const Prompt: React.FC<PromptProps> = ({
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // const [result, setResult] = useState(false);
-  const [enhancing, setEnhancing] = useState(false);
+  // const [enhancing, setEnhancing] = useState(false);
   const { get, post, put } = useApi();
   const { selectedProject, changeProject } = useProjectStore();
   const { darkMode } = useThemeStore();
   const { credits, setCredits } = useCreditStore();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -70,9 +74,33 @@ const Prompt: React.FC<PromptProps> = ({
     [get, toast]
   );
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleScroll = () => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const isAtBottom =
+      container.scrollHeight - container.scrollTop <=
+      container.clientHeight + 50;
+
+    setShowScrollButton(!isAtBottom);
+  };
+
+  const scrollToBottom = () => {
+    const container = scrollRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!input || isGenerating || enhancing || credits < 3 || !selectedProject)
-      return;
+    if (!input || isGenerating || credits < 3 || !selectedProject) return;
 
     // Optimistically add user message
     setMessages((prev) => [
@@ -117,9 +145,6 @@ const Prompt: React.FC<PromptProps> = ({
         const { credits: updatedCredits }: { credits: number } = await put(
           `/api/credits`
         );
-        setCredits(updatedCredits);
-        toast.success("Website Generated!");
-        setIsGenerating(false);
         if (selectedProject)
           changeProject({
             ...selectedProject,
@@ -129,12 +154,16 @@ const Prompt: React.FC<PromptProps> = ({
 
         const content =
           status.updates[status.updates.length - 1]?.output.output.answer;
+
+        const summary: { answer: string } = await post(`/api/relevance`, {
+          type: "summary",
+          code: content,
+        });
         // Add bot message to DB and UI
         const botMsg: ChatMessage = {
           id: Date.now() + 1,
           sender: false,
-          message:
-            "The website has been generated successfully! We hope it's to your liking. If you need any changes, don't hesitate to ask!",
+          message: summary.answer,
           projectId: String(selectedProject?.id || ""),
         };
         setMessages((prev) => [...prev, botMsg]);
@@ -152,6 +181,9 @@ const Prompt: React.FC<PromptProps> = ({
         });
 
         getUrl();
+        setCredits(updatedCredits);
+        toast.success("Website Generated!");
+        setIsGenerating(false);
         setProjectFile(true);
       } else if (status?.type === "failed") {
         toast.error("Generation failed!");
@@ -166,67 +198,83 @@ const Prompt: React.FC<PromptProps> = ({
     }
   };
 
-  const enhanceLastMessage = async () => {
-    if (enhancing || isGenerating || !messages.length) return;
+  // const enhanceLastMessage = async () => {
+  //   if (enhancing || isGenerating) return;
 
-    const last = messages[messages.length - 1];
-    if (!last.sender) return;
+  //   setEnhancing(true);
 
-    setEnhancing(true);
+  //   try {
+  //     const enhanced: Relevance = await post(`/api/relevance`, {
+  //       type: "enhance",
+  //       prompt: input,
+  //     });
 
-    try {
-      const enhanced: Relevance = await post(`/api/relevance`, {
-        type: "enhance",
-        prompt: last.message,
-      });
-
-      const botMsg: ChatMessage = {
-        id: Date.now() + 2,
-        sender: false,
-        message: `✨ Enhanced Idea: ${enhanced.answer}`,
-        projectId: String(selectedProject?.id || ""),
-      };
-      setMessages((prev) => [...prev, botMsg]);
-      await post(`/api/chat`, botMsg);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to enhance description");
-    } finally {
-      setEnhancing(false);
-    }
-  };
+  //     const newMsg: ChatMessage = {
+  //       id: Date.now() + 2,
+  //       sender: true,
+  //       message: enhanced.answer,
+  //       projectId: String(selectedProject?.id || ""),
+  //     };
+  //     setMessages((prev) => [...prev, newMsg]);
+  //     await post(`/api/chat`, newMsg);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Failed to enhance description");
+  //   } finally {
+  //     setEnhancing(false);
+  //   }
+  // };
 
   return (
     <div
-      className={`flex flex-col justify-between mt-14 w-full mx-auto overflow-hidden animate-fade ${
-        darkMode ? "bg-zinc-900" : "bg-white "
+      className={`h-full flex flex-col justify-between w-full mx-auto p-2 rounded-md overflow-hidden animate-fade ${
+        darkMode ? "bg-zinc-800" : ""
       }`}
-      style={{
-        maxHeight: `calc(100% - 50px)`,
-      }}
     >
       <div
-        className="flex-1 overflow-y-auto mb-2 space-y-2"
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto space-y-8 minimal-scrollbar pr-2"
         style={{
-          height: `calc(100vh - 150px)`,
+          height: "calc(100% - 100px)",
         }}
       >
         {messages.map((msg, i) => (
           <div
             key={String(msg.id) || String(i)}
-            className={`px-4 py-2 rounded-xl text-sm whitespace-pre-wrap animate-fade [animation-fill-mode:backwards] ${
+            className={`py-2 rounded-xl text-sm whitespace-pre-wrap animate-fade [animation-fill-mode:backwards] ${
               msg.sender
-                ? "bg-blue-600 text-white self-end ml-auto max-w-[80%] tb:max-w-[60%] w-fit"
-                : `w-full mt-4 bg-transparent self-start mr-auto ${
+                ? `px-4 ${
+                    darkMode
+                      ? "bg-zinc-700 text-white"
+                      : "bg-zinc-200/70 text-zinc-900"
+                  } self-end ml-auto max-w-[80%] w-fit`
+                : `w-full px-1 left-0 flex gap-4 bg-transparent self-start ${
                     darkMode ? "text-white" : "text-zinc-900"
                   }`
             }`}
             style={{ animationDelay: i * 0.1 + "s" }}
           >
+            {!msg.sender && (
+              <Image
+                src={`/icons${!darkMode ? "-dark" : ""}/favicon-120x120.png`}
+                alt="LandAir"
+                width={32}
+                height={32}
+                className="h-8 animate-fade [animation-fill-mode:backwards]"
+                style={{
+                  animationDelay: "0.25s",
+                }}
+              />
+            )}
             {msg.sender ? (
               msg.message
             ) : (
-              <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div
+                className={`prose prose-sm leading-snug ${
+                  darkMode ? "prose-invert" : ""
+                } [&>*]:my-0 [&>*]:py-0 [&>ul]:-mt-6 [&>ol]:-mt-6 [&>li]:-mt-4 max-w-none`}
+              >
                 <ReactMarkdown
                   components={{
                     code({ className, children, ...props }) {
@@ -234,8 +282,8 @@ const Prompt: React.FC<PromptProps> = ({
 
                       return (
                         <code
-                          className={`bg-zinc-800 text-white p-1 rounded ${
-                            isInline ? "inline" : "block mt-2 mb-2"
+                          className={`bg-zinc-800 text-white rounded ${
+                            isInline ? "inline" : "block"
                           }`}
                           {...props}
                         >
@@ -251,20 +299,34 @@ const Prompt: React.FC<PromptProps> = ({
             )}
           </div>
         ))}
-        {(isGenerating || enhancing) && (
+        {isGenerating && (
           <div className="relative flex items-center gap-2 text-sm top-2 text-zinc-500 dark:text-zinc-400">
             <FontAwesomeIcon
               icon={faSpinner}
               className="animate-spin w-4 h-4"
             />
-            {enhancing ? "Enhancing..." : "Generating..."}
+            {"Generating..."}
           </div>
         )}
       </div>
 
+      {showScrollButton && (
+        <button
+          onClick={scrollToBottom}
+          className={`fixed bottom-32 mb-1 mx-auto p-2 h-8 w-8 flex items-center justify-center rounded-full shadow-lg  ${
+            darkMode
+              ? "bg-zinc-700 text-white hover:bg-zinc-700 border border-zinc-500"
+              : "bg-zinc-50 text-zinc-700 hover:bg-zinc-100 border border-zinc-200"
+          } transition animate-fadeFast`}
+          title="Scroll to bottom"
+        >
+          <FontAwesomeIcon icon={faArrowDown} />
+        </button>
+      )}
+
       <div
-        className={`w-full flex gap-4 p-2 border rounded-lg mt-2 ${
-          darkMode ? "bg-zinc-800 border-zinc-700" : "bg-white border-zinc-300"
+        className={`w-full flex gap-4 px-2 py-1 border rounded-lg mt-2 ${
+          darkMode ? "bg-zinc-700 border-zinc-700" : "bg-white border-zinc-300"
         }`}
       >
         <form
@@ -279,7 +341,7 @@ const Prompt: React.FC<PromptProps> = ({
             rows={2}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe your website idea..."
-            className={`w-full bg-transparent p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
+            className={`w-full bg-inherit p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
               darkMode ? "text-white" : "text-zinc-900"
             }`}
           />
@@ -301,14 +363,17 @@ const Prompt: React.FC<PromptProps> = ({
                   <FontAwesomeIcon icon={faPaperPlane} />
                 )}
               </button>
-              <button
-                onClick={enhanceLastMessage}
+              {/* <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  enhanceLastMessage();
+                }}
                 disabled={enhancing || isGenerating || !input}
                 className="ml-2 px-3 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-60"
                 title="Enhance"
               >
                 <FontAwesomeIcon icon={faWandMagicSparkles} />
-              </button>
+              </button> */}
             </div>
           </div>
         </form>
