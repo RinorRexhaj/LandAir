@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 const GetStarted = () => {
@@ -13,25 +14,12 @@ const GetStarted = () => {
         Join thousands of founders and marketers who are creating stunning
         landing pages in minutes.
       </p>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          window.location.href = "/sign-up";
-        }}
-        className="flex flex-row gap-4 w-full max-w-xl md:flex-col"
+      <Link
+        href={"/sign-up"}
+        className="px-8 py-4 bg-blue-600 text-white rounded-full text-lg font-semibold hover:bg-blue-800 transition-colors shadow-lg hover:shadow-xl"
       >
-        <input
-          type="text"
-          placeholder="Describe your landing page idea..."
-          className="flex-1 px-6 py-4 rounded-full border border-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
-        />
-        <button
-          type="submit"
-          className="px-8 py-4 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
-        >
-          Generate Now
-        </button>
-      </form>
+        Try it Now
+      </Link>
     </section>
   );
 };

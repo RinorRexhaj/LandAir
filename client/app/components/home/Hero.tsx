@@ -1,4 +1,3 @@
-import Link from "next/link";
 import React from "react";
 
 const Hero = () => {
@@ -69,13 +68,28 @@ const Hero = () => {
         Transform your ideas into stunning, responsive pages in minutes. Just
         describe what you want, and let our AI do the rest.
       </p>
-      <Link
-        href={"/sign-up"}
-        className="px-8 py-4 bg-blue-600 text-white rounded-full text-lg font-semibold hover:bg-blue-800 transition-colors shadow-lg animate-fade-in-slow [animation-fill-mode:backwards] hover:shadow-xl"
-        style={{ animationDelay: "1s" }}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          window.location.href = "/sign-up";
+        }}
+        className="flex flex-row gap-4 w-full max-w-xl md:flex-col animate-fade-in-slow [animation-fill-mode:backwards]"
+        style={{
+          animationDelay: "1s",
+        }}
       >
-        Try it Now
-      </Link>
+        <input
+          type="text"
+          placeholder="Describe your landing page idea..."
+          className="flex-1 px-6 py-4 rounded-full border border-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+        <button
+          type="submit"
+          className="px-8 py-4 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Generate Now
+        </button>
+      </form>
     </section>
   );
 };

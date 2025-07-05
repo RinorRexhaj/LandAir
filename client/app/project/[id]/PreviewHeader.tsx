@@ -85,6 +85,7 @@ const PreviewHeader: React.FC<PreviewHeaderProps> = ({
       {/* Action Buttons */}
       <ActionButtons
         selector={selector}
+        mobile={mobile}
         toggleSelector={() => setSelector(!selector)}
       />
     </div>

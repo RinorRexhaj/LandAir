@@ -4,10 +4,10 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import {
   faPenToSquare,
   faTrash,
-  faXmark,
   faCheck,
   faImage,
   faUndo,
+  faBookmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useRef, useState } from "react";
@@ -126,10 +126,25 @@ const Website: React.FC<WebsiteProps> = ({
     const updateToolbarPos = (target: HTMLElement | null | undefined) => {
       const element = target || selectedElement?.element;
       if (!element) return;
+      if (!iframeRef.current) return;
+
       const rect = element.getBoundingClientRect();
-      const top =
-        rect.y * scale < 50 ? rect.bottom * scale : scale * rect.y - 30;
-      setToolBarPos({ top, left: scale * rect.x });
+      const clientHeight = iframeRef.current.clientHeight;
+
+      const elementHeight = rect.height * scale;
+      const visibleHeight = clientHeight * scale;
+
+      let top: number;
+      const left: number = rect.x * scale;
+
+      if (elementHeight >= visibleHeight - 100) {
+        top = rect.bottom * scale - 30;
+      } else {
+        // Regular positioning logic
+        top = rect.y * scale < 50 ? rect.bottom * scale : rect.y * scale - 30;
+      }
+
+      setToolBarPos({ top, left });
     };
 
     const updateHoverPos = (target: HTMLElement | undefined) => {
@@ -504,24 +519,12 @@ const Website: React.FC<WebsiteProps> = ({
       )}
       {hasUnsavedChanges && (
         <div
-          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[166px] md:ml-[100px] flex p-1 rounded-lg items-center md:z-40 transition-all animate-fade duration-200 ${
+          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[175px] md:ml-[100px] flex p-1 gap-1 rounded-lg items-center md:z-40 transition-all animate-fade duration-200 ${
             darkMode
               ? "bg-zinc-800/80 border-gray-200/20"
               : "bg-zinc-100/80 border-gray-300/50"
           }`}
         >
-          <button
-            onClick={() => {
-              const noChanges = handleUndoChange();
-              if (noChanges) setHasUnsavedChanges(false);
-            }}
-            title="Undo"
-            className={`flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
-              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
-            }`}
-          >
-            <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
-          </button>
           <button
             onClick={async () => {
               const saved = await handleSaveChanges(
@@ -533,11 +536,23 @@ const Website: React.FC<WebsiteProps> = ({
               }
             }}
             title="Save"
-            className={`flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
               darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
             }`}
           >
-            <FontAwesomeIcon icon={faCheck} className="w-4 h-4" />
+            <FontAwesomeIcon icon={faBookmark} className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => {
+              const noChanges = handleUndoChange();
+              if (noChanges) setHasUnsavedChanges(false);
+            }}
+            title="Undo"
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
+              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+            }`}
+          >
+            <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
           </button>
           <button
             onClick={() => {
@@ -548,11 +563,11 @@ const Website: React.FC<WebsiteProps> = ({
               setIsEditing(false);
             }}
             title="Discard"
-            className={`flex items-center gap-1 px-1.5 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
               darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
             }`}
           >
-            <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+            <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
           </button>
         </div>
       )}

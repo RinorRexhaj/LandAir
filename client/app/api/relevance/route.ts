@@ -5,6 +5,7 @@ import {
   enhancePrompt,
   generateSummary,
   generateWebsite,
+  makeChanges,
 } from "./relevance";
 
 export async function GET(req: NextRequest) {
@@ -14,8 +15,9 @@ export async function GET(req: NextRequest) {
   }
   const searchParams = req.nextUrl.searchParams;
   const taskId = searchParams.get("taskId");
-  if (taskId) {
-    const poll = await checkCompletion(taskId);
+  const type = searchParams.get("type");
+  if (taskId && (type === "generate" || type === "changes")) {
+    const poll = await checkCompletion(type, taskId);
     return NextResponse.json(poll);
   }
 }
@@ -32,6 +34,9 @@ export async function POST(req: NextRequest) {
   } else if (type === "summary") {
     const summary = await generateSummary(code);
     return NextResponse.json(summary);
+  } else if (type === "changes") {
+    const changes = await makeChanges(code, prompt);
+    return NextResponse.json(changes);
   } else {
     const enhanced = await enhancePrompt(prompt);
     return NextResponse.json(enhanced);

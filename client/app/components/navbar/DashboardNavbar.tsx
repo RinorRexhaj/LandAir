@@ -55,31 +55,29 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         } backdrop-blur-md border-b`}
       >
         <div className="w-full py-1.5 px-4">
-          <div className="flex items-center justify-between">
+          <div className="relative flex items-center justify-between">
             {/* Left side - Brand and Navigation */}
-            <div className="flex items-center gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 tb:gap-1">
               {/* Menu Button */}
               <button
                 onClick={() => {
                   if (selectedProject) setSelectedProject(null);
                 }}
-                className={`sm:-ml-1 mt-0.5 flex items-center justify-center rounded-lg ${
+                className={`mt-0.5 flex items-center justify-center rounded-lg ${
                   darkMode
                     ? selectedProject
                       ? "hover:bg-white/5"
                       : "hover:bg-zinc-400/20"
                     : ""
                 } ${
-                  selectedProject
-                    ? "p-2"
-                    : "pl-2 py-2 bg-inherit hover:bg-inherit"
+                  selectedProject ? "p-2" : "py-2 bg-inherit hover:bg-inherit"
                 } transition-colors`}
                 title="Toggle Menu"
               >
                 {selectedProject ? (
                   <FontAwesomeIcon
                     icon={faArrowCircleLeft}
-                    className={`w-5 h-5 ${
+                    className={`w-4 h-4 ${
                       darkMode ? "text-white" : "text-zinc-900"
                     }`}
                   />
@@ -154,8 +152,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             </div>
             <div className="hidden tb:flex">
               <button
-                className={`p-2 flex items-center justify-center rounded transition ${
-                  darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-100"
+                className={`px-3 py-2.5 flex items-center justify-center rounded-lg transition ${
+                  darkMode
+                    ? "bg-zinc-600/50 hover:bg-zinc-700"
+                    : "hover:bg-zinc-100"
                 }`}
                 onClick={() => setListOpen(!listOpen)}
               >
@@ -163,15 +163,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               </button>
               {listOpen && (
                 <>
-                  {/* Backdrop */}
-                  <div
-                    className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
-                    onClick={() => setListOpen(false)}
-                    aria-label="Close menu"
-                  />
                   {/* Modal */}
                   <div
-                    className={`fixed z-50 top-12 right-4 w-64 p-4 rounded-lg flex flex-col gap-3 shadow-lg transition-all duration-200
+                    className={`absolute z-50 top-12 right-4 w-64 p-4 rounded-lg flex flex-col gap-3 shadow-lg transition-all duration-200
                       ${
                         darkMode
                           ? "bg-zinc-800 border-gray-200/20 text-white"

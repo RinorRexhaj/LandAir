@@ -13,11 +13,13 @@ import { useProjectStore } from "../../store/useProjectsStore";
 
 interface ActionButtonsProps {
   selector: boolean;
+  mobile: number;
   toggleSelector: () => void;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
   selector,
+  mobile,
   toggleSelector,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -60,6 +62,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 
         <button
           onClick={toggleSelector}
+          disabled={mobile === 2}
           title="Selector"
           className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 hover:opacity-100 ${
             !selector
@@ -120,6 +123,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             </button>
 
             <button
+              disabled={mobile === 2}
               onClick={() => {
                 toggleSelector();
                 setMenuOpen(false);

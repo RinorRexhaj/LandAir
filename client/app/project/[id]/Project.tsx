@@ -63,7 +63,7 @@ const ProjectPage = () => {
     <div className="relative md:pt-1 flex flex-col h-full">
       {/* Toggle Preview/Prompt */}
       <div
-        className={`absolute right-12 -top-14 md:-top-12 md:right-10 hidden z-40 tb:flex w-fit px-1 py-1 rounded-lg items-center justify-center gap-2 transition-all duration-200 ${
+        className={`absolute right-12 -top-14 tb:-top-[58px] tb:right-10 mr-1 md:-top-[50px] hidden z-40 tb:flex w-fit px-1 py-1 rounded-lg items-center justify-center gap-2 transition-all duration-200 ${
           darkMode
             ? "bg-zinc-800/80 border-gray-200/20"
             : "bg-zinc-100/80 border-gray-300/50"

@@ -39,7 +39,9 @@ const SignInPage = () => {
               <Link href="/" className="absolute left-0">
                 <FontAwesomeIcon icon={faArrowLeft} className="h-5" />
               </Link>
-              <h2 className="text-3xl font-bold">Welcome to LandAir</h2>
+              <h2 className="text-3xl md:text-2xl font-bold">
+                Welcome to LandAir
+              </h2>
             </div>
             <p className="mt-2 text-gray-300">
               Join <span className="font-semibold text-white">LandAir</span> and
@@ -68,6 +70,10 @@ const SignInPage = () => {
               className="text-blue-400 hover:underline"
             >
               terms of service
+            </a>{" "}
+            and{" "}
+            <a href="/privacy-policy" className="text-blue-400 hover:underline">
+              privacy policy
             </a>
           </p>
         </div>

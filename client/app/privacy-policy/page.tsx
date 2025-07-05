@@ -140,9 +140,14 @@ const PrivacyPolicy = () => {
         <p>
           If you have any questions or requests regarding your data, contact us
           at: <br />
-          📧{" "}
+          Email:{" "}
           <a href="mailto:info@landair.app" className="text-blue-600 underline">
             info@landair.app
+          </a>{" "}
+          <br />
+          Website:{" "}
+          <a href="https://landair.app" className="text-blue-600 underline">
+            https://landair.app
           </a>
         </p>
       </div>

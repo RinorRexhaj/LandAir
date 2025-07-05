@@ -1,7 +1,5 @@
 import React from "react";
 import Navbar from "../components/Navbar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faGlobe } from "@fortawesome/free-solid-svg-icons";
 
 const Terms = () => {
   return (
@@ -69,12 +67,14 @@ const Terms = () => {
         <p className="mb-6">
           You are solely responsible for the content you create using LandAir,
           including any text, prompts, images, or generated pages (“User
-          Content”). By using the Service, you grant us a non-exclusive,
-          worldwide license to host, display, and serve your User Content as
-          part of the platform’s normal operation. You retain all ownership of
-          your original input and generated output, unless it violates these
-          Terms. We reserve the right to remove content that we deem offensive,
-          harmful, illegal, or in violation of these Terms.
+          Content”). By using the Service, you grant LandAir a non-exclusive,
+          worldwide, royalty-free license to host, display, reproduce, and
+          distribute your User Content solely for the purpose of operating and
+          improving the Service. This license ends when you delete your content
+          or account, except where continued use is necessary for legal
+          compliance or platform maintenance. We reserve the right to remove
+          content that we deem offensive, harmful, illegal, or in violation of
+          these Terms.
         </p>
 
         <h2 className="text-xl font-semibold mb-2">
@@ -100,8 +100,8 @@ const Terms = () => {
         </h2>
         <p className="mb-2">
           LandAir may deploy your landing page to a unique subdomain (e.g.,{" "}
-          <code>yourproject.landair.app</code>). You agree not to use these
-          subdomains for:
+          <i>yourproject.landair.app</i>). You agree not to use these subdomains
+          for:
         </p>
         <ul className="list-disc pl-6 mb-4">
           <li>Phishing or scam websites</li>
@@ -116,8 +116,10 @@ const Terms = () => {
         <p className="mb-6">
           Some features may be offered on a paid basis. You agree to pay all
           applicable fees, taxes, and charges for any subscription or one-time
-          purchase. Prices and features are subject to change with notice. No
-          refunds are provided except as required by law or explicitly stated.
+          purchase. Prices and features are subject to change with notice.
+          Refunds are not provided except where required by law or explicitly
+          stated in writing. If you are dissatisfied, please contact support for
+          a resolution.
         </p>
 
         <h2 className="text-xl font-semibold mb-2">7. Account and Data</h2>
@@ -175,12 +177,12 @@ const Terms = () => {
         <h2 className="text-xl font-semibold mb-2">11. Contact</h2>
         <p className="mb-6">
           If you have any questions, contact us at: <br />
-          <FontAwesomeIcon icon={faEnvelope} />{" "}
+          Email:{" "}
           <a href="mailto:info@landair.app" className="text-blue-600 underline">
             info@landair.app
           </a>{" "}
           <br />
-          <FontAwesomeIcon icon={faGlobe} />{" "}
+          Website:{" "}
           <a href="https://landair.app" className="text-blue-600 underline">
             https://landair.app
           </a>

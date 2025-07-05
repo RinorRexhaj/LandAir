@@ -28,6 +28,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const { user, loading: authLoading } = useAuth();
+  const [hover, setHover] = useState(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -152,6 +153,8 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
           setSelectedProject(project);
           router.push(`/project/${project.id}`);
         }}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
       >
         {/* Action Menu */}
         <div
@@ -166,7 +169,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
                 darkMode
                   ? "text-gray-400 hover:bg-zinc-700"
                   : "text-gray-600 hover:bg-gray-200"
-              }`}
+              } ${hover ? "opacity-100" : "opacity-0"}`}
             >
               •••
             </button>
@@ -209,11 +212,12 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         <div className="w-full h-40 relative rounded-tl-xl rounded-tr-xl overflow-hidden">
           {imageUrl && !authLoading ? (
             <Image
-              src={imageUrl}
+              src={`${imageUrl}`}
               alt={`${project.project_name} Screenshot`}
               fill
               onError={() => setImgError(true)}
               className="object-cover animate-fade"
+              sizes="(max-width: 500px) 100%, (max-width: 1000px) 50%, 25%"
             />
           ) : (
             <div

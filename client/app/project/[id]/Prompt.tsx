@@ -39,12 +39,17 @@ const Prompt: React.FC<PromptProps> = ({
   const { credits, setCredits } = useCreditStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [taskType, setTaskType] = useState("generate");
+  const [changing, setChanging] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
     if (!selectedProject) {
       setMessages([]);
       return;
+    }
+    if (selectedProject.file) {
+      setTaskType("changes");
     }
     (async () => {
       try {
@@ -63,15 +68,20 @@ const Prompt: React.FC<PromptProps> = ({
       try {
         const status: {
           type: string;
-          updates: { _id: number; output: { output: { answer: string } } }[];
-        } = await get("/api/relevance?taskId=" + taskId);
+          updates: {
+            _id: number;
+            output: {
+              output: { answer: string | { code: string; summary: string } };
+            };
+          }[];
+        } = await get(`/api/relevance?taskId=${taskId}&type=${taskType}`);
         return status;
       } catch (error) {
         toast.error("Failed to poll generation status");
         throw error;
       }
     },
-    [get, toast]
+    [get, toast, taskType]
   );
 
   useEffect(() => {
@@ -102,6 +112,9 @@ const Prompt: React.FC<PromptProps> = ({
   const handleSubmit = async () => {
     if (!input || isGenerating || credits < 3 || !selectedProject) return;
 
+    const taskType = messages.length <= 0 ? "generate" : "changes";
+    setTaskType(taskType);
+    setInput("");
     // Optimistically add user message
     setMessages((prev) => [
       ...prev,
@@ -112,7 +125,11 @@ const Prompt: React.FC<PromptProps> = ({
         projectId: String(selectedProject.id),
       },
     ]);
-    setIsGenerating(true);
+    if (taskType === "generate") {
+      setIsGenerating(true);
+    } else {
+      setChanging(true);
+    }
 
     try {
       // Save user message to DB
@@ -124,13 +141,15 @@ const Prompt: React.FC<PromptProps> = ({
 
       const taskId: string = await post(`/api/relevance`, {
         prompt: input,
-        type: "generate",
+        type: taskType,
+        code: taskType === "changes" ? selectedProject.file : "",
       });
       await startPolling(taskId);
     } catch (error) {
       console.error(error);
       toast.error("Failed to start generation");
       setIsGenerating(false);
+      setChanging(false);
     }
 
     setInput("");
@@ -152,18 +171,37 @@ const Prompt: React.FC<PromptProps> = ({
             last_edited: new Date(),
           });
 
-        const content =
+        let content =
           status.updates[status.updates.length - 1]?.output.output.answer;
 
-        const summary: { answer: string } = await post(`/api/relevance`, {
-          type: "summary",
-          code: content,
-        });
+        let summary;
+
+        if (taskType === "generate") {
+          const generationSummary: { answer: string } = await post(
+            `/api/relevance`,
+            {
+              type: "summary",
+              code: typeof content === "string" ? content : content?.code || "",
+            }
+          );
+          summary = generationSummary.answer;
+          content = typeof content === "string" ? content : content?.code || "";
+        } else {
+          console.log(content);
+          if (typeof content === "object" && content !== null) {
+            summary = content.summary;
+            content = content.code;
+          } else {
+            toast.error("Expected an object with 'code' and 'summary'");
+            return;
+          }
+        }
+
         // Add bot message to DB and UI
         const botMsg: ChatMessage = {
           id: Date.now() + 1,
           sender: false,
-          message: summary.answer,
+          message: summary,
           projectId: String(selectedProject?.id || ""),
         };
         setMessages((prev) => [...prev, botMsg]);
@@ -183,11 +221,13 @@ const Prompt: React.FC<PromptProps> = ({
         getUrl();
         setCredits(updatedCredits);
         toast.success("Website Generated!");
-        setIsGenerating(false);
         setProjectFile(true);
+        setIsGenerating(false);
+        setChanging(false);
       } else if (status?.type === "failed") {
         toast.error("Generation failed!");
         setIsGenerating(false);
+        setChanging(false);
       } else {
         setTimeout(() => startPolling(taskId), 4000);
       }
@@ -299,7 +339,7 @@ const Prompt: React.FC<PromptProps> = ({
             )}
           </div>
         ))}
-        {isGenerating && (
+        {(isGenerating || changing) && (
           <div className="relative flex items-center gap-2 text-sm top-2 text-zinc-500 dark:text-zinc-400">
             <FontAwesomeIcon
               icon={faSpinner}
@@ -313,7 +353,7 @@ const Prompt: React.FC<PromptProps> = ({
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          className={`fixed bottom-32 mb-1 mx-auto p-2 h-8 w-8 flex items-center justify-center rounded-full shadow-lg  ${
+          className={`fixed bottom-36 mb-2 mx-auto p-2 h-8 w-8 flex items-center justify-center rounded-full shadow-lg  ${
             darkMode
               ? "bg-zinc-700 text-white hover:bg-zinc-700 border border-zinc-500"
               : "bg-zinc-50 text-zinc-700 hover:bg-zinc-100 border border-zinc-200"
@@ -325,7 +365,7 @@ const Prompt: React.FC<PromptProps> = ({
       )}
 
       <div
-        className={`w-full flex gap-4 px-2 py-1 border rounded-lg mt-2 ${
+        className={`w-full flex gap-4 px-2 py-1 border rounded-lg mt-6 ${
           darkMode ? "bg-zinc-700 border-zinc-700" : "bg-white border-zinc-300"
         }`}
       >
@@ -338,7 +378,7 @@ const Prompt: React.FC<PromptProps> = ({
         >
           <textarea
             value={input}
-            rows={2}
+            rows={3}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe your website idea..."
             className={`w-full bg-inherit p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
@@ -354,7 +394,7 @@ const Prompt: React.FC<PromptProps> = ({
               <button
                 type="submit"
                 className="ml-2 px-3 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
-                disabled={!input || isGenerating || credits < 3}
+                disabled={!input || isGenerating || changing || credits < 3}
                 title={credits < 3 ? "Not enough credits" : "Generate"}
               >
                 {isGenerating ? (
