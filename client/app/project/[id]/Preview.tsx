@@ -6,9 +6,10 @@ import PreviewHeader from "./PreviewHeader";
 
 interface PreviewProps {
   getUrl: () => void;
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
 }
 
-const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
+const Preview: React.FC<PreviewProps> = ({ getUrl, iframeRef }) => {
   const [mobile, setMobile] = useState(0);
   const [selector, setSelector] = useState(false);
   const [scale, setScale] = useState(1);
@@ -75,6 +76,7 @@ const Preview: React.FC<PreviewProps> = ({ getUrl }) => {
             setSelector={setSelector}
             mobile={mobile}
             scale={scale}
+            iframeRef={iframeRef}
           />
         )}
         {mobile === 2 && (

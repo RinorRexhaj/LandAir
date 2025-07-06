@@ -10,13 +10,14 @@ import {
   faBookmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface WebsiteProps {
   selector: boolean;
   setSelector: (sel: boolean) => void;
   mobile: number;
   scale: number;
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
 }
 
 interface ElementPos {
@@ -32,8 +33,8 @@ const Website: React.FC<WebsiteProps> = ({
   setSelector,
   mobile,
   scale,
+  iframeRef,
 }) => {
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [toolBarPos, setToolBarPos] = useState<{
     top: number;
     left: number;
@@ -270,6 +271,7 @@ const Website: React.FC<WebsiteProps> = ({
     scale,
     isEditing,
     hoveredElement?.element,
+    iframeRef,
   ]);
 
   const injectDisableInteractionStyle = (iframeDoc: Document) => {
@@ -290,9 +292,7 @@ const Website: React.FC<WebsiteProps> = ({
         const htmlEl = el as HTMLElement;
         htmlEl.onmouseover = (e) => e.stopPropagation();
         htmlEl.onmouseenter = (e) => e.stopPropagation();
-        htmlEl.onclick = (e) => {
-          e.preventDefault();
-        };
+        htmlEl.onclick = (e) => e.preventDefault();
         htmlEl.onfocus = (e) => e.preventDefault();
         htmlEl.onmousedown = (e) => e.preventDefault();
         htmlEl.onmouseup = (e) => e.preventDefault();
@@ -355,7 +355,7 @@ const Website: React.FC<WebsiteProps> = ({
     const mobileExtra =
       (height > width ? height / width : width / height) +
       (height > width ? height / width : width / height) * 3;
-    if (mobile) return `calc(${scale * 100 + mobileExtra}vh)`;
+    if (mobile) return `calc(${scale * 100 + mobileExtra}dvh)`;
     return height * (1 / scale) - extra;
   };
 
@@ -519,7 +519,7 @@ const Website: React.FC<WebsiteProps> = ({
       )}
       {hasUnsavedChanges && (
         <div
-          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[175px] md:ml-[100px] flex p-1 gap-1 rounded-lg items-center md:z-40 transition-all animate-fade duration-200 ${
+          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[175px] md:ml-[100px] flex p-1 gap-1 rounded-lg items-center z-40 transition-all animate-fade duration-200 ${
             darkMode
               ? "bg-zinc-800/80 border-gray-200/20"
               : "bg-zinc-100/80 border-gray-300/50"
@@ -536,8 +536,8 @@ const Website: React.FC<WebsiteProps> = ({
               }
             }}
             title="Save"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
-              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-blue-500/70 ${
+              !darkMode && "hover:text-zinc-100"
             }`}
           >
             <FontAwesomeIcon icon={faBookmark} className="w-4 h-4" />
@@ -548,8 +548,10 @@ const Website: React.FC<WebsiteProps> = ({
               if (noChanges) setHasUnsavedChanges(false);
             }}
             title="Undo"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
-              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100  ${
+              darkMode
+                ? "hover:bg-zinc-500"
+                : "hover:bg-zinc-700/70 hover:text-white"
             }`}
           >
             <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
@@ -563,8 +565,8 @@ const Website: React.FC<WebsiteProps> = ({
               setIsEditing(false);
             }}
             title="Discard"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 ${
-              darkMode ? "hover:bg-zinc-700" : "hover:bg-zinc-200"
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-red-500/80 ${
+              !darkMode && "hover:text-zinc-100"
             }`}
           >
             <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />

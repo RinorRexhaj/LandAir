@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 // import Empty from "./EmptyProject";
 import Prompt from "./Prompt";
 // import Generating from "./Generating";
@@ -15,6 +15,7 @@ import Loading from "./Loading";
 
 const ProjectPage = () => {
   const { selectedProject, setSelectedProject } = useProjectStore();
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [projectFile, setProjectFile] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeView, setActiveView] = useState<"preview" | "prompt">("preview");
@@ -106,7 +107,7 @@ const ProjectPage = () => {
       <div
         className="w-full flex gap-4"
         style={{
-          height: "calc(100vh - 80px)",
+          height: "calc(100dvh - 80px)",
         }}
       >
         {/* Desktop Layout */}
@@ -118,7 +119,7 @@ const ProjectPage = () => {
           {isGenerating ? (
             <Generating />
           ) : projectFile ? (
-            <Preview getUrl={getUrl} />
+            <Preview getUrl={getUrl} iframeRef={iframeRef} />
           ) : loading ? (
             <Loading />
           ) : (
@@ -135,6 +136,7 @@ const ProjectPage = () => {
             setIsGenerating={setIsGenerating}
             setProjectFile={setProjectFile}
             getUrl={getUrl}
+            iframeRef={iframeRef}
           />
         </div>
       </div>

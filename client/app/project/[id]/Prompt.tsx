@@ -15,12 +15,14 @@ import useToast from "@/app/hooks/useToast";
 import { ChatMessage } from "@/app/types/Chat";
 import ReactMarkdown from "react-markdown";
 import Image from "next/image";
+import { takeScreenshot } from "@/app/utils/Screenshot";
 
 interface PromptProps {
   isGenerating: boolean;
   setIsGenerating: (generating: boolean) => void;
   setProjectFile: (file: boolean) => void;
   getUrl: () => void;
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
 }
 
 const Prompt: React.FC<PromptProps> = ({
@@ -28,6 +30,7 @@ const Prompt: React.FC<PromptProps> = ({
   setIsGenerating,
   setProjectFile,
   getUrl,
+  iframeRef,
 }) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -224,6 +227,20 @@ const Prompt: React.FC<PromptProps> = ({
         setProjectFile(true);
         setIsGenerating(false);
         setChanging(false);
+
+        if (iframeRef.current) {
+          const screenshot = await takeScreenshot(iframeRef.current);
+          if (screenshot) {
+            const screenshotData = new FormData();
+            screenshotData.append("content", screenshot);
+            screenshotData.append(
+              "filePath",
+              `${selectedProject?.id}/screenshot.png`
+            );
+            screenshotData.append("type", "image");
+            await post(`/api/storage/`, screenshotData);
+          }
+        }
       } else if (status?.type === "failed") {
         toast.error("Generation failed!");
         setIsGenerating(false);

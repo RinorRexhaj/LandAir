@@ -6,7 +6,11 @@ import CreditsDisplay from "./CreditsDisplay";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import BuyCreditsModal from "./BuyCreditsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowCircleLeft, faList } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowCircleLeft,
+  faList,
+  faXmarkCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import NameModal from "./NameModal";
 import ProjectHeader from "./ProjectHeader";
@@ -48,7 +52,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   return (
     <>
       <nav
-        className={`fixed top-0 w-full ${
+        className={`fixed top-0 z-40 w-full ${
           darkMode
             ? "bg-zinc-900 border-white/10"
             : "bg-white border-zinc-900/10"
@@ -64,13 +68,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   if (selectedProject) setSelectedProject(null);
                 }}
                 className={`mt-0.5 flex items-center justify-center rounded-lg ${
-                  darkMode
-                    ? selectedProject
-                      ? "hover:bg-white/5"
-                      : "hover:bg-zinc-400/20"
-                    : ""
+                  darkMode ? (selectedProject ? "hover:bg-white/5" : "") : ""
                 } ${
-                  selectedProject ? "p-2" : "py-2 bg-inherit hover:bg-inherit"
+                  selectedProject ? "p-2" : "bg-inherit hover:bg-inherit"
                 } transition-colors`}
                 title="Toggle Menu"
               >
@@ -85,8 +85,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   <Image
                     src={"/icons/favicon-120x120.png"}
                     alt="Logo"
-                    width={20}
-                    height={20}
+                    width={28}
+                    height={28}
                   />
                 )}
               </button>
@@ -150,7 +150,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 </div>
               </button>
             </div>
-            <div className="hidden tb:flex">
+            <div className="hidden relative tb:flex">
               <button
                 className={`px-3 py-2.5 flex items-center justify-center rounded-lg transition ${
                   darkMode
@@ -165,12 +165,12 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 <>
                   {/* Modal */}
                   <div
-                    className={`absolute z-50 top-12 right-4 w-64 p-4 rounded-lg flex flex-col gap-3 shadow-lg transition-all duration-200
-                      ${
-                        darkMode
-                          ? "bg-zinc-800 border-gray-200/20 text-white"
-                          : "bg-zinc-100 border-gray-300/50 text-zinc-900"
-                      }`}
+                    className={`fixed z-[9999] top-12 right-4 w-44 p-4 rounded-lg flex flex-col gap-3 shadow-lg transition-all duration-200
+                        ${
+                          darkMode
+                            ? "bg-zinc-800 border-gray-200/20 text-white"
+                            : "bg-zinc-100 border-gray-300/50 text-zinc-900"
+                        }`}
                     style={{ animation: "fadeIn 0.2s" }}
                     tabIndex={-1}
                     role="dialog"
@@ -178,11 +178,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   >
                     {/* Close Button */}
                     <button
-                      className="absolute top-2 right-2 text-lg"
+                      className="absolute top-0 right-1"
                       onClick={() => setListOpen(false)}
                       aria-label="Close"
                     >
-                      &times;
+                      <FontAwesomeIcon icon={faXmarkCircle} />
                     </button>
                     <CreditsDisplay
                       darkMode={darkMode}
@@ -202,9 +202,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                       title="Account"
                     >
                       <div
-                        className={`w-8 h-8 overflow-hidden bg-white/5 ${
+                        className={`w-6 h-6 ml-0.5 overflow-hidden bg-white/5 ${
                           image ? "rounded-full" : "rounded-md"
-                        }`}
+                        } animate-fade-in-slow [animation-fill-mode:backwards]`}
                       >
                         {image ? (
                           <Image

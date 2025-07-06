@@ -43,14 +43,14 @@ const CreditsDisplay: React.FC<CreditsDisplayProps> = ({
         } transition-colors`}
       />
       <span
-        className={`text-sm font-medium ${
+        className={`text-sm flex gap-1 font-medium ${
           darkMode
             ? "text-gray-300 group-hover:text-gray-300"
             : "text-zinc-800 group-hover:text-zinc-900"
         } transition-colors ${loading && "animate-glow"}`}
       >
         {!loading ? credits : ""}
-        {/* <span className="md:hidden">Credits</span> */}
+        <span className="hidden tb:block">Credits</span>
       </span>
     </div>
   );

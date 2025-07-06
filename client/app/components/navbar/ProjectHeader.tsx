@@ -18,14 +18,14 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   if (!selectedProject) return null;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center tb:flex-col tb:w-full gap-2">
       {selectedProject.url && (
         <>
           <a
             href={selectedProject.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`px-2.5 py-2 rounded-md ${
+            className={`flex items-center gap-2 px-2.5 tb:w-full tb:justify-start tb:py-1.5 py-2 rounded-md ${
               darkMode
                 ? "bg-zinc-800 hover:bg-zinc-900 text-white"
                 : "bg-zinc-200 hover:bg-zinc-400/20 text-zinc-900"
@@ -37,7 +37,7 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
           </a>
           <button
             onClick={() => setShowSettingsModal(true)}
-            className={`flex items-center gap-2 px-2.5 py-2 rounded-md font-medium transition-colors animate-slideDown ${
+            className={`flex items-center gap-2 px-2.5 tb:w-full tb:justify-start tb:py-1.5 py-2 rounded-md font-medium transition-colors animate-slideDown ${
               darkMode
                 ? "bg-zinc-800 hover:bg-zinc-900 text-white"
                 : "bg-zinc-200 hover:bg-zinc-400/20 text-zinc-900"
@@ -52,7 +52,7 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({
 
       <button
         onClick={() => setShowDeployModal(true)}
-        className={`flex items-center justify-center gap-2 px-2.5 py-2 rounded-md font-medium transition-colors animate-slideDown bg-blue-600 hover:bg-blue-700 text-white`}
+        className={`flex items-center justify-center gap-2 px-2.5 tb:w-full tb:justify-start tb:py-1.5 py-2 rounded-md font-medium transition-colors animate-slideDown bg-blue-600 hover:bg-blue-700 text-white`}
         title="Deploy"
       >
         <FontAwesomeIcon icon={faRocket} className="w-4 h-4" />

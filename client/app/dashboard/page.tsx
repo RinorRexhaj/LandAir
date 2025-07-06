@@ -38,7 +38,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className={`h-screen overflow-hidden ${
+      className={`h-dvh overflow-hidden ${
         darkMode ? "bg-zinc-900" : "bg-white"
       } transition-colors`}
     >
@@ -51,10 +51,12 @@ const Dashboard = () => {
       />
 
       <div
-        className="absolute w-full flex"
+        className={`absolute w-full flex ${
+          !selectedProject && "overflow-y-auto"
+        } minimal-scrollbar`}
         style={{
-          top: "40px",
-          height: "calc(100vh - 40px)",
+          top: selectedProject ? "40px" : "50px",
+          maxHeight: "calc(100dvh - 60px)",
         }}
       >
         {/* <DashboardSidebar
@@ -66,8 +68,8 @@ const Dashboard = () => {
         <ToastContainer closeOnClick hideProgressBar icon={false} limit={3} />
         <main
           className={`flex flex-col gap-8 flex-1 ${
-            selectedProject ? "px-4" : "px-8"
-          } py-6 md:p-4`}
+            selectedProject ? "px-4 py-6" : "px-8 py-4"
+          } md:p-4`}
         >
           <Projects />
           {!loading && !selectedProject && <Templates />}
