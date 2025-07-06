@@ -2,7 +2,7 @@ import React from "react";
 
 const Loading = () => {
   return (
-    <div className="h-screen w-full flex flex-col justify-center items-center gap-6 bg-zinc-900">
+    <div className="h-dvh w-full flex flex-col justify-center items-center gap-6 bg-zinc-900">
       <div className="relative">
         {/* Outer ring */}
         <div className="w-16 h-16 rounded-full border-4 border-blue-600/30 animate-spin-2" />

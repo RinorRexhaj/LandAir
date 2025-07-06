@@ -83,7 +83,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   />
                 ) : (
                   <Image
-                    src={"/icons/favicon-120x120.png"}
+                    src={`/icons${darkMode ? "" : "-dark"}/favicon-120x120.png`}
                     alt="Logo"
                     width={28}
                     height={28}
@@ -91,19 +91,29 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 )}
               </button>
               {/* Brand */}
-              <h1
-                className={`text-xl tb:text-base overflow-hidden font-bold ${
-                  darkMode ? "text-white" : "text-zinc-900"
-                } animate-fade cursor-pointer flex items-center gap-2`}
-                onClick={() => {
-                  if (selectedProject) {
-                    setIsEditNameModalOpen(true);
-                  }
-                }}
-                title="Edit project name"
-              >
-                {selectedProject ? selectedProject.project_name : "LandAir"}
-              </h1>
+              {selectedProject ? (
+                <h1
+                  className={`text-xl tb:text-base overflow-hidden font-bold ${
+                    darkMode ? "text-white" : "text-zinc-900"
+                  } animate-fade cursor-pointer flex items-center gap-2`}
+                  onClick={() => {
+                    if (selectedProject) {
+                      setIsEditNameModalOpen(true);
+                    }
+                  }}
+                  title="Edit project name"
+                >
+                  {selectedProject.project_name}
+                </h1>
+              ) : (
+                <h1
+                  className={`text-xl font-bold ${
+                    darkMode ? "text-white" : "text-zinc-900"
+                  } animate-fade cursor-pointer flex items-center gap-2`}
+                >
+                  LandAir
+                </h1>
+              )}
             </div>
 
             {/* Right side - User and Sign Out */}
@@ -159,7 +169,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 }`}
                 onClick={() => setListOpen(!listOpen)}
               >
-                <FontAwesomeIcon icon={faList} />
+                <FontAwesomeIcon
+                  icon={faList}
+                  className={`${darkMode ? "text-white" : "text-zinc-900"}`}
+                />
               </button>
               {listOpen && (
                 <>

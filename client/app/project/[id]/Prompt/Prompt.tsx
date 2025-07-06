@@ -13,9 +13,9 @@ import useApi from "@/app/hooks/useApi";
 import useToast from "@/app/hooks/useToast";
 // import { Relevance } from "@/app/types/Relevance";
 import { ChatMessage } from "@/app/types/Chat";
-import ReactMarkdown from "react-markdown";
-import Image from "next/image";
 import { takeScreenshot } from "@/app/utils/Screenshot";
+import SkeletonChatBubble from "./SkeletonChat";
+import BotMessage from "./BotMessage";
 
 interface PromptProps {
   isGenerating: boolean;
@@ -42,6 +42,7 @@ const Prompt: React.FC<PromptProps> = ({
   const { credits, setCredits } = useCreditStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [taskType, setTaskType] = useState("generate");
   const [changing, setChanging] = useState(false);
   const toast = useToast();
@@ -55,13 +56,16 @@ const Prompt: React.FC<PromptProps> = ({
       setTaskType("changes");
     }
     (async () => {
+      setLoading(true);
       try {
         const msgs: ChatMessage[] = await get(
           `/api/chat?projectId=${selectedProject.id}`
         );
         setMessages(msgs);
+        setLoading(false);
       } catch {
         setMessages([]);
+        setLoading(false);
       }
     })();
   }, [selectedProject, get]);
@@ -74,7 +78,9 @@ const Prompt: React.FC<PromptProps> = ({
           updates: {
             _id: number;
             output: {
-              output: { answer: string | { code: string; summary: string } };
+              output: {
+                answer: string | { output: { code: string; summary: string } };
+              };
             };
           }[];
         } = await get(`/api/relevance?taskId=${taskId}&type=${taskType}`);
@@ -174,28 +180,41 @@ const Prompt: React.FC<PromptProps> = ({
             last_edited: new Date(),
           });
 
-        let content =
-          status.updates[status.updates.length - 1]?.output.output.answer;
+        const lastOutput =
+          status.updates[status.updates.length - 1]?.output.output;
 
-        let summary;
+        let code = "";
+        let summary = "";
 
         if (taskType === "generate") {
-          const generationSummary: { answer: string } = await post(
-            `/api/relevance`,
-            {
-              type: "summary",
-              code: typeof content === "string" ? content : content?.code || "",
-            }
-          );
-          summary = generationSummary.answer;
-          content = typeof content === "string" ? content : content?.code || "";
-        } else {
-          console.log(content);
-          if (typeof content === "object" && content !== null) {
-            summary = content.summary;
-            content = content.code;
+          if (typeof lastOutput === "string") {
+            code = lastOutput;
+
+            const generationSummary: { answer: string } = await post(
+              `/api/relevance`,
+              {
+                type: "summary",
+                code,
+              }
+            );
+            summary = generationSummary.answer;
           } else {
-            toast.error("Expected an object with 'code' and 'summary'");
+            toast.error("Expected string output for generation");
+            return;
+          }
+        } else if (taskType === "changes") {
+          if (
+            typeof lastOutput === "object" &&
+            lastOutput !== null &&
+            "code" in lastOutput &&
+            "summary" in lastOutput &&
+            typeof lastOutput.code === "string" &&
+            typeof lastOutput.summary === "string"
+          ) {
+            code = lastOutput.code;
+            summary = lastOutput.summary;
+          } else {
+            toast.error("Expected object with string code and summary fields.");
             return;
           }
         }
@@ -212,7 +231,7 @@ const Prompt: React.FC<PromptProps> = ({
 
         const filePath = `${selectedProject?.id}`;
         const formData = new FormData();
-        formData.append("content", content);
+        formData.append("content", code);
         formData.append("filePath", filePath);
         formData.append("type", "html");
 
@@ -296,63 +315,35 @@ const Prompt: React.FC<PromptProps> = ({
           height: "calc(100% - 100px)",
         }}
       >
+        {loading && messages.length === 0 && (
+          <>
+            <SkeletonChatBubble sender={true} />
+            <SkeletonChatBubble sender={false} />
+            <SkeletonChatBubble sender={true} />
+          </>
+        )}
         {messages.map((msg, i) => (
           <div
             key={String(msg.id) || String(i)}
-            className={`py-2 rounded-xl text-sm whitespace-pre-wrap animate-fade [animation-fill-mode:backwards] ${
-              msg.sender
-                ? `px-4 ${
-                    darkMode
-                      ? "bg-zinc-700 text-white"
-                      : "bg-zinc-200/70 text-zinc-900"
-                  } self-end ml-auto max-w-[80%] w-fit`
-                : `w-full px-1 left-0 flex gap-4 bg-transparent self-start ${
-                    darkMode ? "text-white" : "text-zinc-900"
-                  }`
+            className={`animate-fade [animation-fill-mode:backwards] ${
+              msg.sender ? `flex justify-end mb-4` : `flex justify-start mb-6`
             }`}
             style={{ animationDelay: i * 0.1 + "s" }}
           >
-            {!msg.sender && (
-              <Image
-                src={`/icons${!darkMode ? "-dark" : ""}/favicon-120x120.png`}
-                alt="LandAir"
-                width={32}
-                height={32}
-                className="h-8 animate-fade [animation-fill-mode:backwards]"
-                style={{
-                  animationDelay: "0.25s",
-                }}
-              />
-            )}
             {msg.sender ? (
-              msg.message
-            ) : (
+              // User message - Chat bubble style
               <div
-                className={`prose prose-sm leading-snug ${
-                  darkMode ? "prose-invert" : ""
-                } [&>*]:my-0 [&>*]:py-0 [&>ul]:-mt-6 [&>ol]:-mt-6 [&>li]:-mt-4 max-w-none`}
+                className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${
+                  darkMode
+                    ? "bg-zinc-700 text-white"
+                    : "bg-zinc-200/70 text-zinc-900"
+                } shadow-sm`}
               >
-                <ReactMarkdown
-                  components={{
-                    code({ className, children, ...props }) {
-                      const isInline = !className;
-
-                      return (
-                        <code
-                          className={`bg-zinc-800 text-white rounded ${
-                            isInline ? "inline" : "block"
-                          }`}
-                          {...props}
-                        >
-                          {children}
-                        </code>
-                      );
-                    },
-                  }}
-                >
-                  {msg.message}
-                </ReactMarkdown>
+                {msg.message}
               </div>
+            ) : (
+              // Bot message - LLM response style
+              <BotMessage message={msg.message} />
             )}
           </div>
         ))}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 // import Empty from "./EmptyProject";
-import Prompt from "./Prompt";
+import Prompt from "./Prompt/Prompt";
 // import Generating from "./Generating";
 import Preview from "./Preview";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

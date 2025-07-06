@@ -6,7 +6,7 @@ import React from "react";
 const Loading = () => {
   const { darkMode } = useThemeStore();
   return (
-    <div className="col-span-full flex flex-col items-center justify-center h-3/4 py-20 px-4 rounded-xl animate-fade">
+    <div className="col-span-full flex flex-col items-center justify-center h-full py-20 px-4 rounded-xl animate-fade">
       <FontAwesomeIcon
         icon={faGear}
         className={`w-12 h-12 mb-4 ${
