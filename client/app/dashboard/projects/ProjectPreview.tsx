@@ -276,7 +276,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
               &rdquo; and it&apos;s associated data? This action cannot be
               undone.
             </p>
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={closeDeleteModal}
                 className={`px-4 py-2 rounded-lg font-medium ${

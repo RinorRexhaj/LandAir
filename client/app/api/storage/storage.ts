@@ -55,7 +55,6 @@ export const deleteFile = async (filePath: string): Promise<boolean> => {
 };
 
 export const deleteFolder = async (folderPath: string): Promise<boolean> => {
-  console.log(folderPath);
   const collectFiles = async (path: string): Promise<string[]> => {
     const { data, error } = await supabase.storage.from("pages").list(path);
     if (error || !data) return [];

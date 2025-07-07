@@ -13,9 +13,9 @@ import useApi from "@/app/hooks/useApi";
 import useToast from "@/app/hooks/useToast";
 // import { Relevance } from "@/app/types/Relevance";
 import { ChatMessage } from "@/app/types/Chat";
-import { takeScreenshot } from "@/app/utils/Screenshot";
 import SkeletonChatBubble from "./SkeletonChat";
 import BotMessage from "./BotMessage";
+// import useUnsplash from "@/app/hooks/useUnsplash";
 
 interface PromptProps {
   isGenerating: boolean;
@@ -30,7 +30,7 @@ const Prompt: React.FC<PromptProps> = ({
   setIsGenerating,
   setProjectFile,
   getUrl,
-  iframeRef,
+  // iframeRef,
 }) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -46,6 +46,7 @@ const Prompt: React.FC<PromptProps> = ({
   const [taskType, setTaskType] = useState("generate");
   const [changing, setChanging] = useState(false);
   const toast = useToast();
+  // const { enhanceImages } = useUnsplash();
 
   useEffect(() => {
     if (!selectedProject) {
@@ -187,8 +188,8 @@ const Prompt: React.FC<PromptProps> = ({
         let summary = "";
 
         if (taskType === "generate") {
-          if (typeof lastOutput === "string") {
-            code = lastOutput;
+          if (typeof lastOutput.answer === "string") {
+            code = lastOutput.answer;
 
             const generationSummary: { answer: string } = await post(
               `/api/relevance`,
@@ -197,9 +198,12 @@ const Prompt: React.FC<PromptProps> = ({
                 code,
               }
             );
+            // code = await enhanceImages(code);
             summary = generationSummary.answer;
           } else {
             toast.error("Expected string output for generation");
+            setIsGenerating(false);
+            setChanging(false);
             return;
           }
         } else if (taskType === "changes") {
@@ -215,6 +219,8 @@ const Prompt: React.FC<PromptProps> = ({
             summary = lastOutput.summary;
           } else {
             toast.error("Expected object with string code and summary fields.");
+            setIsGenerating(false);
+            setChanging(false);
             return;
           }
         }
@@ -246,20 +252,6 @@ const Prompt: React.FC<PromptProps> = ({
         setProjectFile(true);
         setIsGenerating(false);
         setChanging(false);
-
-        if (iframeRef.current) {
-          const screenshot = await takeScreenshot(iframeRef.current);
-          if (screenshot) {
-            const screenshotData = new FormData();
-            screenshotData.append("content", screenshot);
-            screenshotData.append(
-              "filePath",
-              `${selectedProject?.id}/screenshot.png`
-            );
-            screenshotData.append("type", "image");
-            await post(`/api/storage/`, screenshotData);
-          }
-        }
       } else if (status?.type === "failed") {
         toast.error("Generation failed!");
         setIsGenerating(false);
@@ -315,12 +307,22 @@ const Prompt: React.FC<PromptProps> = ({
           height: "calc(100% - 100px)",
         }}
       >
-        {loading && messages.length === 0 && (
-          <>
-            <SkeletonChatBubble sender={true} />
-            <SkeletonChatBubble sender={false} />
-            <SkeletonChatBubble sender={true} />
-          </>
+        {messages.length === 0 ? (
+          loading ? (
+            <>
+              <SkeletonChatBubble sender={true} />
+              <SkeletonChatBubble sender={false} />
+              <SkeletonChatBubble sender={true} />
+            </>
+          ) : (
+            <BotMessage
+              message={
+                "Welcome to your project! Ask us to build your website. Please provide as many details as it helps in generating better websites."
+              }
+            />
+          )
+        ) : (
+          ""
         )}
         {messages.map((msg, i) => (
           <div
@@ -389,7 +391,7 @@ const Prompt: React.FC<PromptProps> = ({
             rows={3}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe your website idea..."
-            className={`w-full bg-inherit p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
+            className={`w-full h-fit bg-inherit p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
               darkMode ? "text-white" : "text-zinc-900"
             }`}
           />

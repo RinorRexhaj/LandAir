@@ -9,7 +9,6 @@ import ProjectPage from "../../project/[id]/Project";
 import SkeletonProjects from "./SkeletonProjects";
 import ProjectPreview from "./ProjectPreview";
 import Empty from "./Empty";
-import Creating from "./Creating";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import useToast from "@/app/hooks/useToast";
 
@@ -45,19 +44,26 @@ const Projects = () => {
       toast.warning("Only 4 or less projects allowed.");
       return;
     }
+
     setCreating(true);
+    const toastId = toast.loading("Creating project...");
     try {
       const newProject: Project[] = await post("/api/projects/");
-      newProject[0].created = true;
-      setProjects([newProject[0], ...projects]);
+      const projectWithGlow = { ...newProject[0], created: true };
+
+      setProjects([projectWithGlow, ...projects]);
+
       setTimeout(() => {
         setCreating(false);
-        setSelectedProject(newProject[0]);
+        setSelectedProject(projectWithGlow);
+        toast.dismiss(toastId);
         toast.success("Project Created!");
       }, 300);
     } catch (err) {
       console.error(err);
+      toast.dismiss(toastId);
       toast.error("Something went wrong!");
+      setCreating(false);
     }
   };
 
@@ -129,13 +135,14 @@ const Projects = () => {
 
             {/* Projects List */}
             <div
-              className="grid sm:grid-cols-1 tb:grid-cols-2 grid-cols-4 gap-4 animate-fade [animation-fill-mode:backwards]"
+              className={`grid sm:grid-cols-1 tb:grid-cols-2 grid-cols-4 gap-4 animate-fade [animation-fill-mode:backwards] ${
+                creating && "animate-glow"
+              }`}
               style={{ animationDelay: "0.15s" }}
             >
               {loading && !creating ? (
                 <SkeletonProjects />
               ) : (
-                !creating &&
                 sortProjects(projects).map((project) => (
                   <ProjectPreview
                     key={"project-" + project.id}
@@ -145,7 +152,6 @@ const Projects = () => {
                 ))
               )}
               {!loading && projects.length <= 0 && !creating && <Empty />}
-              {creating && <Creating />}
             </div>
           </div>
         </>

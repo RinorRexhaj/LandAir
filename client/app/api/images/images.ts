@@ -1,3 +1,5 @@
+const unsplash_key = process.env.UNSPLASH_ACCESS_KEY;
+
 export const getImageUrlFromDescription = async (
   description: string
 ): Promise<{ url: string } | null> => {
@@ -9,8 +11,9 @@ export const getImageUrlFromDescription = async (
     const response = await fetch(
       `https://api.unsplash.com/search/photos?page=1&query=${encodeURIComponent(
         description
-      )}`
+      )}&client_id=${unsplash_key}`
     );
+    console.log(response);
 
     if (!response.ok) {
       const errorData = await response.json();

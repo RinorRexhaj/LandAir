@@ -112,7 +112,7 @@ export const deleteProject = async (projectId: string, userId: string) => {
   }
 
   if (data && data.length > 0) {
-    await deleteFolder(`${userId}/${data[0].project_name}`);
+    await deleteFolder(`${userId}/${projectId}`);
     await deleteChat(projectId);
     await deleteProjectFromVercel(data[0].project_name);
   }

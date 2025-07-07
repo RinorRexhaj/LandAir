@@ -9,7 +9,7 @@ export const takeScreenshot = async (
     return;
   }
 
-  const section = iframeDoc.getElementById("home");
+  const section = iframeDoc.getElementsByTagName("section")[0];
   if (!section) {
     console.error("No <section> element found inside iframe");
     return;
@@ -56,7 +56,6 @@ export const takeScreenshot = async (
     }
 
     const file = new File([blob], "screenshot.png", { type: "image/png" });
-    console.log(file);
     return file;
   } catch (err) {
     console.error("Screenshot capture failed", err);
