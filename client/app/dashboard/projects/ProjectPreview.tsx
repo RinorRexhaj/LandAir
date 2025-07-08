@@ -212,7 +212,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         <div className="w-full h-40 relative rounded-tl-xl rounded-tr-xl overflow-hidden">
           {imageUrl && !authLoading ? (
             <Image
-              src={`${imageUrl}`}
+              src={`${imageUrl}?v=${Date.now()}`}
               alt={`${project.project_name} Screenshot`}
               fill
               onError={() => setImgError(true)}

@@ -1,8 +1,6 @@
-import useApi from "@/app/hooks/useApi";
 import useChange from "@/app/hooks/useChange";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
-import { takeScreenshot } from "@/app/utils/Screenshot";
 import {
   faPenToSquare,
   faTrash,
@@ -60,7 +58,6 @@ const Website: React.FC<WebsiteProps> = ({
   } = useChange();
   const { selectedProject } = useProjectStore();
   const { darkMode } = useThemeStore();
-  const { post } = useApi();
   const [showTextEditModal, setShowTextEditModal] = useState(false);
   const [modalTextValue, setModalTextValue] = useState("");
 
@@ -276,29 +273,6 @@ const Website: React.FC<WebsiteProps> = ({
     hoveredElement?.element,
     iframeRef,
   ]);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    const handleLoad = async () => {
-      const screenshot = await takeScreenshot(iframe);
-      if (screenshot) {
-        const screenshotData = new FormData();
-        screenshotData.append("content", screenshot);
-        screenshotData.append(
-          "filePath",
-          `${selectedProject?.id}/screenshot.png`
-        );
-        screenshotData.append("type", "image");
-        await post(`/api/storage/`, screenshotData);
-      }
-    };
-
-    iframe.addEventListener("load", handleLoad);
-
-    return () => iframe.removeEventListener("load", handleLoad);
-  }, [iframeRef, post, selectedProject?.id, selectedProject]);
 
   const injectDisableInteractionStyle = (iframeDoc: Document) => {
     const style = iframeDoc.getElementById("disable-interaction-style");

@@ -7,11 +7,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDisplay, faRobot } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import Generating from "./Generating";
-import Empty from "./EmptyProject";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
 import Loading from "./Loading";
+import Empty from "./EmptyProject";
 
 const ProjectPage = () => {
   const { selectedProject, setSelectedProject } = useProjectStore();
@@ -118,10 +118,10 @@ const ProjectPage = () => {
         >
           {isGenerating ? (
             <Generating />
-          ) : projectFile ? (
-            <Preview getUrl={getUrl} iframeRef={iframeRef} />
           ) : loading ? (
             <Loading />
+          ) : projectFile || selectedProject.file ? (
+            <Preview getUrl={getUrl} iframeRef={iframeRef} />
           ) : (
             <Empty />
           )}

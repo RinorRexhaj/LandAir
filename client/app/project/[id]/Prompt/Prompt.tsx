@@ -15,6 +15,8 @@ import useToast from "@/app/hooks/useToast";
 import { ChatMessage } from "@/app/types/Chat";
 import SkeletonChatBubble from "./SkeletonChat";
 import BotMessage from "./BotMessage";
+import { takeScreenshot } from "@/app/utils/Screenshot";
+import { Relevance, ToolOutput } from "@/app/types/Relevance";
 // import useUnsplash from "@/app/hooks/useUnsplash";
 
 interface PromptProps {
@@ -30,7 +32,7 @@ const Prompt: React.FC<PromptProps> = ({
   setIsGenerating,
   setProjectFile,
   getUrl,
-  // iframeRef,
+  iframeRef,
 }) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -74,17 +76,9 @@ const Prompt: React.FC<PromptProps> = ({
   const pollGenerationStatus = useCallback(
     async (taskId: string) => {
       try {
-        const status: {
-          type: string;
-          updates: {
-            _id: number;
-            output: {
-              output: {
-                answer: string | { output: { code: string; summary: string } };
-              };
-            };
-          }[];
-        } = await get(`/api/relevance?taskId=${taskId}&type=${taskType}`);
+        const status: Relevance = await get(
+          `/api/relevance?taskId=${taskId}&type=${taskType}`
+        );
         return status;
       } catch (error) {
         toast.error("Failed to poll generation status");
@@ -117,6 +111,41 @@ const Prompt: React.FC<PromptProps> = ({
         behavior: "smooth",
       });
     }
+  };
+
+  const updateScreenshot = async () => {
+    // Wait until iframeRef.current is available
+    await waitForIframe();
+
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const screenshot = await takeScreenshot(iframe);
+    if (screenshot) {
+      const screenshotData = new FormData();
+      screenshotData.append("content", screenshot);
+      screenshotData.append(
+        "filePath",
+        `${selectedProject?.id}/screenshot.png`
+      );
+      screenshotData.append("type", "image");
+
+      await post(`/api/storage/`, screenshotData);
+    }
+  };
+
+  // Helper function to wait asynchronously for iframeRef to be set
+  const waitForIframe = () => {
+    return new Promise<void>((resolve) => {
+      if (iframeRef.current) return resolve();
+
+      const checkInterval = setInterval(() => {
+        if (iframeRef.current) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 100); // Check every 100ms
+    });
   };
 
   const handleSubmit = async () => {
@@ -181,44 +210,42 @@ const Prompt: React.FC<PromptProps> = ({
             last_edited: new Date(),
           });
 
-        const lastOutput =
+        const rawOutput =
           status.updates[status.updates.length - 1]?.output.output;
 
-        let code = "";
+        let code: string | { selector: string; code: string }[] = "";
         let summary = "";
 
         if (taskType === "generate") {
-          if (typeof lastOutput.answer === "string") {
-            code = lastOutput.answer;
-
-            const generationSummary: { answer: string } = await post(
-              `/api/relevance`,
-              {
-                type: "summary",
-                code,
-              }
-            );
-            // code = await enhanceImages(code);
-            summary = generationSummary.answer;
-          } else {
-            toast.error("Expected string output for generation");
+          if (
+            !rawOutput ||
+            typeof rawOutput !== "object" ||
+            "output" in rawOutput
+          ) {
+            toast.error("Expected string answer for generation.");
             setIsGenerating(false);
             setChanging(false);
             return;
           }
+
+          code = rawOutput.answer;
+
+          const generationSummary: { answer: string } = await post(
+            `/api/relevance`,
+            {
+              type: "summary",
+              code,
+            }
+          );
+
+          summary = generationSummary.answer;
         } else if (taskType === "changes") {
-          if (
-            typeof lastOutput === "object" &&
-            lastOutput !== null &&
-            "code" in lastOutput &&
-            "summary" in lastOutput &&
-            typeof lastOutput.code === "string" &&
-            typeof lastOutput.summary === "string"
-          ) {
-            code = lastOutput.code;
-            summary = lastOutput.summary;
+          if (isStructuredOutput(rawOutput)) {
+            const newCode = rawOutput.output.code;
+            console.log(newCode);
+            summary = rawOutput.output.summary;
           } else {
-            toast.error("Expected object with string code and summary fields.");
+            toast.error("Expected structured output with code and summary.");
             setIsGenerating(false);
             setChanging(false);
             return;
@@ -237,11 +264,13 @@ const Prompt: React.FC<PromptProps> = ({
 
         const filePath = `${selectedProject?.id}`;
         const formData = new FormData();
-        formData.append("content", code);
-        formData.append("filePath", filePath);
-        formData.append("type", "html");
+        if (taskType === "generate") {
+          formData.append("content", code);
+          formData.append("filePath", filePath);
+          formData.append("type", "html");
 
-        await post("/api/storage/", formData);
+          await post("/api/storage/", formData);
+        }
         await put(`/api/projects/${selectedProject?.id}`, {
           new_name: selectedProject?.project_name,
         });
@@ -252,6 +281,7 @@ const Prompt: React.FC<PromptProps> = ({
         setProjectFile(true);
         setIsGenerating(false);
         setChanging(false);
+        await updateScreenshot();
       } else if (status?.type === "failed") {
         toast.error("Generation failed!");
         setIsGenerating(false);
@@ -265,6 +295,14 @@ const Prompt: React.FC<PromptProps> = ({
       setIsGenerating(false);
     }
   };
+
+  function isStructuredOutput(
+    res: ToolOutput
+  ): res is {
+    output: { code: { selector: string; code: string }[]; summary: string };
+  } {
+    return typeof res === "object" && res !== null && "output" in res;
+  }
 
   // const enhanceLastMessage = async () => {
   //   if (enhancing || isGenerating) return;
@@ -308,7 +346,7 @@ const Prompt: React.FC<PromptProps> = ({
         }}
       >
         {messages.length === 0 ? (
-          loading ? (
+          loading && !isGenerating ? (
             <>
               <SkeletonChatBubble sender={true} />
               <SkeletonChatBubble sender={false} />

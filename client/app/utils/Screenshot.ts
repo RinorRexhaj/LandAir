@@ -15,11 +15,26 @@ export const takeScreenshot = async (
     return;
   }
 
+  const sectionStyle = iframeDoc.defaultView?.getComputedStyle(section);
+  const sectionBg = sectionStyle?.getPropertyValue("background-color");
+
+  // Check if the section background is transparent or unset
+  if (
+    !sectionBg ||
+    sectionBg === "transparent" ||
+    sectionBg === "rgba(0, 0, 0, 0)"
+  ) {
+    const bodyStyle = iframeDoc.defaultView?.getComputedStyle(iframeDoc.body);
+    const bodyBg = bodyStyle?.getPropertyValue("background-color");
+
+    if (bodyBg && bodyBg !== "transparent" && bodyBg !== "rgba(0, 0, 0, 0)") {
+      section.style.backgroundColor = bodyBg; // Inherit the background
+    }
+  }
+
   try {
-    // ✅ Wait for Google Fonts to load
     await iframeDoc.fonts?.ready;
 
-    // ✅ Wait for all images in the section
     await Promise.all(
       Array.from(section.querySelectorAll("img")).map((img) => {
         if (img.complete) return Promise.resolve();
@@ -30,17 +45,16 @@ export const takeScreenshot = async (
       })
     );
 
-    // ✅ Take screenshot
     const canvas = await html2canvas(section as HTMLElement, {
       useCORS: true,
-      backgroundColor: null,
+      backgroundColor: null, // Use transparent unless overridden
       scale: 1,
     });
 
     const tmpCanvas = document.createElement("canvas");
     const ctx = tmpCanvas.getContext("2d");
 
-    const scaleFactor = 0.5; // shrink to 50%
+    const scaleFactor = 0.5;
     tmpCanvas.width = canvas.width * scaleFactor;
     tmpCanvas.height = canvas.height * scaleFactor;
 
@@ -55,8 +69,7 @@ export const takeScreenshot = async (
       return;
     }
 
-    const file = new File([blob], "screenshot.png", { type: "image/png" });
-    return file;
+    return new File([blob], "screenshot.png", { type: "image/png" });
   } catch (err) {
     console.error("Screenshot capture failed", err);
     return;
