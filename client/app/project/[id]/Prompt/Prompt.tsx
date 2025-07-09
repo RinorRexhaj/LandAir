@@ -16,7 +16,9 @@ import { ChatMessage } from "@/app/types/Chat";
 import SkeletonChatBubble from "./SkeletonChat";
 import BotMessage from "./BotMessage";
 import { takeScreenshot } from "@/app/utils/Screenshot";
-import { Relevance, ToolOutput } from "@/app/types/Relevance";
+import { ChangeOutput, Relevance, ToolOutput } from "@/app/types/Relevance";
+import makeChanges from "@/app/utils/Changes";
+import { ElementPos } from "@/app/types/Element";
 // import useUnsplash from "@/app/hooks/useUnsplash";
 
 interface PromptProps {
@@ -25,6 +27,7 @@ interface PromptProps {
   setProjectFile: (file: boolean) => void;
   getUrl: () => void;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
+  selectedElement: ElementPos | null;
 }
 
 const Prompt: React.FC<PromptProps> = ({
@@ -33,6 +36,7 @@ const Prompt: React.FC<PromptProps> = ({
   setProjectFile,
   getUrl,
   iframeRef,
+  selectedElement,
 }) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -178,10 +182,19 @@ const Prompt: React.FC<PromptProps> = ({
         projectId: String(selectedProject.id),
       });
 
+      let code: string = "";
+      if (taskType === "changes") {
+        if (!selectedElement) {
+          code = selectedProject.file || "";
+        } else {
+          code = selectedElement.element.outerHTML;
+        }
+      }
+
       const taskId: string = await post(`/api/relevance`, {
         prompt: input,
         type: taskType,
-        code: taskType === "changes" ? selectedProject.file : "",
+        code,
       });
       await startPolling(taskId);
     } catch (error) {
@@ -192,6 +205,20 @@ const Prompt: React.FC<PromptProps> = ({
     }
 
     setInput("");
+  };
+
+  const failOutput = async () => {
+    toast.error("Something went wrong!");
+    setIsGenerating(false);
+    setChanging(false);
+    const botMsg: ChatMessage = {
+      id: Date.now() + 1,
+      sender: false,
+      message: "Something went wrong! Please try again.",
+      projectId: String(selectedProject?.id || ""),
+    };
+    setMessages((prev) => [...prev, botMsg]);
+    await post(`/api/chat`, botMsg);
   };
 
   const startPolling = async (taskId: string) => {
@@ -213,7 +240,7 @@ const Prompt: React.FC<PromptProps> = ({
         const rawOutput =
           status.updates[status.updates.length - 1]?.output.output;
 
-        let code: string | { selector: string; code: string }[] = "";
+        let code: string | ChangeOutput[] = "";
         let summary = "";
 
         if (taskType === "generate") {
@@ -222,9 +249,7 @@ const Prompt: React.FC<PromptProps> = ({
             typeof rawOutput !== "object" ||
             "output" in rawOutput
           ) {
-            toast.error("Expected string answer for generation.");
-            setIsGenerating(false);
-            setChanging(false);
+            await failOutput();
             return;
           }
 
@@ -241,13 +266,14 @@ const Prompt: React.FC<PromptProps> = ({
           summary = generationSummary.answer;
         } else if (taskType === "changes") {
           if (isStructuredOutput(rawOutput)) {
-            const newCode = rawOutput.output.code;
-            console.log(newCode);
+            const sections = rawOutput.output.code;
+            const newCode = makeChanges(sections, iframeRef.current);
+            if (newCode) {
+              code = newCode;
+            }
             summary = rawOutput.output.summary;
           } else {
-            toast.error("Expected structured output with code and summary.");
-            setIsGenerating(false);
-            setChanging(false);
+            await failOutput();
             return;
           }
         }
@@ -264,13 +290,11 @@ const Prompt: React.FC<PromptProps> = ({
 
         const filePath = `${selectedProject?.id}`;
         const formData = new FormData();
-        if (taskType === "generate") {
-          formData.append("content", code);
-          formData.append("filePath", filePath);
-          formData.append("type", "html");
+        formData.append("content", code);
+        formData.append("filePath", filePath);
+        formData.append("type", "html");
 
-          await post("/api/storage/", formData);
-        }
+        await post("/api/storage/", formData);
         await put(`/api/projects/${selectedProject?.id}`, {
           new_name: selectedProject?.project_name,
         });
@@ -283,23 +307,18 @@ const Prompt: React.FC<PromptProps> = ({
         setChanging(false);
         await updateScreenshot();
       } else if (status?.type === "failed") {
-        toast.error("Generation failed!");
-        setIsGenerating(false);
-        setChanging(false);
+        await failOutput();
       } else {
         setTimeout(() => startPolling(taskId), 4000);
       }
     } catch (error) {
       console.error(error);
-      toast.error("Polling failed!");
-      setIsGenerating(false);
+      await failOutput();
     }
   };
 
-  function isStructuredOutput(
-    res: ToolOutput
-  ): res is {
-    output: { code: { selector: string; code: string }[]; summary: string };
+  function isStructuredOutput(res: ToolOutput): res is {
+    output: { code: ChangeOutput[]; summary: string };
   } {
     return typeof res === "object" && res !== null && "output" in res;
   }
@@ -428,7 +447,11 @@ const Prompt: React.FC<PromptProps> = ({
             value={input}
             rows={3}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe your website idea..."
+            placeholder={
+              !selectedProject?.file
+                ? "Describe your website idea..."
+                : "Describe the changes clearly. Use the selector to highlight the section you want changed..."
+            }
             className={`w-full h-fit bg-inherit p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
               darkMode ? "text-white" : "text-zinc-900"
             }`}

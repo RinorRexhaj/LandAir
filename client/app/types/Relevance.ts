@@ -1,6 +1,12 @@
 export type ToolOutput =
   | { answer: string }
-  | { output: { code: { selector: string; code: string }[]; summary: string } };
+  | { output: { code: ChangeOutput[]; summary: string } };
+
+export type ChangeOutput = {
+  selector: string;
+  code: string;
+  action: "add" | "edit" | "delete";
+};
 
 export interface Relevance {
   type: string;

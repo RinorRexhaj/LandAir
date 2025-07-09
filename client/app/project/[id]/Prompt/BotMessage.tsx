@@ -6,13 +6,13 @@ import ReactMarkdown from "react-markdown";
 const BotMessage: React.FC<{ message: string }> = ({ message }) => {
   const { darkMode } = useThemeStore();
   return (
-    <div className="w-full flex gap-3">
+    <div className="w-full flex items-start ml-1 gap-0">
       <Image
         src={`/icons${!darkMode ? "-dark" : ""}/favicon-120x120.png`}
         alt="LandAir"
         width={32}
         height={32}
-        className="h-8 w-8 flex-shrink-0 animate-fade [animation-fill-mode:backwards]"
+        className="h-8 w-8 mt-1 flex-shrink-0 animate-fade [animation-fill-mode:backwards]"
         style={{
           animationDelay: "0.25s",
         }}

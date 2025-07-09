@@ -3,13 +3,23 @@ import React, { useEffect, useRef, useState } from "react";
 import Code from "./Code";
 import Website from "./Website";
 import PreviewHeader from "./PreviewHeader";
+import { ElementPos } from "@/app/types/Element";
 
 interface PreviewProps {
   getUrl: () => void;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
+  setChanged: (changed: boolean) => void;
+  selectedElement: ElementPos | null;
+  setSelectedElement: (el: ElementPos | null) => void;
 }
 
-const Preview: React.FC<PreviewProps> = ({ getUrl, iframeRef }) => {
+const Preview: React.FC<PreviewProps> = ({
+  getUrl,
+  iframeRef,
+  setChanged,
+  selectedElement,
+  setSelectedElement,
+}) => {
   const [mobile, setMobile] = useState(0);
   const [selector, setSelector] = useState(false);
   const [scale, setScale] = useState(1);
@@ -77,10 +87,17 @@ const Preview: React.FC<PreviewProps> = ({ getUrl, iframeRef }) => {
             mobile={mobile}
             scale={scale}
             iframeRef={iframeRef}
+            setChanged={setChanged}
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
           />
         )}
         {mobile === 2 && (
-          <Code file={selectedProject?.file || ""} getUrl={getUrl} />
+          <Code
+            file={selectedProject?.file || ""}
+            getUrl={getUrl}
+            setChanged={setChanged}
+          />
         )}
       </div>
     </div>

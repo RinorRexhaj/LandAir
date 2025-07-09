@@ -12,6 +12,7 @@ import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
 import Loading from "./Loading";
 import Empty from "./EmptyProject";
+import { ElementPos } from "@/app/types/Element";
 
 const ProjectPage = () => {
   const { selectedProject, setSelectedProject } = useProjectStore();
@@ -19,14 +20,19 @@ const ProjectPage = () => {
   const [projectFile, setProjectFile] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeView, setActiveView] = useState<"preview" | "prompt">("preview");
+  const [selectedElement, setSelectedElement] = useState<ElementPos | null>(
+    null
+  );
   const { darkMode } = useThemeStore();
   const { user } = useAuth();
+  const [changed, setChanged] = useState(false);
   const { setLoading, loading, get } = useApi();
 
   const getUrl = useCallback(async () => {
     if (!selectedProject) return;
     setLoading(true);
     const url = await get(`/api/storage?project_id=${selectedProject.id}`);
+    console.log(changed);
     const content: string = await get(`${url}?v=${Date.now()}`);
 
     if (url && content) {
@@ -36,7 +42,7 @@ const ProjectPage = () => {
       setSelectedProject({ ...selectedProject, file: undefined });
       setProjectFile(false);
     }
-  }, [get, selectedProject, setLoading, setSelectedProject]);
+  }, [get, selectedProject, setLoading, setSelectedProject, changed]);
 
   useEffect(() => {
     if (
@@ -118,10 +124,16 @@ const ProjectPage = () => {
         >
           {isGenerating ? (
             <Generating />
+          ) : projectFile || selectedProject.file ? (
+            <Preview
+              getUrl={getUrl}
+              iframeRef={iframeRef}
+              setChanged={setChanged}
+              selectedElement={selectedElement}
+              setSelectedElement={setSelectedElement}
+            />
           ) : loading ? (
             <Loading />
-          ) : projectFile || selectedProject.file ? (
-            <Preview getUrl={getUrl} iframeRef={iframeRef} />
           ) : (
             <Empty />
           )}
@@ -137,6 +149,7 @@ const ProjectPage = () => {
             setProjectFile={setProjectFile}
             getUrl={getUrl}
             iframeRef={iframeRef}
+            selectedElement={selectedElement}
           />
         </div>
       </div>

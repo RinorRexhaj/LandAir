@@ -10,9 +10,10 @@ import useToast from "@/app/hooks/useToast";
 interface CodeProps {
   file: string;
   getUrl: () => void;
+  setChanged: (changed: boolean) => void;
 }
 
-const Code: React.FC<CodeProps> = ({ file, getUrl }) => {
+const Code: React.FC<CodeProps> = ({ file, getUrl, setChanged }) => {
   const [code, setCode] = useState(file);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -35,6 +36,7 @@ const Code: React.FC<CodeProps> = ({ file, getUrl }) => {
       });
       setSaved(true);
       toast.success("Changes saved!");
+      setChanged(true);
       getUrl();
     } catch (error) {
       console.error(error);

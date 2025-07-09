@@ -1,6 +1,7 @@
 import useChange from "@/app/hooks/useChange";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
+import { ElementPos } from "@/app/types/Element";
 import {
   faPenToSquare,
   faTrash,
@@ -18,14 +19,9 @@ interface WebsiteProps {
   mobile: number;
   scale: number;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
-}
-
-interface ElementPos {
-  element: HTMLElement;
-  height: number;
-  width: number;
-  left: number;
-  top: number;
+  setChanged: (changed: boolean) => void;
+  selectedElement: ElementPos | null;
+  setSelectedElement: (el: ElementPos | null) => void;
 }
 
 const Website: React.FC<WebsiteProps> = ({
@@ -34,6 +30,9 @@ const Website: React.FC<WebsiteProps> = ({
   mobile,
   scale,
   iframeRef,
+  setChanged,
+  selectedElement,
+  setSelectedElement,
 }) => {
   const [toolBarPos, setToolBarPos] = useState<{
     top: number;
@@ -45,9 +44,6 @@ const Website: React.FC<WebsiteProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<ElementPos | null>(null);
-  const [selectedElement, setSelectedElement] = useState<ElementPos | null>(
-    null
-  );
   const {
     handleContentDelete,
     handleContentEdit,
@@ -532,6 +528,7 @@ const Website: React.FC<WebsiteProps> = ({
                 iframeRef
               );
               if (saved) {
+                setChanged(true);
                 setHasUnsavedChanges(false);
               }
             }}
