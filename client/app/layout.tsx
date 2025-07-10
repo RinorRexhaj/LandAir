@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 
-const dm = DM_Sans({
-  variable: "--font-dm-sans",
+// const dm = DM_Sans({
+//   variable: "--font-dm-sans",
+//   subsets: ["latin"],
+// });
+const dm = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -146,7 +150,9 @@ export default function RootLayout({
         {/* Viewport (just in case it's not included elsewhere) */}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body className={`${dm.variable} antialiased text-white`}>
+      <body
+        className={`${dm.variable} antialiased text-white font-sans minimal-scrollbar`}
+      >
         {children}
         <Analytics />
       </body>

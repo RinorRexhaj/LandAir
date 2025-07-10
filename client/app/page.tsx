@@ -24,7 +24,7 @@ const Home = () => {
   if (loading) return <Loading />;
 
   return (
-    <div className="relative flex flex-col items-center justify-items-center font-[family-name:var(--font-dm-sans)] tracking-tighter">
+    <div className="relative flex flex-col items-center justify-items-center font-[family-name:var(--font-inter)] tracking-tighter minimal-scrollbar">
       <Navbar />
       <main className="relative flex flex-col w-full">
         <Background />

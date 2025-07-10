@@ -16,6 +16,7 @@ import NameModal from "./NameModal";
 import ProjectHeader from "./ProjectHeader";
 import DeployModal from "./DeployModal";
 import SettingsModal from "./SettingsModal";
+import SwitchProjects from "./SwitchProjects";
 
 interface DashboardNavbarProps {
   userName: string;
@@ -93,7 +94,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               {/* Brand */}
               {selectedProject ? (
                 <h1
-                  className={`text-xl tb:text-base overflow-hidden font-bold ${
+                  className={`text-lg mt-0.5 tb:text-base overflow-hidden truncate font-semibold ${
                     darkMode ? "text-white" : "text-zinc-900"
                   } animate-fade cursor-pointer flex items-center gap-2`}
                   onClick={() => {
@@ -107,13 +108,14 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 </h1>
               ) : (
                 <h1
-                  className={`text-xl font-bold ${
+                  className={`text-xl mt-0.5 font-bold ${
                     darkMode ? "text-white" : "text-zinc-900"
                   } animate-fade cursor-pointer flex items-center gap-2`}
                 >
                   LandAir
                 </h1>
               )}
+              {selectedProject && <SwitchProjects />}
             </div>
 
             {/* Right side - User and Sign Out */}

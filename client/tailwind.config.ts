@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import typography from "@tailwindcss/typography";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
 export default {
   content: [
@@ -21,6 +22,7 @@ export default {
       },
       fontFamily: {
         // sans: ["var(--font-montserrat)", "sans-serif"],
+        sans: ["var(--font-inter)", ...fontFamily.sans],
       },
       keyframes: {
         rotating: {

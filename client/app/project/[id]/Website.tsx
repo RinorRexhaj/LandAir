@@ -11,7 +11,7 @@ import {
   faBookmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface WebsiteProps {
   selector: boolean;
@@ -44,6 +44,7 @@ const Website: React.FC<WebsiteProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<ElementPos | null>(null);
+  const [srcDoc, setSrcDoc] = useState("");
   const {
     handleContentDelete,
     handleContentEdit,
@@ -57,94 +58,8 @@ const Website: React.FC<WebsiteProps> = ({
   const [showTextEditModal, setShowTextEditModal] = useState(false);
   const [modalTextValue, setModalTextValue] = useState("");
 
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe || !selectedProject?.file) return;
-
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!iframeDoc || !iframeDoc.body) return;
-
-    if (!selector) {
-      removeDisableInteractionStyle(iframeDoc);
-      setSelectedElement(null);
-      setElementType(null);
-      return;
-    } else {
-      injectDisableInteractionStyle(iframeDoc);
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const target = iframeDoc.elementFromPoint(
-        e.clientX,
-        e.clientY
-      ) as HTMLElement | null;
-
-      if (!target) return;
-
-      updateHoverPos(target);
-    };
-
-    const handleMouseLeave = () => {
-      updateHoverPos(undefined);
-    };
-
-    const handleClick = async (e: MouseEvent) => {
-      const target = iframeDoc.elementFromPoint(
-        e.clientX,
-        e.clientY
-      ) as HTMLElement | null;
-      if (!target) return;
-
-      if (isImageElement(target)) {
-        setElementType("image");
-      } else if (isTextOnly(target)) {
-        setElementType("text");
-      } else if (isLayoutElement(target)) {
-        setElementType("layout");
-      } else {
-        setElementType("layout");
-      }
-
-      setIsEditing(false);
-      updateToolbarPos(target);
-      updateClickPos(target);
-
-      // Deselect if clicking the same element
-      if (selectedElement?.element === target) {
-        if (!isEditing) {
-          target.contentEditable = "false";
-          setIsEditing(false);
-          setSelectedElement(null);
-          return;
-        }
-      }
-    };
-
-    const updateToolbarPos = (target: HTMLElement | null | undefined) => {
-      const element = target || selectedElement?.element;
-      if (!element) return;
-      if (!iframeRef.current) return;
-
-      const rect = element.getBoundingClientRect();
-      const clientHeight = iframeRef.current.clientHeight;
-
-      const elementHeight = rect.height * scale;
-      const visibleHeight = clientHeight * scale;
-
-      let top: number;
-      const left: number = rect.x * scale;
-
-      if (elementHeight >= visibleHeight - 100) {
-        top = rect.bottom * scale - 30;
-      } else {
-        // Regular positioning logic
-        top = rect.y * scale < 50 ? rect.bottom * scale : rect.y * scale - 30;
-      }
-
-      setToolBarPos({ top, left });
-    };
-
-    const updateHoverPos = (target: HTMLElement | undefined) => {
+  const updateHoverPos = useCallback(
+    (target: HTMLElement | undefined) => {
       if (!target) {
         setHoveredElement(null);
         return;
@@ -190,9 +105,62 @@ const Website: React.FC<WebsiteProps> = ({
       } else {
         setHoveredElement(null);
       }
-    };
+    },
+    [iframeRef, scale]
+  );
 
-    const updateClickPos = (target: HTMLElement | undefined) => {
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      const iframeDoc =
+        iframeRef.current?.contentDocument ||
+        iframeRef.current?.contentWindow?.document;
+      if (!iframeDoc || !iframeDoc.body) return;
+
+      const target = iframeDoc.elementFromPoint(
+        e.clientX,
+        e.clientY
+      ) as HTMLElement | null;
+
+      if (!target) return;
+
+      updateHoverPos(target);
+    },
+    [iframeRef, updateHoverPos]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    updateHoverPos(undefined);
+  }, [updateHoverPos]);
+
+  const updateToolbarPos = useCallback(
+    (target: HTMLElement | null | undefined) => {
+      const element = target || selectedElement?.element;
+      if (!element) return;
+      if (!iframeRef.current) return;
+
+      const rect = element.getBoundingClientRect();
+      const clientHeight = iframeRef.current.clientHeight;
+
+      const elementHeight = rect.height * scale;
+      const visibleHeight = clientHeight * scale;
+
+      let top: number;
+      const left: number = rect.x * scale;
+
+      if (elementHeight >= visibleHeight - 100) {
+        top = rect.bottom * scale - 30;
+      } else {
+        // Regular positioning logic
+        top = rect.y * scale < 50 ? rect.bottom * scale : rect.y * scale - 30;
+      }
+
+      setToolBarPos({ top, left });
+    },
+    [iframeRef, scale, selectedElement?.element]
+  );
+
+  const updateClickPos = useCallback(
+    (target: HTMLElement | undefined) => {
       if (!target) {
         setSelectedElement(null);
         return;
@@ -238,69 +206,112 @@ const Website: React.FC<WebsiteProps> = ({
       } else {
         setSelectedElement(null);
       }
-    };
+    },
+    [iframeRef, scale, setSelectedElement]
+  );
 
-    iframeDoc.addEventListener("click", handleClick);
-    iframeDoc.addEventListener("mousemove", handleMouseMove);
-    iframeDoc.addEventListener("mouseleave", handleMouseLeave);
-    iframeDoc.addEventListener("scroll", () => {
-      updateToolbarPos(selectedElement?.element);
-      updateHoverPos(hoveredElement?.element);
-      updateClickPos(selectedElement?.element);
-    });
-    iframe.contentWindow?.addEventListener("resize", () => {
-      updateToolbarPos(selectedElement?.element);
-      updateHoverPos(hoveredElement?.element);
-      updateClickPos(selectedElement?.element);
-    });
+  const handleClick = useCallback(
+    (e: MouseEvent) => {
+      const iframeDoc =
+        iframeRef.current?.contentDocument ||
+        iframeRef.current?.contentWindow?.document;
+      if (!iframeDoc || !iframeDoc.body) return;
+      const target = iframeDoc.elementFromPoint(
+        e.clientX,
+        e.clientY
+      ) as HTMLElement | null;
+      if (!target) return;
 
-    return () => {
-      iframeDoc.removeEventListener("mousemove", handleMouseMove);
-      iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
-      iframeDoc.removeEventListener("click", handleClick);
-    };
-  }, [
-    selector,
-    selectedProject,
-    selectedElement,
-    setSelectedElement,
-    scale,
-    isEditing,
-    hoveredElement?.element,
-    iframeRef,
-  ]);
-
-  const injectDisableInteractionStyle = (iframeDoc: Document) => {
-    const style = iframeDoc.getElementById("disable-interaction-style");
-    if (style) return; // Prevent duplicates
-
-    const styleTag = iframeDoc.createElement("style");
-    styleTag.id = "disable-interaction-style";
-    styleTag.innerHTML = `
-    * {
-      cursor: default !important;
-      transition: none !important;
-      animation: none !important;
-    }
-  `;
-    iframeDoc.querySelectorAll("*").forEach((el) => {
-      if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
-        const htmlEl = el as HTMLElement;
-        htmlEl.onmouseover = (e) => e.stopPropagation();
-        htmlEl.onmouseenter = (e) => e.stopPropagation();
-        htmlEl.onclick = (e) => e.preventDefault();
-        htmlEl.onfocus = (e) => e.preventDefault();
-        htmlEl.onmousedown = (e) => e.preventDefault();
-        htmlEl.onmouseup = (e) => e.preventDefault();
+      if (isImageElement(target)) {
+        setElementType("image");
+      } else if (isTextOnly(target)) {
+        setElementType("text");
+      } else if (isLayoutElement(target)) {
+        setElementType("layout");
+      } else {
+        setElementType("layout");
       }
-    });
 
-    iframeDoc.head.appendChild(styleTag);
-  };
+      setIsEditing(false);
+      updateToolbarPos(target);
+      updateClickPos(target);
 
-  const removeDisableInteractionStyle = (iframeDoc: Document) => {
-    iframeDoc.getElementById("disable-interaction-style")?.remove();
-  };
+      // Deselect if clicking the same element
+      if (selectedElement?.element === target) {
+        if (!isEditing) {
+          target.contentEditable = "false";
+          setIsEditing(false);
+          setSelectedElement(null);
+          return;
+        }
+      }
+    },
+    [
+      iframeRef,
+      isEditing,
+      selectedElement?.element,
+      setSelectedElement,
+      updateClickPos,
+      updateToolbarPos,
+    ]
+  );
+
+  const injectDisableInteractionStyle = useCallback(
+    (iframeDoc: Document) => {
+      iframeDoc.querySelectorAll("*").forEach((el) => {
+        if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
+          const htmlEl = el as HTMLElement;
+          const originalHref = htmlEl.getAttribute("href");
+          if (originalHref) {
+            htmlEl.setAttribute("data-original-href", originalHref);
+          }
+          htmlEl.removeAttribute("href");
+          htmlEl.onmouseover = (e) => e.stopImmediatePropagation();
+          htmlEl.onmouseenter = (e) => e.stopImmediatePropagation();
+          htmlEl.onclick = (e) => {
+            handleClick(e);
+            e.stopImmediatePropagation();
+          };
+          htmlEl.onfocus = (e) => e.stopImmediatePropagation();
+          htmlEl.onmousedown = (e) => e.stopImmediatePropagation();
+          htmlEl.onmouseup = (e) => e.stopImmediatePropagation();
+        }
+      });
+      const style = iframeDoc.getElementById("disable-interaction-style");
+      if (style) return; // Prevent duplicates
+
+      const styleTag = iframeDoc.createElement("style");
+      styleTag.id = "disable-interaction-style";
+      styleTag.innerHTML = `
+        * {
+          cursor: crosshair !important;
+          transition: none !important;
+          animation: none !important;
+        }
+      `;
+
+      iframeDoc.head.appendChild(styleTag);
+    },
+    [handleClick]
+  );
+
+  const removeDisableInteractionStyle = useCallback(
+    (iframeDoc: Document) => {
+      iframeDoc.getElementById("disable-interaction-style")?.remove();
+      iframeDoc.querySelectorAll("*").forEach((el) => {
+        if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
+          const htmlEl = el as HTMLElement;
+          const originalHref = htmlEl.getAttribute("data-original-href");
+          if (originalHref) {
+            htmlEl.setAttribute("href", originalHref);
+          }
+          htmlEl.removeAttribute("data-original-href");
+        }
+      });
+      setSrcDoc(injectLinkFixScript(selectedProject?.file || ""));
+    },
+    [setSrcDoc, injectLinkFixScript, selectedProject?.file]
+  );
 
   const isTextOnly = (el: HTMLElement): boolean => {
     return (
@@ -355,6 +366,60 @@ const Website: React.FC<WebsiteProps> = ({
     return height * (1 / scale) - extra;
   };
 
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !selectedProject?.file) return;
+    setSrcDoc(injectLinkFixScript(selectedProject.file || ""));
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc || !iframeDoc.body) return;
+
+    if (!selector) {
+      setElementType(null);
+      setSelectedElement(null);
+      removeDisableInteractionStyle(iframeDoc);
+      return;
+    } else {
+      injectDisableInteractionStyle(iframeDoc);
+    }
+
+    iframeDoc.addEventListener("mousemove", handleMouseMove);
+    iframeDoc.addEventListener("mouseleave", handleMouseLeave);
+    iframeDoc.addEventListener("scroll", () => {
+      updateToolbarPos(selectedElement?.element);
+      updateHoverPos(hoveredElement?.element);
+      updateClickPos(selectedElement?.element);
+    });
+    iframe.contentWindow?.addEventListener("resize", () => {
+      updateToolbarPos(selectedElement?.element);
+      updateHoverPos(hoveredElement?.element);
+      updateClickPos(selectedElement?.element);
+    });
+
+    return () => {
+      iframeDoc.removeEventListener("mousemove", handleMouseMove);
+      iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [
+    selector,
+    selectedProject,
+    selectedElement,
+    setSelectedElement,
+    scale,
+    isEditing,
+    hoveredElement?.element,
+    iframeRef,
+    handleClick,
+    handleMouseLeave,
+    handleMouseMove,
+    injectDisableInteractionStyle,
+    updateClickPos,
+    updateHoverPos,
+    updateToolbarPos,
+    removeDisableInteractionStyle,
+    injectLinkFixScript,
+  ]);
+
   if (!selectedProject) return;
 
   return (
@@ -362,8 +427,8 @@ const Website: React.FC<WebsiteProps> = ({
       <iframe
         ref={iframeRef}
         key={selectedProject.file}
-        srcDoc={injectLinkFixScript(selectedProject?.file || "")}
-        className="rounded-lg shadow-md"
+        srcDoc={srcDoc}
+        className={`rounded-lg shadow-md`}
         style={{
           border: "none",
           width: getWidth(),
@@ -375,7 +440,7 @@ const Website: React.FC<WebsiteProps> = ({
       />
       {selector && hoveredElement && iframeRef.current && (
         <div
-          className="bg-blue-500 opacity-50 pointer-events-none"
+          className={`bg-blue-500 opacity-50 pointer-events-none`}
           style={{
             position: "fixed",
             height: hoveredElement.height,
@@ -387,7 +452,7 @@ const Website: React.FC<WebsiteProps> = ({
       )}
       {selector && selectedElement && iframeRef.current && (
         <div
-          className="outline-dotted outline-3 outline-blue-500 opacity-50 pointer-events-none"
+          className="outline-dashed outline-2 outline-blue-700 opacity-100 pointer-events-none"
           style={{
             position: "fixed",
             height: selectedElement.height,
@@ -528,6 +593,7 @@ const Website: React.FC<WebsiteProps> = ({
                 iframeRef
               );
               if (saved) {
+                setSelector(false);
                 setChanged(true);
                 setHasUnsavedChanges(false);
               }

@@ -16,7 +16,11 @@ import { ChatMessage } from "@/app/types/Chat";
 import SkeletonChatBubble from "./SkeletonChat";
 import BotMessage from "./BotMessage";
 import { takeScreenshot } from "@/app/utils/Screenshot";
-import { ChangeOutput, Relevance, ToolOutput } from "@/app/types/Relevance";
+import {
+  ChangeOutput,
+  RelevanceOutput,
+  ToolOutput,
+} from "@/app/types/Relevance";
 import makeChanges from "@/app/utils/Changes";
 import { ElementPos } from "@/app/types/Element";
 // import useUnsplash from "@/app/hooks/useUnsplash";
@@ -52,7 +56,9 @@ const Prompt: React.FC<PromptProps> = ({
   const [taskType, setTaskType] = useState("generate");
   const [changing, setChanging] = useState(false);
   const toast = useToast();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   // const { enhanceImages } = useUnsplash();
+  const [lastFailedInput, setLastFailedInput] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedProject) {
@@ -77,10 +83,27 @@ const Prompt: React.FC<PromptProps> = ({
     })();
   }, [selectedProject, get]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevent newline
+      handleSubmit(); // Submit form
+    }
+  };
+
   const pollGenerationStatus = useCallback(
     async (taskId: string) => {
       try {
-        const status: Relevance = await get(
+        const status: RelevanceOutput = await get(
           `/api/relevance?taskId=${taskId}&type=${taskType}`
         );
         return status;
@@ -152,19 +175,23 @@ const Prompt: React.FC<PromptProps> = ({
     });
   };
 
-  const handleSubmit = async () => {
-    if (!input || isGenerating || credits < 3 || !selectedProject) return;
+  const handleSubmit = async (overrideInput?: string) => {
+    textareaRef.current?.blur();
+    const currentInput = overrideInput !== undefined ? overrideInput : input;
+    if (!currentInput || isGenerating || credits < 3 || !selectedProject)
+      return;
 
     const taskType = messages.length <= 0 ? "generate" : "changes";
     setTaskType(taskType);
-    setInput("");
+    setInput(overrideInput ? input : "");
+    setLastFailedInput(null); // Clear retry state on new submit
     // Optimistically add user message
     setMessages((prev) => [
       ...prev,
       {
         id: Date.now(),
         sender: true,
-        message: input,
+        message: currentInput,
         projectId: String(selectedProject.id),
       },
     ]);
@@ -178,7 +205,7 @@ const Prompt: React.FC<PromptProps> = ({
       // Save user message to DB
       await post(`/api/chat`, {
         sender: true,
-        message: input,
+        message: currentInput,
         projectId: String(selectedProject.id),
       });
 
@@ -192,7 +219,7 @@ const Prompt: React.FC<PromptProps> = ({
       }
 
       const taskId: string = await post(`/api/relevance`, {
-        prompt: input,
+        prompt: currentInput,
         type: taskType,
         code,
       });
@@ -202,15 +229,17 @@ const Prompt: React.FC<PromptProps> = ({
       toast.error("Failed to start generation");
       setIsGenerating(false);
       setChanging(false);
+      setLastFailedInput(currentInput); // Set for retry
     }
 
-    setInput("");
+    if (!overrideInput) setInput("");
   };
 
   const failOutput = async () => {
     toast.error("Something went wrong!");
     setIsGenerating(false);
     setChanging(false);
+    setLastFailedInput(input); // Set for retry
     const botMsg: ChatMessage = {
       id: Date.now() + 1,
       sender: false,
@@ -237,8 +266,7 @@ const Prompt: React.FC<PromptProps> = ({
             last_edited: new Date(),
           });
 
-        const rawOutput =
-          status.updates[status.updates.length - 1]?.output.output;
+        const rawOutput = status.update;
 
         let code: string | ChangeOutput[] = "";
         let summary = "";
@@ -350,6 +378,12 @@ const Prompt: React.FC<PromptProps> = ({
   //   }
   // };
 
+  const handleRetry = () => {
+    if (lastFailedInput) {
+      handleSubmit(lastFailedInput);
+    }
+  };
+
   return (
     <div
       className={`h-full flex flex-col justify-between w-full mx-auto p-2 rounded-md overflow-hidden animate-fade ${
@@ -372,14 +406,27 @@ const Prompt: React.FC<PromptProps> = ({
               <SkeletonChatBubble sender={true} />
             </>
           ) : (
-            <BotMessage
-              message={
-                "Welcome to your project! Ask us to build your website. Please provide as many details as it helps in generating better websites."
-              }
-            />
+            <div className="w-full">
+              <BotMessage
+                message={
+                  "Welcome to your project! Ask us to build your website. Please provide as many details as it helps in generating better websites."
+                }
+              />
+            </div>
           )
         ) : (
           ""
+        )}
+        {/* Retry button if last message failed */}
+        {lastFailedInput && (
+          <div className="flex justify-center mt-2">
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+            >
+              Retry Last Message
+            </button>
+          </div>
         )}
         {messages.map((msg, i) => (
           <div
@@ -444,18 +491,22 @@ const Prompt: React.FC<PromptProps> = ({
           className="flex flex-col items-center flex-1"
         >
           <textarea
+            ref={textareaRef}
             value={input}
-            rows={3}
-            onChange={(e) => setInput(e.target.value)}
+            rows={2}
+            maxLength={500}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             placeholder={
               !selectedProject?.file
                 ? "Describe your website idea..."
                 : "Describe the changes clearly. Use the selector to highlight the section you want changed..."
             }
-            className={`w-full h-fit bg-inherit p-1 text-sm resize-none focus:outline-none placeholder-gray-400 ${
+            className={`w-full h-auto max-h-32 overflow-y-auto bg-inherit p-1 text-sm resize-none minimal-scrollbar focus:outline-none placeholder-gray-400 ${
               darkMode ? "text-white" : "text-zinc-900"
             }`}
           />
+
           <div className="w-full flex items-center gap-0 justify-between">
             <p className="ml-1 mt-4 text-xs flex items-center text-zinc-500">
               {input.length}/500
@@ -474,17 +525,6 @@ const Prompt: React.FC<PromptProps> = ({
                   <FontAwesomeIcon icon={faPaperPlane} />
                 )}
               </button>
-              {/* <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  enhanceLastMessage();
-                }}
-                disabled={enhancing || isGenerating || !input}
-                className="ml-2 px-3 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-60"
-                title="Enhance"
-              >
-                <FontAwesomeIcon icon={faWandMagicSparkles} />
-              </button> */}
             </div>
           </div>
         </form>

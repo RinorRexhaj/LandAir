@@ -26,7 +26,7 @@ const Generating = () => {
 
   return (
     <div
-      className={`relative w-10/12 h-3/4 mx-auto mt-10 shadow-2xl z-40 rounded-xl overflow-hidden animate-fade-in-slow ${bgMain}`}
+      className={`relative w-full h-full mx-auto shadow-2xl z-40 rounded-xl overflow-hidden animate-fade-in-slow ${bgMain}`}
     >
       <div
         className={`w-full flex items-center justify-between px-6 py-4 text-2xl ${bgMain} ${textMain}`}
@@ -71,7 +71,7 @@ const Generating = () => {
               }}
             ></div>
           </div>
-          <div className="absolute top-56 w-full flex justify-center">
+          <div className="absolute top-1/2 w-full flex justify-center">
             <FontAwesomeIcon
               icon={faSpinner}
               spin
@@ -86,7 +86,7 @@ const Generating = () => {
       {textShow && (
         <>
           <div
-            className={`absolute top-44 z-50 w-full flex justify-center text-2xl font-bold overflow-hidden ${textMain}`}
+            className={`absolute top-1/2 mb-4 z-50 w-full flex justify-center text-2xl font-bold overflow-hidden ${textMain}`}
           >
             {"Creating Dream Site...".split("").map((char, index) => (
               <span

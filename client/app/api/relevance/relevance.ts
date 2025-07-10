@@ -1,3 +1,4 @@
+import { Relevance, RelevanceOutput } from "@/app/types/Relevance";
 import axios from "axios";
 
 const promptEnhancerURL = process.env.PROMPT_ENHANCER || "";
@@ -51,13 +52,16 @@ export const makeChanges = async (code: string, prompt: string) => {
 export const checkCompletion = async (
   type: "generate" | "changes",
   taskId: string
-) => {
+): Promise<RelevanceOutput> => {
   const url = type === "generate" ? websiteGeneratorURL : changesURL;
-  const response = await axios.get(
+  const { data }: { data: Relevance } = await axios.get(
     `${url}/async_poll/${taskId}?ending_update_only=true`,
     {
       headers: { Authorization: relevanceKey },
     }
   );
-  return response.data;
+  return {
+    type: data.type,
+    update: data.updates[data.updates.length - 1]?.output?.output,
+  };
 };

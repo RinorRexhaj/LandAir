@@ -1,6 +1,12 @@
-import React from "react";
+import { faRocket } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useState } from "react";
+
+const suggestions = ["Portfolio", "SaaS", "Blog", "E-commerce", "Agency"];
 
 const Hero = () => {
+  const [prompt, setPrompt] = useState("");
+
   return (
     <section
       id="hero"
@@ -62,33 +68,53 @@ const Hero = () => {
         </h1>
       </div>
       <p
-        className="text-xl text-white/80 max-w-2xl animate-slideIn [animation-fill-mode:backwards]"
+        className="text-lg text-white/80 max-w-2xl animate-slideIn [animation-fill-mode:backwards]"
         style={{ animationDelay: "0.7s" }}
       >
         Transform your ideas into stunning, responsive pages in minutes. Just
         describe what you want, and let our AI do the rest.
       </p>
+      {/* Glassmorphic Form */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           window.location.href = "/sign-up";
         }}
-        className="flex flex-row gap-4 w-full max-w-xl md:flex-col animate-fade-in-slow [animation-fill-mode:backwards]"
-        style={{
-          animationDelay: "1s",
-        }}
+        className="w-full max-w-xl animate-fade-in-slow [animation-fill-mode:backwards]"
+        style={{ animationDelay: "1s" }}
       >
-        <input
-          type="text"
-          placeholder="Describe your landing page idea..."
-          className="flex-1 px-6 py-4 rounded-full border border-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
-        />
-        <button
-          type="submit"
-          className="px-8 py-4 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
+        <div className="flex flex-row gap-0 bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl overflow-hidden">
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe your landing page idea..."
+            className="flex-1 px-6 py-4 bg-transparent text-white placeholder-white/60 focus:outline-none text-base md:text-sm"
+          />
+          <button
+            type="submit"
+            className="flex items-center gap-2 px-8 py-4 md:px-6 bg-blue-600/80 hover:bg-blue-700/90 text-white font-semibold transition-colors rounded-none justify-center"
+          >
+            <p className="md:hidden">Generate Now</p>
+            <FontAwesomeIcon icon={faRocket} className="hidden md:block" />
+          </button>
+        </div>
+        {/* Suggestion Buttons BELOW input */}
+        <div
+          className="flex flex-wrap gap-1 justify-center mt-2 animate-fade-in-slow [animation-fill-mode:backwards]"
+          style={{ animationDelay: "1.1s" }}
         >
-          Generate Now
-        </button>
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className="px-2 py-1 rounded-full bg-white/20 text-white/90 backdrop-blur border border-white/30 shadow-sm hover:bg-white/30 transition-colors text-xs font-medium"
+              onClick={() => setPrompt(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       </form>
     </section>
   );

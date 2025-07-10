@@ -1,0 +1,78 @@
+import { useProjectStore } from "@/app/store/useProjectsStore";
+import { faCheck, faSort } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useRef, useState, useEffect } from "react";
+
+const SwitchProjects = () => {
+  const { projects, setSelectedProject, selectedProject } = useProjectStore();
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close popup when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative flex" ref={dropdownRef}>
+      <button
+        className="p-2 mt-0.5 flex items-center justify-center hover:bg-zinc-700 rounded-lg"
+        onClick={() => setOpen((prev) => !prev)}
+        title="Switch Project"
+      >
+        <FontAwesomeIcon icon={faSort} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-10 min-w-[180px] max-w-[240px] bg-zinc-900 text-white shadow-lg rounded-lg z-50 py-2 animate-fadeFast border border-zinc-700">
+          {projects.length === 0 ? (
+            <div className="px-4 py-2 text-sm text-zinc-400">
+              No projects found
+            </div>
+          ) : (
+            projects.map((project) => {
+              const isActive =
+                selectedProject && selectedProject.id === project.id;
+              return (
+                <button
+                  key={project.id}
+                  className={`w-full flex justify-between items-center text-left px-4 py-2 transition-colors text-sm truncate rounded-none ${
+                    isActive
+                      ? "bg-zinc-700 font-semibold cursor-default"
+                      : "hover:bg-zinc-700"
+                  }`}
+                  onClick={() => {
+                    if (!isActive) {
+                      setSelectedProject(project);
+                    }
+                    setOpen(false);
+                  }}
+                  disabled={!!isActive}
+                >
+                  {project.project_name}
+                  {isActive && <FontAwesomeIcon icon={faCheck} />}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SwitchProjects;

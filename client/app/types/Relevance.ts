@@ -17,3 +17,8 @@ export interface Relevance {
     };
   }[];
 }
+
+export interface RelevanceOutput {
+  type: string;
+  update: ToolOutput;
+}
