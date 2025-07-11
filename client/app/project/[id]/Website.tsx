@@ -44,7 +44,7 @@ const Website: React.FC<WebsiteProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<ElementPos | null>(null);
-  const [srcDoc, setSrcDoc] = useState("");
+  // const [srcDoc, setSrcDoc] = useState("");
   const {
     handleContentDelete,
     handleContentEdit,
@@ -295,23 +295,22 @@ const Website: React.FC<WebsiteProps> = ({
     [handleClick]
   );
 
-  const removeDisableInteractionStyle = useCallback(
-    (iframeDoc: Document) => {
-      iframeDoc.getElementById("disable-interaction-style")?.remove();
-      iframeDoc.querySelectorAll("*").forEach((el) => {
-        if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
-          const htmlEl = el as HTMLElement;
-          const originalHref = htmlEl.getAttribute("data-original-href");
-          if (originalHref) {
-            htmlEl.setAttribute("href", originalHref);
-          }
-          htmlEl.removeAttribute("data-original-href");
+  const removeDisableInteractionStyle = useCallback((iframeDoc: Document) => {
+    iframeDoc.getElementById("disable-interaction-style")?.remove();
+    iframeDoc.querySelectorAll("*").forEach((el) => {
+      if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
+        const htmlEl = el as HTMLElement;
+        const originalHref = htmlEl.getAttribute("data-original-href");
+        if (originalHref) {
+          htmlEl.setAttribute("href", originalHref);
         }
-      });
-      setSrcDoc(injectLinkFixScript(selectedProject?.file || ""));
-    },
-    [setSrcDoc, injectLinkFixScript, selectedProject?.file]
-  );
+        htmlEl.removeAttribute("data-original-href");
+        htmlEl.onclick = (e) => {
+          e.preventDefault();
+        };
+      }
+    });
+  }, []);
 
   const isTextOnly = (el: HTMLElement): boolean => {
     return (
@@ -369,7 +368,6 @@ const Website: React.FC<WebsiteProps> = ({
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !selectedProject?.file) return;
-    setSrcDoc(injectLinkFixScript(selectedProject.file || ""));
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!iframeDoc || !iframeDoc.body) return;
@@ -378,7 +376,6 @@ const Website: React.FC<WebsiteProps> = ({
       setElementType(null);
       setSelectedElement(null);
       removeDisableInteractionStyle(iframeDoc);
-      return;
     } else {
       injectDisableInteractionStyle(iframeDoc);
     }
@@ -427,7 +424,7 @@ const Website: React.FC<WebsiteProps> = ({
       <iframe
         ref={iframeRef}
         key={selectedProject.file}
-        srcDoc={srcDoc}
+        srcDoc={injectLinkFixScript(selectedProject?.file || "")}
         className={`rounded-lg shadow-md`}
         style={{
           border: "none",
