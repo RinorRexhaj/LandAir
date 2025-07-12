@@ -215,7 +215,7 @@ const useChange = () => {
     if (!iframeDoc) return;
 
     iframeDoc.open();
-    iframeDoc.write(injectLinkFixScript(selectedProject.file));
+    iframeDoc.write(selectedProject.file);
     iframeDoc.close();
 
     setChanges([]);
@@ -238,53 +238,23 @@ const useChange = () => {
     selectedElement.style.display = "none";
   };
 
-  function injectLinkFixScript(html: string): string {
-    const linkFixScript = `
-    <script>
-    (function () {
-      'use strict';
-
-      const originalWindowOpen = window.open;
-      window.open = function (url, target, features) {
-        if (typeof url === 'string' && url.startsWith('#')) {
-          const el = document.querySelector(url);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-          }
-          return null;
+  const removeDisableInteractionStyle = (iframeDoc: Document) => {
+    iframeDoc.getElementById("disable-interaction-style")?.remove();
+    iframeDoc.querySelectorAll("*").forEach((el) => {
+      if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
+        const htmlEl = el as HTMLElement;
+        htmlEl.style.cursor = "";
+        const originalHref = htmlEl.getAttribute("data-original-href");
+        if (originalHref) {
+          htmlEl.setAttribute("href", originalHref);
         }
-        return originalWindowOpen.call(window, url, target, features);
-      };
-
-      document.addEventListener('click', function (event) {
-        const anchor = event.target.closest('a');
-        if (!anchor) return;
-
-        const href = anchor.getAttribute('href');
-        if (!href || ['#', '', 'javascript:void(0)'].includes(href)) return;
-        if(href === '#') return;
-
-        event.preventDefault();
-
-        if (href.startsWith('#')) {
-          const el = document.querySelector(href);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-          }
-        } else {
-          window.open(href, '_blank');
-        }
-      });
-    })();
-    </script>
-  `;
-
-    if (html.includes("</body>")) {
-      return html.replace("</body>", `${linkFixScript}</body>`);
-    } else {
-      return html + linkFixScript;
-    }
-  }
+        htmlEl.removeAttribute("data-original-href");
+        htmlEl.onclick = (e) => {
+          e.preventDefault();
+        };
+      }
+    });
+  };
 
   return {
     handleContentEdit,
@@ -292,7 +262,7 @@ const useChange = () => {
     handleDiscardChanges,
     handleSaveChanges,
     handleContentDelete,
-    injectLinkFixScript,
+    removeDisableInteractionStyle,
   };
 };
 

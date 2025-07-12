@@ -88,6 +88,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     alt="Logo"
                     width={28}
                     height={28}
+                    className="ml-1"
                   />
                 )}
               </button>
@@ -108,7 +109,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 </h1>
               ) : (
                 <h1
-                  className={`text-xl mt-0.5 font-bold ${
+                  className={`text-xl mt-1 ml-0.5 font-bold ${
                     darkMode ? "text-white" : "text-zinc-900"
                   } animate-fade cursor-pointer flex items-center gap-2`}
                 >

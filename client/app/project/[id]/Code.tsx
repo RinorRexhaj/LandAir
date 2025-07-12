@@ -110,7 +110,9 @@ const Code: React.FC<CodeProps> = ({ file, getUrl, setChanged }) => {
           formatOnPaste: true,
           formatOnType: true,
         }}
-        className={`${isSaving && "animate-glow"}`}
+        className={`${
+          isSaving && "animate-glow cursor-not-allowed pointer-events-none"
+        }`}
         onChange={(value) => setCode(value || "")}
       />
     </div>

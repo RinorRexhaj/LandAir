@@ -3,6 +3,11 @@ import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { ElementPos } from "@/app/types/Element";
 import {
+  isImageElement,
+  isLayoutElement,
+  isTextOnly,
+} from "@/app/utils/Elements";
+import {
   faPenToSquare,
   faTrash,
   faCheck,
@@ -44,14 +49,13 @@ const Website: React.FC<WebsiteProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<ElementPos | null>(null);
-  // const [srcDoc, setSrcDoc] = useState("");
   const {
     handleContentDelete,
     handleContentEdit,
     handleUndoChange,
     handleDiscardChanges,
     handleSaveChanges,
-    injectLinkFixScript,
+    removeDisableInteractionStyle,
   } = useChange();
   const { selectedProject } = useProjectStore();
   const { darkMode } = useThemeStore();
@@ -259,8 +263,9 @@ const Website: React.FC<WebsiteProps> = ({
   const injectDisableInteractionStyle = useCallback(
     (iframeDoc: Document) => {
       iframeDoc.querySelectorAll("*").forEach((el) => {
-        if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
+        if (!["SCRIPT", "HEAD", "META", "LINK"].includes(el.tagName)) {
           const htmlEl = el as HTMLElement;
+          htmlEl.style.cursor = "crosshair";
           const originalHref = htmlEl.getAttribute("href");
           if (originalHref) {
             htmlEl.setAttribute("data-original-href", originalHref);
@@ -277,93 +282,9 @@ const Website: React.FC<WebsiteProps> = ({
           htmlEl.onmouseup = (e) => e.stopImmediatePropagation();
         }
       });
-      const style = iframeDoc.getElementById("disable-interaction-style");
-      if (style) return; // Prevent duplicates
-
-      const styleTag = iframeDoc.createElement("style");
-      styleTag.id = "disable-interaction-style";
-      styleTag.innerHTML = `
-        * {
-          cursor: crosshair !important;
-          transition: none !important;
-          animation: none !important;
-        }
-      `;
-
-      iframeDoc.head.appendChild(styleTag);
     },
     [handleClick]
   );
-
-  const removeDisableInteractionStyle = useCallback((iframeDoc: Document) => {
-    iframeDoc.getElementById("disable-interaction-style")?.remove();
-    iframeDoc.querySelectorAll("*").forEach((el) => {
-      if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
-        const htmlEl = el as HTMLElement;
-        const originalHref = htmlEl.getAttribute("data-original-href");
-        if (originalHref) {
-          htmlEl.setAttribute("href", originalHref);
-        }
-        htmlEl.removeAttribute("data-original-href");
-        htmlEl.onclick = (e) => {
-          e.preventDefault();
-        };
-      }
-    });
-  }, []);
-
-  const isTextOnly = (el: HTMLElement): boolean => {
-    return (
-      el.childNodes.length === 1 &&
-      el.childNodes[0].nodeType === Node.TEXT_NODE &&
-      (el.textContent?.trim().length
-        ? el.textContent?.trim().length > 0
-        : false)
-    );
-  };
-
-  const isImageElement = (el: HTMLElement): boolean => {
-    const isImgTag = el.tagName === "IMG";
-
-    const hasSingleImgChild =
-      el.querySelectorAll("img").length === 1 && el.children.length === 1;
-
-    const bg = window.getComputedStyle(el).backgroundImage;
-    const hasBackgroundImage = Boolean(
-      bg && bg !== "none" && bg.includes("url(")
-    );
-
-    return isImgTag || hasSingleImgChild || hasBackgroundImage;
-  };
-
-  const isLayoutElement = (el: HTMLElement): boolean => {
-    const layoutTags = ["DIV", "SECTION", "MAIN", "HEADER", "FOOTER"];
-    const hasNoText = !el.textContent?.trim();
-    const hasChildren = el.children.length > 0;
-    return layoutTags.includes(el.tagName) && hasNoText && hasChildren;
-  };
-
-  const getWidth = () => {
-    const width = document.body.clientWidth;
-    return mobile
-      ? width > 500
-        ? "430px"
-        : "100vw"
-      : width > 1800
-      ? "1920px"
-      : "1440px";
-  };
-
-  const getHeight = () => {
-    const height = document.body.clientHeight;
-    const width = document.body.clientWidth;
-    const extra = (height * 200) / width + 21.5;
-    const mobileExtra =
-      (height > width ? height / width : width / height) +
-      (height > width ? height / width : width / height) * 3;
-    if (mobile) return `calc(${scale * 100 + mobileExtra}dvh)`;
-    return height * (1 / scale) - extra;
-  };
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -380,6 +301,7 @@ const Website: React.FC<WebsiteProps> = ({
       injectDisableInteractionStyle(iframeDoc);
     }
 
+    iframeDoc.body.style.cursor = selector ? "crosshair" : "default";
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
     iframeDoc.addEventListener("scroll", () => {
@@ -414,8 +336,29 @@ const Website: React.FC<WebsiteProps> = ({
     updateHoverPos,
     updateToolbarPos,
     removeDisableInteractionStyle,
-    injectLinkFixScript,
   ]);
+
+  const getWidth = () => {
+    const width = document.body.clientWidth;
+    return mobile
+      ? width > 500
+        ? "430px"
+        : "100vw"
+      : width > 1800
+      ? "1920px"
+      : "1440px";
+  };
+
+  const getHeight = () => {
+    const height = document.body.clientHeight;
+    const width = document.body.clientWidth;
+    const extra = (height * 200) / width + 21.5;
+    const mobileExtra =
+      (height > width ? height / width : width / height) +
+      (height > width ? height / width : width / height) * 3;
+    if (mobile) return `calc(${scale * 100 + mobileExtra}dvh)`;
+    return height * (1 / scale) - extra;
+  };
 
   if (!selectedProject) return;
 
@@ -424,7 +367,7 @@ const Website: React.FC<WebsiteProps> = ({
       <iframe
         ref={iframeRef}
         key={selectedProject.file}
-        srcDoc={injectLinkFixScript(selectedProject?.file || "")}
+        srcDoc={selectedProject.file}
         className={`rounded-lg shadow-md`}
         style={{
           border: "none",
@@ -585,12 +528,12 @@ const Website: React.FC<WebsiteProps> = ({
         >
           <button
             onClick={async () => {
+              setSelector(false);
               const saved = await handleSaveChanges(
                 selectedElement?.element || null,
                 iframeRef
               );
               if (saved) {
-                setSelector(false);
                 setChanged(true);
                 setHasUnsavedChanges(false);
               }

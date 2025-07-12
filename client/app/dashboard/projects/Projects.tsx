@@ -111,7 +111,7 @@ const Projects = () => {
                 Projects
               </h2>
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`flex items-center gap-2 px-4 md:px-2 py-2 rounded-lg font-medium transition-colors ${
                   darkMode
                     ? "bg-blue-600 hover:bg-blue-700 text-white"
                     : "bg-blue-600 hover:bg-blue-700 text-white"
@@ -122,7 +122,7 @@ const Projects = () => {
                 onClick={createProject}
               >
                 <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-                New Project
+                <p className="md:hidden">New Project</p>
               </button>
             </div>
 
