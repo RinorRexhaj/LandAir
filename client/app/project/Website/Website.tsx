@@ -1,22 +1,15 @@
 import useChange from "@/app/hooks/useChange";
 import { useProjectStore } from "@/app/store/useProjectsStore";
-import { useThemeStore } from "@/app/store/useThemeStore";
 import { ElementPos } from "@/app/types/Element";
 import {
   isImageElement,
   isLayoutElement,
   isTextOnly,
 } from "@/app/utils/Elements";
-import {
-  faPenToSquare,
-  faTrash,
-  faCheck,
-  faImage,
-  faUndo,
-  faBookmark,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useState } from "react";
+import ActionElements from "./ActionElements";
+import ChangesBar from "./ChangesBar";
+import EditModal from "./EditModal";
 
 interface WebsiteProps {
   selector: boolean;
@@ -49,16 +42,8 @@ const Website: React.FC<WebsiteProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<ElementPos | null>(null);
-  const {
-    handleContentDelete,
-    handleContentEdit,
-    handleUndoChange,
-    handleDiscardChanges,
-    handleSaveChanges,
-    removeDisableInteractionStyle,
-  } = useChange();
+  const { removeDisableInteractionStyle } = useChange();
   const { selectedProject } = useProjectStore();
-  const { darkMode } = useThemeStore();
   const [showTextEditModal, setShowTextEditModal] = useState(false);
   const [modalTextValue, setModalTextValue] = useState("");
 
@@ -378,260 +363,39 @@ const Website: React.FC<WebsiteProps> = ({
           position: "fixed",
         }}
       />
-      {selector && hoveredElement && iframeRef.current && (
-        <div
-          className={`bg-blue-500 opacity-50 pointer-events-none`}
-          style={{
-            position: "fixed",
-            height: hoveredElement.height,
-            width: hoveredElement.width,
-            left: hoveredElement.left,
-            top: hoveredElement.top,
-          }}
-        ></div>
-      )}
-      {selector && selectedElement && iframeRef.current && (
-        <div
-          className="outline-dashed outline-2 outline-blue-700 opacity-100 pointer-events-none"
-          style={{
-            position: "fixed",
-            height: selectedElement.height,
-            width: selectedElement.width,
-            left: selectedElement.left,
-            top: selectedElement.top,
-          }}
-        ></div>
-      )}
-      {selectedElement && selector && (
-        <div
-          className="absolute z-40 bg-white px-2 py-1 flex gap-2 items-center rounded text-xs shadow-lg border-2 border-zinc-200"
-          style={{
-            left: toolBarPos?.left,
-            top: toolBarPos?.top,
-          }}
-        >
-          {elementType !== "layout" && (
-            <>
-              <button
-                onClick={() => {
-                  if (elementType === "image") {
-                    const input = document.createElement("input");
-                    input.type = "file";
-                    input.accept = "image/*";
-
-                    input.onchange = (e: Event) => {
-                      const target = e.target as HTMLInputElement;
-                      const file = target.files?.[0];
-                      if (!file) return;
-
-                      if (file.size > 1024 * 1024) {
-                        alert("Image must be less than 1MB");
-                        return;
-                      }
-
-                      const reader = new FileReader();
-                      reader.onload = () => {
-                        const dataUrl = reader.result as string;
-
-                        // Store original HTML if not already stored
-                        if (
-                          !selectedElement.element.getAttribute(
-                            "data-original-html"
-                          )
-                        ) {
-                          selectedElement.element.setAttribute(
-                            "data-original-html",
-                            selectedElement.element.outerHTML
-                          );
-                        }
-
-                        selectedElement.element.setAttribute("src", dataUrl);
-
-                        // Call the change tracking function
-                        handleContentEdit(selectedElement.element);
-                        setIsEditing(false);
-                        setHasUnsavedChanges(true);
-                      };
-
-                      reader.readAsDataURL(file);
-                    };
-
-                    input.click();
-                  } else if (elementType === "text") {
-                    // Open modal for text editing
-                    setModalTextValue(
-                      selectedElement.element.textContent || ""
-                    );
-                    setShowTextEditModal(true);
-                  } else {
-                    // fallback to previous logic for mixed content
-                    if (!isEditing) {
-                      selectedElement.element.contentEditable = "true";
-                      selectedElement.element.style.outline = "none";
-                      selectedElement.element.setAttribute(
-                        "data-original-html",
-                        selectedElement.element.innerHTML
-                      );
-                      selectedElement.element.addEventListener("input", () => {
-                        handleContentEdit(selectedElement.element);
-                        setHasUnsavedChanges(true);
-                      });
-                      selectedElement.element.focus();
-                    } else {
-                      selectedElement.element.contentEditable = "false";
-                      selectedElement.element.blur();
-                    }
-                    setIsEditing(!isEditing);
-                  }
-                }}
-                className="text-gray-700 hover:text-blue-600 flex items-center gap-1"
-                title="Edit"
-              >
-                <FontAwesomeIcon
-                  icon={
-                    isEditing
-                      ? faCheck
-                      : elementType === "image"
-                      ? faImage
-                      : faPenToSquare
-                  }
-                />
-                <p className={`md:hidden font-medium`}>
-                  {isEditing ? "Save" : "Edit"}
-                </p>
-              </button>
-              <span className="w-px h-4 bg-zinc-400"></span>
-            </>
-          )}
-
-          <button
-            onClick={() => {
-              setHasUnsavedChanges(true);
-              handleContentDelete(selectedElement.element);
-              setSelectedElement(null);
-            }}
-            className="text-gray-700 hover:text-red-600 flex items-center gap-1 font-semibold"
-            title="Delete"
-          >
-            <FontAwesomeIcon icon={faTrash} />
-            <p className="md:hidden">Delete</p>
-          </button>
-        </div>
-      )}
-      {hasUnsavedChanges && (
-        <div
-          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[175px] md:ml-[100px] flex p-1 gap-1 rounded-lg items-center z-40 transition-all animate-fade duration-200 ${
-            darkMode
-              ? "bg-zinc-800/80 border-gray-200/20"
-              : "bg-zinc-100/80 border-gray-300/50"
-          }`}
-        >
-          <button
-            onClick={async () => {
-              setSelector(false);
-              const saved = await handleSaveChanges(
-                selectedElement?.element || null,
-                iframeRef
-              );
-              if (saved) {
-                setChanged(true);
-                setHasUnsavedChanges(false);
-              }
-            }}
-            title="Save"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-blue-500/70 ${
-              !darkMode && "hover:text-zinc-100"
-            }`}
-          >
-            <FontAwesomeIcon icon={faBookmark} className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => {
-              const noChanges = handleUndoChange();
-              if (noChanges) setHasUnsavedChanges(false);
-            }}
-            title="Undo"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100  ${
-              darkMode
-                ? "hover:bg-zinc-500"
-                : "hover:bg-zinc-700/70 hover:text-white"
-            }`}
-          >
-            <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => {
-              handleDiscardChanges(iframeRef);
-              setHasUnsavedChanges(false);
-              setSelector(false);
-              setSelectedElement(null);
-              setIsEditing(false);
-            }}
-            title="Discard"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-red-500/80 ${
-              !darkMode && "hover:text-zinc-100"
-            }`}
-          >
-            <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      <ActionElements
+        selectedElement={selectedElement}
+        elementType={elementType}
+        hoveredElement={hoveredElement}
+        iframeRef={iframeRef}
+        isEditing={isEditing}
+        selector={selector}
+        setHasUnsavedChanges={setHasUnsavedChanges}
+        setIsEditing={setIsEditing}
+        setModalTextValue={setModalTextValue}
+        setSelectedElement={setSelectedElement}
+        setShowTextEditModal={setShowTextEditModal}
+        toolBarPos={toolBarPos}
+      />
+      <ChangesBar
+        iframeRef={iframeRef}
+        selectedElement={selectedElement}
+        setChanged={setChanged}
+        hasUnsavedChanges={hasUnsavedChanges}
+        setHasUnsavedChanges={setHasUnsavedChanges}
+        setIsEditing={setIsEditing}
+        setSelectedElement={setSelectedElement}
+        setSelector={setSelector}
+      />
       {showTextEditModal && (
-        <div
-          className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30`}
-        >
-          <div
-            className={`${
-              darkMode ? "bg-zinc-900 text-white" : "bg-white text-zinc-900"
-            } rounded-lg shadow-lg p-6 w-96 flex flex-col gap-4 font-semibold`}
-          >
-            <h3 className="text-lg font-semibold">Edit Text</h3>
-            <textarea
-              className={`${
-                darkMode ? "border-zinc-700" : "border-zinc-300"
-              } border bg-inherit rounded p-2 w-full min-h-[120px] focus:outline-none`}
-              value={modalTextValue}
-              onChange={(e) => setModalTextValue(e.target.value)}
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-                onClick={() => {
-                  if (selectedElement) {
-                    // Store original HTML if not already stored
-                    if (
-                      !selectedElement.element.getAttribute(
-                        "data-original-html"
-                      )
-                    ) {
-                      selectedElement.element.setAttribute(
-                        "data-original-html",
-                        selectedElement.element.innerHTML
-                      );
-                    }
-                    selectedElement.element.textContent = modalTextValue;
-                    handleContentEdit(selectedElement.element);
-                    setHasUnsavedChanges(true);
-                  }
-                  setShowTextEditModal(false);
-                  setSelectedElement(null);
-                }}
-              >
-                Save
-              </button>
-              <button
-                className="px-3 text-white py-1 rounded bg-gray-500 hover:bg-gray-600"
-                onClick={() => {
-                  setShowTextEditModal(false);
-                  setSelectedElement(null);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <EditModal
+          modalTextValue={modalTextValue}
+          selectedElement={selectedElement}
+          setHasUnsavedChanges={setHasUnsavedChanges}
+          setModalTextValue={setModalTextValue}
+          setSelectedElement={setSelectedElement}
+          setShowTextEditModal={setShowTextEditModal}
+        />
       )}
     </div>
   );

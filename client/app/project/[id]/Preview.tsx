@@ -1,7 +1,7 @@
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import React, { useEffect, useRef, useState } from "react";
 import Code from "./Code";
-import Website from "./Website";
+import Website from "../Website/Website";
 import PreviewHeader from "./PreviewHeader";
 import { ElementPos } from "@/app/types/Element";
 

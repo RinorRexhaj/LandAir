@@ -1,21 +1,22 @@
-import { RefObject, useState } from "react";
+import { RefObject } from "react";
 import { useProjectStore } from "../store/useProjectsStore";
+import { useChangesStore } from "../store/useChangesStore";
 import useApi from "./useApi";
 import useToast from "./useToast";
 import { takeScreenshot } from "../utils/Screenshot";
-
-interface ElementChange {
-  element: HTMLElement;
-  originalHTML: string;
-  newHTML: string;
-  type: "edit" | "delete";
-}
 
 const useChange = () => {
   const { post, put } = useApi();
   const toast = useToast();
   const { selectedProject, setSelectedProject } = useProjectStore();
-  const [changes, setChanges] = useState<ElementChange[]>([]);
+  const {
+    changes,
+    addChange,
+    updateChange,
+    removeLastChange,
+    clearChanges,
+    getChangesCount,
+  } = useChangesStore();
 
   // Track changes when content is edited
   const handleContentEdit = (element: HTMLElement) => {
@@ -35,26 +36,17 @@ const useChange = () => {
         (change) => change.element === element
       );
 
-      const updatedChanges = [...changes];
-
       if (existingChangeIndex >= 0) {
-        updatedChanges[existingChangeIndex] = {
-          ...updatedChanges[existingChangeIndex],
-          newHTML,
-        };
+        updateChange(element, newHTML);
       } else {
-        updatedChanges.push({ element, originalHTML, newHTML, type: "edit" });
+        addChange({ element, originalHTML, newHTML, type: "edit" });
       }
-
-      setChanges(updatedChanges);
     }
   };
 
   const handleUndoChange = () => {
-    if (changes.length === 0) return;
-
-    const lastChange = changes[changes.length - 1];
-    const remainingChanges = changes.slice(0, -1);
+    const lastChange = removeLastChange();
+    if (!lastChange) return false;
 
     if (lastChange.type === "edit") {
       const tagName = lastChange.element.tagName.toLowerCase();
@@ -82,8 +74,7 @@ const useChange = () => {
       lastChange.element.style.display = "";
     }
 
-    setChanges(remainingChanges);
-    return remainingChanges.length === 0;
+    return getChangesCount() === 0;
   };
 
   // Save changes
@@ -195,7 +186,7 @@ const useChange = () => {
         last_edited: new Date(),
       });
 
-      setChanges([]);
+      clearChanges();
       toast.update(toastId, "success", "Changes saved!");
       return true;
     } catch (err) {
@@ -218,22 +209,19 @@ const useChange = () => {
     iframeDoc.write(selectedProject.file);
     iframeDoc.close();
 
-    setChanges([]);
+    clearChanges();
     toast.info("Changes discarded.");
   };
 
   const handleContentDelete = (selectedElement: HTMLElement) => {
     const originalHTML = selectedElement?.outerHTML || "";
 
-    setChanges([
-      ...changes,
-      {
-        element: selectedElement,
-        originalHTML,
-        newHTML: "",
-        type: "delete",
-      },
-    ]);
+    addChange({
+      element: selectedElement,
+      originalHTML,
+      newHTML: "",
+      type: "delete",
+    });
 
     selectedElement.style.display = "none";
   };
