@@ -178,8 +178,11 @@ const Terms = () => {
         <p className="mb-6">
           If you have any questions, contact us at: <br />
           Email:{" "}
-          <a href="mailto:info@landair.app" className="text-blue-600 underline">
-            info@landair.app
+          <a
+            href="mailto:landair.app@gmail.com"
+            className="text-blue-600 underline"
+          >
+            landair.app@gmail.com
           </a>{" "}
           <br />
           Website:{" "}

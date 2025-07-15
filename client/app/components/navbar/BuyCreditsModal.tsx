@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
+import useAuth from "@/app/hooks/useAuth";
 // import useApi from "@/app/hooks/useApi";
 
 interface BuyCreditsModalProps {
@@ -14,11 +15,54 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
   onClose,
 }) => {
   const { darkMode } = useThemeStore();
-  // const { post } = useApi();
+  const { user } = useAuth();
+  // const { get } = useApi();
   const [redirecting, setRedirecting] = useState(false);
   const [activePlan, setActivePlan] = useState(0);
 
   if (!isOpen) return null;
+
+  // useEffect(() => {
+  //   const prod = process.env.NEXT_PUBLIC_PROD;
+
+  //   const loadPaddle = async () => {
+  //     const scriptId = "paddle-js";
+  //     if (!document.getElementById(scriptId)) {
+  //       const script = document.createElement("script");
+  //       script.id = scriptId;
+  //       script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+  //       script.onload = async () => {
+  //         const { token }: { token: string } = await get("/api/payment/paddle");
+  //         if (!token) {
+  //           console.error("No Paddle client token received");
+  //           return;
+  //         }
+
+  //         // @ts-expect-error paddle
+  //         window.Paddle.Setup({
+  //           token: token,
+  //           environment: prod ? "production" : "sandbox",
+  //         });
+  //       };
+  //       document.body.appendChild(script);
+  //     } else {
+  //       // Already loaded, just setup again
+  //       const { token }: { token: string } = await get("/api/payment/paddle");
+  //       if (!token) {
+  //         console.error("No Paddle client token received");
+  //         return;
+  //       }
+
+  //       // @ts-expect-error paddle
+  //       window.Paddle.Setup({
+  //         token: token,
+  //         environment: prod ? "production" : "sandbox",
+  //       });
+  //     }
+  //   };
+
+  //   loadPaddle();
+  // }, [get, redirecting]);
 
   const creditPlans = [
     {
@@ -41,15 +85,52 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
     },
   ];
 
-  const buyNow = async (type: string) => {
+  const buyNow = async (planName: string) => {
     setRedirecting(true);
-    let priceId;
-    if (type === "growth") {
-      priceId = process.env.NEXT_PUBLIC_GROWTH;
-    } else if (type === "scale") {
-      priceId = process.env.NEXT_PUBLIC_SCALE;
+    const growthId = process.env.NEXT_PUBLIC_PADDLE_GROWTH_ID;
+    const scaleId = process.env.NEXT_PUBLIC_PADDLE_SCALE_ID;
+    if (!growthId || !scaleId) return;
+
+    const planToPriceId: Record<string, string> = {
+      growth: growthId,
+      scale: scaleId,
+    };
+
+    const priceId = planToPriceId[planName.toLowerCase()];
+    if (!priceId) {
+      alert("Invalid plan selected");
+      setRedirecting(false);
+      return;
     }
-    if (priceId) window.location.href = priceId;
+
+    try {
+      // @ts-expect-error paddle
+      if (!Paddle) throw new Error("Paddle not initialized");
+
+      // Optional: attach metadata like userId or email
+      // @ts-expect-error paddle
+      Paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+        customer: {
+          email: user?.email,
+        },
+        customData: {
+          userId: user?.id, // So you can use this in webhook to credit user
+        },
+        // onCheckoutComplete: (data: any) => {
+        //   console.log("Checkout Complete:", data);
+        //   // Optional: Optimistically credit user or refresh their balance
+        //   onClose();
+        // },
+        onCheckoutClose: () => {
+          setRedirecting(false);
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Unable to load checkout");
+      setRedirecting(false);
+    }
   };
 
   return (

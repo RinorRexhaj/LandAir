@@ -6,21 +6,24 @@ export async function POST(req: NextRequest) {
   const validation = await validateRequest(req);
   if (validation instanceof NextResponse) return validation;
 
-  const { priceId } = await req.json();
-  if (!priceId) {
+  const { type } = await req.json();
+  if (!type) {
     return NextResponse.json({ error: "Missing priceId" }, { status: 400 });
   }
 
   try {
-    const origin = req.headers.get("origin") || "http://localhost:3000";
-
     const session = await createCheckoutSession({
-      priceId,
+      type,
       userId: validation.user.id,
-      origin,
+      email: validation.user.email || "",
     });
 
-    return NextResponse.json({ sessionId: session.id });
+    if ("error" in session) {
+      console.error("Checkout session error:", session.error);
+      return NextResponse.json({ error: session.error }, { status: 500 });
+    }
+
+    return NextResponse.json({ url: session.url });
   } catch (error: unknown) {
     console.error("Checkout session error:", error);
     return NextResponse.json({ error: error }, { status: 500 });

@@ -6,10 +6,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const growth = process.env.NEXT_PUBLIC_PADDLE_GROWTH_ID || "";
+const scale = process.env.NEXT_PUBLIC_PADDLE_SCALE_ID || "";
+
 // Map LemonSqueezy product IDs to credits
-const CREDIT_MAP: Record<number, number> = {
-  561452: 15,
-  561453: 35,
+const CREDIT_MAP: Record<string, number> = {
+  [growth]: 15,
+  [scale]: 35,
 };
 
 export async function POST(req: NextRequest) {

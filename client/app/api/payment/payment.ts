@@ -1,31 +1,49 @@
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-05-28.basil",
-});
-
 export async function createCheckoutSession({
-  priceId,
+  type,
   userId,
-  origin,
+  email,
 }: {
-  priceId: string;
+  type: string;
   userId?: string;
-  origin: string;
+  email: string;
 }) {
-  return await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1,
+  const price_id =
+    type === "growth"
+      ? process.env.NEXT_PUBLIC_PADDLE_GROWTH_ID
+      : process.env.NEXT_PUBLIC_PADDLE_SCALE_ID;
+  const response = await fetch(
+    "https://sandbox-api.paddle.com/checkout/sessions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.PADDLE_KEY}`,
+        "Content-Type": "application/json",
       },
-    ],
-    success_url: `${origin}`,
-    cancel_url: `${origin}`,
-    metadata: {
-      supabaseUserId: userId ?? "",
-    },
-  });
+      body: JSON.stringify({
+        customer: {
+          email,
+        },
+        items: [
+          {
+            price_id,
+            quantity: 1,
+          },
+        ],
+        custom_data: {
+          user_id: userId,
+        },
+        success_url: "https://landair.app",
+        cancel_url: "https://landair.app",
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Paddle error", data);
+    return { error: data };
+  }
+
+  return { url: data.data.url };
 }
