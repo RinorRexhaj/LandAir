@@ -37,7 +37,7 @@ const EditModal: React.FC<EditModalProps> = ({
           className={`${
             darkMode ? "border-zinc-700" : "border-zinc-300"
           } border bg-inherit rounded p-2 w-full min-h-[120px] focus:outline-none`}
-          value={modalTextValue}
+          value={modalTextValue.trim()}
           onChange={(e) => setModalTextValue(e.target.value)}
           autoFocus
         />

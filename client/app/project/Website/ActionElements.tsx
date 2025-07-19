@@ -1,4 +1,5 @@
 import useChange from "@/app/hooks/useChange";
+import { useThemeStore } from "@/app/store/useThemeStore";
 import { ElementPos } from "@/app/types/Element";
 import {
   faCheck,
@@ -42,6 +43,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
   setShowTextEditModal,
 }) => {
   const { handleContentDelete, handleContentEdit } = useChange();
+  const { darkMode } = useThemeStore();
 
   return (
     <>
@@ -71,7 +73,11 @@ const ActionElements: React.FC<ActionElementsProps> = ({
       )}
       {selectedElement && selector && (
         <div
-          className="absolute z-40 bg-white px-2 py-1 flex gap-2 items-center rounded text-xs shadow-lg border-2 border-zinc-200"
+          className={`absolute z-40 ${
+            darkMode
+              ? "bg-zinc-900 text-white border-zinc-700"
+              : "text-zinc-900 bg-white border-zinc-200"
+          } px-3 py-1.5 flex gap-2 items-center rounded text-xs shadow-lg border-2 `}
           style={{
             left: toolBarPos?.left,
             top: toolBarPos?.top,
@@ -151,7 +157,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
                     setIsEditing(!isEditing);
                   }
                 }}
-                className="text-gray-700 hover:text-blue-600 flex items-center gap-1"
+                className={`hover:text-blue-600 flex items-center gap-1`}
                 title="Edit"
               >
                 <FontAwesomeIcon
@@ -177,7 +183,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
               handleContentDelete(selectedElement.element);
               setSelectedElement(null);
             }}
-            className="text-gray-700 hover:text-red-600 flex items-center gap-1 font-semibold"
+            className="hover:text-red-600 flex items-center gap-1 font-semibold"
             title="Delete"
           >
             <FontAwesomeIcon icon={faTrash} />

@@ -140,7 +140,8 @@ const Website: React.FC<WebsiteProps> = ({
         top = rect.bottom * scale - 30;
       } else {
         // Regular positioning logic
-        top = rect.y * scale < 50 ? rect.bottom * scale : rect.y * scale - 30;
+        top =
+          rect.y * scale < 50 ? rect.bottom * scale + 2 : rect.y * scale - 33;
       }
 
       setToolBarPos({ top, left });
@@ -325,13 +326,7 @@ const Website: React.FC<WebsiteProps> = ({
 
   const getWidth = () => {
     const width = document.body.clientWidth;
-    return mobile
-      ? width > 500
-        ? "430px"
-        : "100vw"
-      : width > 1800
-      ? "1920px"
-      : "1440px";
+    return mobile ? (width > 500 ? "430px" : "100vw") : "1440px";
   };
 
   const getHeight = () => {

@@ -187,6 +187,7 @@ const useChange = () => {
       });
 
       clearChanges();
+      removeDisableInteractionStyle(iframeDoc);
       toast.update(toastId, "success", "Changes saved!");
       return true;
     } catch (err) {
@@ -210,6 +211,7 @@ const useChange = () => {
     iframeDoc.close();
 
     clearChanges();
+    removeDisableInteractionStyle(iframeDoc);
     toast.info("Changes discarded.");
   };
 
