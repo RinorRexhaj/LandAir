@@ -23,22 +23,26 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const validation = await validateRequest(req);
-  if (validation instanceof NextResponse) {
-    return validation;
-  }
-  const { type, prompt, code } = await req.json();
-  if (type === "generate") {
-    const website = await generateWebsite(prompt);
-    return NextResponse.json(website);
-  } else if (type === "summary") {
-    const summary = await generateSummary(code);
-    return NextResponse.json(summary);
-  } else if (type === "changes") {
-    const changes = await makeChanges(code, prompt);
-    return NextResponse.json(changes);
-  } else {
-    const enhanced = await enhancePrompt(prompt);
-    return NextResponse.json(enhanced);
+  try {
+    const validation = await validateRequest(req);
+    if (validation instanceof NextResponse) {
+      return validation;
+    }
+    const { type, prompt, code } = await req.json();
+    if (type === "generate") {
+      const website = await generateWebsite(prompt);
+      return NextResponse.json(website);
+    } else if (type === "summary") {
+      const summary = await generateSummary(code);
+      return NextResponse.json(summary);
+    } else if (type === "changes") {
+      const changes = await makeChanges(code, prompt);
+      return NextResponse.json(changes);
+    } else {
+      const enhanced = await enhancePrompt(prompt);
+      return NextResponse.json(enhanced);
+    }
+  } catch (err) {
+    return err;
   }
 }

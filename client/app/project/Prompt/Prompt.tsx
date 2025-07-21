@@ -181,7 +181,7 @@ const Prompt: React.FC<PromptProps> = ({
     if (!currentInput || isGenerating || credits < 3 || !selectedProject)
       return;
 
-    const taskType = messages.length <= 0 ? "generate" : "changes";
+    const taskType = !selectedProject.file ? "generate" : "changes";
     setTaskType(taskType);
     setInput(overrideInput ? input : "");
     setLastFailedInput(null); // Clear retry state on new submit
