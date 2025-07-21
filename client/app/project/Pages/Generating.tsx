@@ -4,7 +4,6 @@ import {
   faCopyright,
   faEnvelope,
   faHome,
-  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
@@ -71,22 +70,13 @@ const Generating = () => {
               }}
             ></div>
           </div>
-          <div className="absolute top-1/2 w-full flex justify-center">
-            <FontAwesomeIcon
-              icon={faSpinner}
-              spin
-              className={`mx-auto w-8 h-8 ${
-                darkMode ? "text-white" : "text-zinc-900"
-              }`}
-            />
-          </div>
         </>
       )}
 
       {textShow && (
         <>
           <div
-            className={`absolute top-1/2 mb-4 z-50 w-full flex justify-center text-2xl font-bold overflow-hidden ${textMain}`}
+            className={`absolute top-1/2 -translate-y-1/2 z-50 w-full flex justify-center text-2xl font-bold overflow-hidden transform ${textMain}`}
           >
             {"Creating Dream Site...".split("").map((char, index) => (
               <span

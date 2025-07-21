@@ -152,6 +152,9 @@ export default function RootLayout({
       </head>
       <body
         className={`${dm.variable} antialiased text-white font-sans minimal-scrollbar`}
+        style={{
+          background: "#171717",
+        }}
       >
         {children}
         <Analytics />

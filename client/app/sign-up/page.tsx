@@ -50,7 +50,7 @@ const SignInPage = () => {
 
   return (
     <div ref={vantaRef} className="h-dvh w-full relative overflow-hidden">
-      <div className="absolute inset-0 backdrop-blur-sm bg-black/40" />
+      <div className="absolute inset-0 backdrop-blur-sm bg-black/20" />
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div className="w-full max-w-md bg-white/5 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-8 text-white">
           {/* Toggle Sign Up / Log In */}

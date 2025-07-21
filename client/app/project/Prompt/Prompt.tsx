@@ -282,6 +282,7 @@ const Prompt: React.FC<PromptProps> = ({
           }
 
           code = rawOutput.answer;
+          code = code.replace(/^```html\s*|```$/g, "").trim();
 
           const generationSummary: { answer: string } = await post(
             `/api/relevance`,
