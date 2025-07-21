@@ -43,6 +43,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(enhanced);
     }
   } catch (err) {
-    return err;
+    return NextResponse.json(err);
   }
 }
