@@ -41,6 +41,7 @@ const Website: React.FC<WebsiteProps> = ({
   >(null);
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [selectedVisible, setSelectedVisible] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<ElementPos | null>(null);
   const { removeDisableInteractionStyle } = useChange();
   const { selectedProject } = useProjectStore();
@@ -83,17 +84,13 @@ const Website: React.FC<WebsiteProps> = ({
       }
 
       // Only show if still visible
-      if (width > 0 && height > 0) {
-        setHoveredElement({
-          element: target,
-          height,
-          width,
-          left,
-          top,
-        });
-      } else {
-        setHoveredElement(null);
-      }
+      setHoveredElement({
+        element: target,
+        height,
+        width,
+        left,
+        top,
+      });
     },
     [iframeRef, scale]
   );
@@ -185,16 +182,17 @@ const Website: React.FC<WebsiteProps> = ({
       }
 
       // Only show if still visible
+      setSelectedElement({
+        element: target,
+        height,
+        width,
+        left,
+        top,
+      });
       if (width > 0 && height > 0) {
-        setSelectedElement({
-          element: target,
-          height,
-          width,
-          left,
-          top,
-        });
+        setSelectedVisible(true);
       } else {
-        setSelectedElement(null);
+        setSelectedVisible(false);
       }
     },
     [iframeRef, scale, setSelectedElement]
@@ -371,6 +369,7 @@ const Website: React.FC<WebsiteProps> = ({
         setSelectedElement={setSelectedElement}
         setShowTextEditModal={setShowTextEditModal}
         toolBarPos={toolBarPos}
+        selectedVisible={selectedVisible}
       />
       <ChangesBar
         iframeRef={iframeRef}

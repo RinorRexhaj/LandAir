@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 // import Empty from "./EmptyProject";
-import Prompt from "./Prompt/Prompt";
+import Prompt from "../Prompt/Prompt";
 // import Generating from "./Generating";
-import Preview from "./Preview";
+import Preview from "../Preview/Preview";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDisplay, faRobot } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
-import Generating from "./Generating";
+import Generating from "../Pages/Generating";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
-import Loading from "./Loading";
-import Empty from "./EmptyProject";
+import Loading from "../Pages/Loading";
+import Empty from "../Pages/EmptyProject";
 import { ElementPos } from "@/app/types/Element";
 
 const ProjectPage = () => {

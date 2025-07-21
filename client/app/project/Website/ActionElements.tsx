@@ -26,6 +26,7 @@ interface ActionElementsProps {
   setHasUnsavedChanges: (ed: boolean) => void;
   setModalTextValue: (val: string) => void;
   setShowTextEditModal: (show: boolean) => void;
+  selectedVisible: boolean;
 }
 
 const ActionElements: React.FC<ActionElementsProps> = ({
@@ -41,6 +42,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
   setHasUnsavedChanges,
   setModalTextValue,
   setShowTextEditModal,
+  selectedVisible,
 }) => {
   const { handleContentDelete, handleContentEdit } = useChange();
   const { darkMode } = useThemeStore();
@@ -59,7 +61,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
           }}
         ></div>
       )}
-      {selector && selectedElement && iframeRef.current && (
+      {selector && selectedElement && selectedVisible && iframeRef.current && (
         <div
           className="outline-dashed outline-2 outline-blue-700 opacity-100 pointer-events-none"
           style={{
