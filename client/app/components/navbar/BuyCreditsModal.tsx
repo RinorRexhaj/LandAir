@@ -22,7 +22,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
   const [activePlan, setActivePlan] = useState(0);
 
   useEffect(() => {
-    const prod = process.env.NEXT_PUBLIC_PROD;
+    // const prod = process.env.NEXT_PUBLIC_PROD;
 
     const loadPaddle = async () => {
       const scriptId = "paddle-js";
@@ -38,7 +38,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
           // }
           const token = process.env.NEXT_PUBLIC_PADDLE_TOKEN;
           // @ts-expect-error paddle
-          Paddle.Environment.set(prod ? "live" : "sandbox");
+          Paddle.Environment.set("sandbox");
           // @ts-expect-error paddle
           Paddle.Initialize({
             token,
