@@ -18,13 +18,17 @@ const CREDIT_MAP: Record<string, number> = {
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  return new Response(body);
   if (!body) {
     return new Response("No body data", { status: 401 });
   }
 
-  const priceId = body.items[0].price.id;
-  const email = "rinorrexhaj10@gmail.com";
+  const priceId = body.data.items[0].price_id;
+  const email = body.data.customer.email;
+
+  if (!priceId || !email) {
+    console.warn("Missing checkout data");
+    return new Response("Missing checkout data", { status: 400 });
+  }
 
   const creditsToAdd = CREDIT_MAP[priceId];
   if (!creditsToAdd) {

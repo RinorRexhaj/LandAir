@@ -5,6 +5,8 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
 import { PaddleType } from "@/app/types/Paddle";
+import { useCreditStore } from "@/app/store/useCreditStore";
+import useToast from "@/app/hooks/useToast";
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
@@ -17,9 +19,12 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
 }) => {
   const { darkMode } = useThemeStore();
   const { user } = useAuth();
-  const { get } = useApi();
+  const { get, post } = useApi();
+  const { setCredits, credits } = useCreditStore();
+  const toast = useToast();
   const [redirecting, setRedirecting] = useState(false);
   const [activePlan, setActivePlan] = useState(0);
+  const [selectedCredits, setSelectedCredits] = useState(0);
 
   useEffect(() => {
     // const prod = process.env.NEXT_PUBLIC_PROD;
@@ -42,8 +47,26 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
           // @ts-expect-error paddle
           Paddle.Initialize({
             token,
-            eventCallback: function (data: PaddleType) {
-              console.log(data);
+            eventCallback: async function (data: PaddleType) {
+              if (data.data.status === "completed") {
+                const res = await post(`/api/payment/webhook`, {
+                  data: data.data,
+                });
+                if (res === "OK") {
+                  // Fetch the latest credits from the backend
+                  const { credits }: { credits: number } = await get(
+                    "/api/credits"
+                  );
+                  if (typeof credits === "number") {
+                    setCredits(credits);
+                    toast.success("Credits purchased successfully!");
+                  } else {
+                    toast.error("Could not fetch updated credits.");
+                  }
+                } else {
+                  toast.error("Something went wrong!");
+                }
+              }
               setRedirecting(false);
             },
           });
@@ -60,8 +83,26 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             // @ts-expect-error paddle
             Paddle.Initialize({
               token,
-              eventCallback: function (data: PaddleType) {
-                console.log(data);
+              eventCallback: async function (data: PaddleType) {
+                if (data.data.status === "completed") {
+                  const res = await post(`/api/payment/webhook`, {
+                    data: data.data,
+                  });
+                  if (res === "OK") {
+                    // Fetch the latest credits from the backend
+                    const { credits }: { credits: number } = await get(
+                      "/api/credits"
+                    );
+                    if (typeof credits === "number") {
+                      setCredits(credits);
+                      toast.success("Credits purchased successfully!");
+                    } else {
+                      toast.error("Could not fetch updated credits.");
+                    }
+                  } else {
+                    toast.error("Something went wrong!");
+                  }
+                }
                 setRedirecting(false);
               },
             });
@@ -71,12 +112,12 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
     };
 
     loadPaddle();
-  }, [get, redirecting]);
+  }, [get, post, redirecting, credits, setCredits, selectedCredits, toast]);
 
   const creditPlans = [
     {
       name: "Growth",
-      credits: "15 Credits",
+      credits: 15,
       price: "$4.99",
       features: [
         "More customization",
@@ -87,7 +128,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
     },
     {
       name: "Scale",
-      credits: "35 Credits",
+      credits: 35,
       price: "$10.99",
       features: ["All in one", "All Premium Templates", "Valid for 180 days"],
       isPremium: "Premium",
@@ -235,7 +276,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
               </div>
 
               <p className="text-sm font-medium mb-1 text-white/80">
-                {plan.credits}
+                {plan.credits} Credits
               </p>
               <p className="text-3xl font-bold mb-6 text-white">
                 {plan.price}
@@ -265,6 +306,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
 
               <button
                 onClick={() => {
+                  setSelectedCredits(plan.credits);
                   buyNow(plan.name.toLowerCase());
                 }}
                 className={`w-full py-3 rounded-full font-semibold backdrop-blur-sm ${
