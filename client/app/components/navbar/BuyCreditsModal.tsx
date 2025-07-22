@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import useAuth from "@/app/hooks/useAuth";
-// import useApi from "@/app/hooks/useApi";
+import useApi from "@/app/hooks/useApi";
+import { PaddleType } from "@/app/types/Paddle";
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
@@ -16,53 +17,61 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
 }) => {
   const { darkMode } = useThemeStore();
   const { user } = useAuth();
-  // const { get } = useApi();
+  const { get } = useApi();
   const [redirecting, setRedirecting] = useState(false);
   const [activePlan, setActivePlan] = useState(0);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    const prod = process.env.NEXT_PUBLIC_PROD;
 
-  // useEffect(() => {
-  //   const prod = process.env.NEXT_PUBLIC_PROD;
+    const loadPaddle = async () => {
+      const scriptId = "paddle-js";
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+        script.onload = async () => {
+          // const { token }: { token: string } = await get("/api/payment/paddle");
+          // if (!token) {
+          //   console.error("No Paddle client token received");
+          //   return;
+          // }
+          const token = process.env.NEXT_PUBLIC_PADDLE_TOKEN;
+          // @ts-expect-error paddle
+          Paddle.Environment.set(prod ? "live" : "sandbox");
+          // @ts-expect-error paddle
+          Paddle.Initialize({
+            token,
+            eventCallback: function (data: PaddleType) {
+              console.log(data);
+              setRedirecting(false);
+            },
+          });
+        };
+        document.body.appendChild(script);
+      } else {
+        const script = document.getElementById(scriptId);
+        if (script) {
+          script.onload = async () => {
+            // Already loaded, just setup again
+            const token = process.env.NEXT_PUBLIC_PADDLE_TOKEN;
+            // @ts-expect-error paddle
+            Paddle.Environment.set("sandbox");
+            // @ts-expect-error paddle
+            Paddle.Initialize({
+              token,
+              eventCallback: function (data: PaddleType) {
+                console.log(data);
+                setRedirecting(false);
+              },
+            });
+          };
+        }
+      }
+    };
 
-  //   const loadPaddle = async () => {
-  //     const scriptId = "paddle-js";
-  //     if (!document.getElementById(scriptId)) {
-  //       const script = document.createElement("script");
-  //       script.id = scriptId;
-  //       script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
-  //       script.onload = async () => {
-  //         const { token }: { token: string } = await get("/api/payment/paddle");
-  //         if (!token) {
-  //           console.error("No Paddle client token received");
-  //           return;
-  //         }
-
-  //         // @ts-expect-error paddle
-  //         window.Paddle.Setup({
-  //           token: token,
-  //           environment: prod ? "production" : "sandbox",
-  //         });
-  //       };
-  //       document.body.appendChild(script);
-  //     } else {
-  //       // Already loaded, just setup again
-  //       const { token }: { token: string } = await get("/api/payment/paddle");
-  //       if (!token) {
-  //         console.error("No Paddle client token received");
-  //         return;
-  //       }
-
-  //       // @ts-expect-error paddle
-  //       window.Paddle.Setup({
-  //         token: token,
-  //         environment: prod ? "production" : "sandbox",
-  //       });
-  //     }
-  //   };
-
-  //   loadPaddle();
-  // }, [get, redirecting]);
+    loadPaddle();
+  }, [get, redirecting]);
 
   const creditPlans = [
     {
@@ -114,17 +123,6 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         customer: {
           email: user?.email,
         },
-        customData: {
-          userId: user?.id, // So you can use this in webhook to credit user
-        },
-        // onCheckoutComplete: (data: any) => {
-        //   console.log("Checkout Complete:", data);
-        //   // Optional: Optimistically credit user or refresh their balance
-        //   onClose();
-        // },
-        onCheckoutClose: () => {
-          setRedirecting(false);
-        },
       });
     } catch (error) {
       console.error(error);
@@ -132,6 +130,8 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
       setRedirecting(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

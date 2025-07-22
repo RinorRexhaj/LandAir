@@ -23,6 +23,7 @@ import {
 } from "@/app/types/Relevance";
 import makeChanges from "@/app/utils/Changes";
 import { ElementPos } from "@/app/types/Element";
+import Image from "next/image";
 // import useUnsplash from "@/app/hooks/useUnsplash";
 
 interface PromptProps {
@@ -513,10 +514,23 @@ const Prompt: React.FC<PromptProps> = ({
               {input.length}/500
             </p>
             <div className="flex items-center">
-              <p className="mt-4 flex items-center text-zinc-300">(3 C)</p>
+              {selectedElement && (
+                <div className="py-2 px-3 mr-1.5 min-w-10 rounded-lg bg-zinc-900/80 text-sm font-semibold flex items-center justify-center text-zinc-300 lowercase">
+                  {selectedElement?.element.tagName}
+                </div>
+              )}
+              <div className="bg-zinc-600 p-2 text-xs rounded-lg font-semibold flex items-center gap-0.5 text-zinc-300">
+                <p className="text-sm">3</p>
+                <Image
+                  src={"/img/credit.svg"}
+                  alt="Credits"
+                  height={14}
+                  width={14}
+                />
+              </div>{" "}
               <button
                 type="submit"
-                className="ml-2 px-3 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
+                className="ml-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
                 disabled={!input || isGenerating || changing || credits < 3}
                 title={credits < 3 ? "Not enough credits" : "Generate"}
               >

@@ -17,23 +17,19 @@ const CREDIT_MAP: Record<string, number> = {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const event = body.meta?.event_name;
 
-  if (event !== "order_created") {
-    return new Response("Unhandled event type", { status: 202 });
-  }
-
-  if (!body.data) {
+  if (!body) {
     return new Response("No body data", { status: 401 });
   }
 
-  const order = body?.data;
-  const productId = order.attributes.first_order_item.product_id;
-  const email = order.attributes.user_email;
+  console.warn(body);
 
-  const creditsToAdd = CREDIT_MAP[productId];
+  const priceId = body.items[0].price.id;
+  const email = "rinorrexhaj10@gmail.com";
+
+  const creditsToAdd = CREDIT_MAP[priceId];
   if (!creditsToAdd) {
-    console.warn("No credit mapping for product ID:", productId);
+    console.warn("No credit mapping for product ID:", priceId);
     return new Response("Unknown product", { status: 400 });
   }
 
@@ -43,34 +39,17 @@ export async function POST(req: NextRequest) {
   });
 
   if (error || !userId) {
-    console.error("❌ Could not find user for email", error?.message);
+    console.error("❌ Could not find user for email: ", error?.message);
     return new Response("User not found", { status: 404 });
   }
 
-  // Get current credits
-  const { data, error: creditsFetchError } = await supabase
-    .from("Credits")
-    .select("credits")
-    .eq("user_id", userId)
-    .single();
-
-  if (creditsFetchError || !data) {
-    console.error("❌ Credits not found for user!", creditsFetchError?.message);
-    return new Response("Credits not found", { status: 404 });
-  }
-
-  const currentCredits = data.credits;
-  const newCredits = currentCredits + creditsToAdd;
-
-  // Update credits
-  const { error: updateError } = await supabase
-    .from("Credits")
-    .update({ credits: newCredits })
-    .eq("user_id", userId);
-
+  const { error: updateError } = await supabase.rpc("add_credits_by_email", {
+    input_email: email,
+    credits_to_add: creditsToAdd,
+  });
   if (updateError) {
-    console.error("❌ Failed to update credits:", updateError.message);
-    return new Response("Failed to update credits", { status: 500 });
+    console.error("❌ Could not update credits: ", updateError?.message);
+    return new Response("User not found", { status: 404 });
   }
 
   console.log(`✅ Added ${creditsToAdd} credits to user ${userId}`);
