@@ -18,11 +18,10 @@ const CREDIT_MAP: Record<string, number> = {
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
+  return new Response(body);
   if (!body) {
     return new Response("No body data", { status: 401 });
   }
-
-  console.warn(body);
 
   const priceId = body.items[0].price.id;
   const email = "rinorrexhaj10@gmail.com";
