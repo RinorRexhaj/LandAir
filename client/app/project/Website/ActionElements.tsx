@@ -3,6 +3,7 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import { ElementPos } from "@/app/types/Element";
 import {
   faCheck,
+  faClone,
   faImage,
   faPenToSquare,
   faTrash,
@@ -44,7 +45,8 @@ const ActionElements: React.FC<ActionElementsProps> = ({
   setShowTextEditModal,
   selectedVisible,
 }) => {
-  const { handleContentDelete, handleContentEdit } = useChange();
+  const { handleContentDelete, handleContentEdit, handleCloneElement } =
+    useChange();
   const { darkMode } = useThemeStore();
 
   return (
@@ -159,7 +161,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
                     setIsEditing(!isEditing);
                   }
                 }}
-                className={`hover:text-blue-600 flex items-center gap-1`}
+                className={`hover:text-blue-500 flex items-center gap-1`}
                 title="Edit"
               >
                 <FontAwesomeIcon
@@ -182,10 +184,23 @@ const ActionElements: React.FC<ActionElementsProps> = ({
           <button
             onClick={() => {
               setHasUnsavedChanges(true);
+              handleCloneElement(selectedElement.element);
+              setSelectedElement(null);
+            }}
+            className="hover:text-slate-600 flex items-center gap-1 font-semibold"
+            title="Clone"
+          >
+            <FontAwesomeIcon icon={faClone} />
+            <p className="md:hidden">Clone</p>
+          </button>
+          <span className="w-px h-4 bg-zinc-400"></span>
+          <button
+            onClick={() => {
+              setHasUnsavedChanges(true);
               handleContentDelete(selectedElement.element);
               setSelectedElement(null);
             }}
-            className="hover:text-red-600 flex items-center gap-1 font-semibold"
+            className="hover:text-red-500 flex items-center gap-1 font-semibold"
             title="Delete"
           >
             <FontAwesomeIcon icon={faTrash} />

@@ -285,7 +285,6 @@ const Website: React.FC<WebsiteProps> = ({
       injectDisableInteractionStyle(iframeDoc);
     }
 
-    iframeDoc.body.style.cursor = selector ? "crosshair" : "default";
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
     iframeDoc.addEventListener("scroll", () => {

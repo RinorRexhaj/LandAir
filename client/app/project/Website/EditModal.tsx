@@ -1,7 +1,7 @@
+import React, { useEffect } from "react";
 import useChange from "@/app/hooks/useChange";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { ElementPos } from "@/app/types/Element";
-import React from "react";
 
 interface EditModalProps {
   modalTextValue: string;
@@ -14,19 +14,23 @@ interface EditModalProps {
 
 const EditModal: React.FC<EditModalProps> = ({
   modalTextValue,
+  setModalTextValue,
   selectedElement,
   setHasUnsavedChanges,
-  setModalTextValue,
   setShowTextEditModal,
   setSelectedElement,
 }) => {
   const { darkMode } = useThemeStore();
   const { handleContentEdit } = useChange();
 
+  // Only trim the value once on mount
+  useEffect(() => {
+    setModalTextValue(modalTextValue.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30`}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
       <div
         className={`${
           darkMode ? "bg-zinc-900 text-white" : "bg-white text-zinc-900"
@@ -37,7 +41,7 @@ const EditModal: React.FC<EditModalProps> = ({
           className={`${
             darkMode ? "border-zinc-700" : "border-zinc-300"
           } border bg-inherit rounded p-2 w-full min-h-[120px] focus:outline-none`}
-          value={modalTextValue.trim()}
+          value={modalTextValue}
           onChange={(e) => setModalTextValue(e.target.value)}
           autoFocus
         />
@@ -46,7 +50,6 @@ const EditModal: React.FC<EditModalProps> = ({
             className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
             onClick={() => {
               if (selectedElement) {
-                // Store original HTML if not already stored
                 if (
                   !selectedElement.element.getAttribute("data-original-html")
                 ) {

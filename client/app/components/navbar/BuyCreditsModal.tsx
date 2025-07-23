@@ -49,23 +49,24 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             token,
             eventCallback: async function (data: PaddleType) {
               if (data.data.status === "completed") {
-                const res = await post(`/api/payment/webhook`, {
-                  data: data.data,
-                });
-                if (res === "OK") {
-                  // Fetch the latest credits from the backend
-                  const { credits }: { credits: number } = await get(
-                    "/api/credits"
-                  );
-                  if (typeof credits === "number") {
-                    setCredits(credits);
-                    toast.success("Credits purchased successfully!");
-                  } else {
-                    toast.error("Could not fetch updated credits.");
-                  }
-                } else {
-                  toast.error("Something went wrong!");
-                }
+                // const body = data.data;
+                // const res = await post(`/api/payment/webhook`, {
+                //   body,
+                // });
+                // if (res === "OK") {
+                //   // Fetch the latest credits from the backend
+                //   const { credits }: { credits: number } = await get(
+                //     "/api/credits"
+                //   );
+                //   if (typeof credits === "number") {
+                //     setCredits(credits);
+                //     toast.success("Credits purchased successfully!");
+                //   } else {
+                //     toast.error("Could not fetch updated credits.");
+                //   }
+                // } else {
+                //   toast.error("Something went wrong!");
+                // }
               }
               setRedirecting(false);
             },

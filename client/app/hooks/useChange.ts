@@ -72,6 +72,11 @@ const useChange = () => {
     } else if (lastChange.type === "delete") {
       // Re-insert the deleted element
       lastChange.element.style.display = "";
+    } else if (lastChange.type === "clone") {
+      // Remove the cloned element
+      if (lastChange.element.parentElement) {
+        lastChange.element.parentElement.removeChild(lastChange.element);
+      }
     }
 
     return getChangesCount() === 0;
@@ -228,6 +233,31 @@ const useChange = () => {
     selectedElement.style.display = "none";
   };
 
+  const handleCloneElement = (element: HTMLElement) => {
+    if (!element || !element.parentElement) return;
+
+    const clone = element.cloneNode(true) as HTMLElement;
+
+    // Insert the clone right after the original
+    element.parentElement.insertBefore(clone, element.nextSibling);
+
+    // Mark clone's current HTML as original for future edits
+    const tagName = clone.tagName.toLowerCase();
+    const isVoid = ["img", "input", "br", "hr", "meta", "link"].includes(
+      tagName
+    );
+    const originalHTML = isVoid ? clone.outerHTML : clone.innerHTML;
+    clone.setAttribute("data-original-html", originalHTML);
+
+    // Track this as a "clone" change
+    addChange({
+      element: clone,
+      originalHTML: "",
+      newHTML: originalHTML,
+      type: "clone",
+    });
+  };
+
   const removeDisableInteractionStyle = (iframeDoc: Document) => {
     iframeDoc.getElementById("disable-interaction-style")?.remove();
     iframeDoc.querySelectorAll("*").forEach((el) => {
@@ -252,6 +282,7 @@ const useChange = () => {
     handleDiscardChanges,
     handleSaveChanges,
     handleContentDelete,
+    handleCloneElement,
     removeDisableInteractionStyle,
   };
 };

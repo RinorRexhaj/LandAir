@@ -4,7 +4,7 @@ interface ElementChange {
   element: HTMLElement;
   originalHTML: string;
   newHTML: string;
-  type: "edit" | "delete";
+  type: "edit" | "delete" | "clone";
 }
 
 interface ChangesStore {
