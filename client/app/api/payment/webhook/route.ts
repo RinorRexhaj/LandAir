@@ -16,45 +16,49 @@ const CREDIT_MAP: Record<string, number> = {
 };
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  try {
+    const body = await req.json();
 
-  if (!body) {
-    return new Response("No body data", { status: 401 });
+    if (!body) {
+      return new Response("No body data", { status: 401 });
+    }
+
+    const priceId = body?.items[0]?.price_id;
+    const email = body?.customer?.email;
+
+    if (!priceId || !email) {
+      console.warn("Missing checkout data");
+      return new Response("Missing checkout data", { status: 400 });
+    }
+
+    const creditsToAdd = CREDIT_MAP[priceId];
+    if (!creditsToAdd) {
+      console.warn("No credit mapping for product ID:", priceId);
+      return new Response("Unknown product", { status: 400 });
+    }
+
+    // You must map email to your Supabase user_id
+    const { data: userId, error } = await supabase.rpc("get_user_id_by_email", {
+      input_email: email,
+    });
+
+    if (error || !userId) {
+      console.error("❌ Could not find user for email: ", error?.message);
+      return new Response("User not found", { status: 404 });
+    }
+
+    const { error: updateError } = await supabase.rpc("add_credits_by_email", {
+      input_email: email,
+      credits_to_add: creditsToAdd,
+    });
+    if (updateError) {
+      console.error("❌ Could not update credits: ", updateError?.message);
+      return new Response("User not found", { status: 404 });
+    }
+
+    console.log(`✅ Added ${creditsToAdd} credits to user ${userId}`);
+    return new Response("OK", { status: 200 });
+  } catch (err: unknown) {
+    return new Response("Error: " + err, { status: 400 });
   }
-
-  const priceId = body.items[0].price_id;
-  const email = body.customer.email;
-
-  if (!priceId || !email) {
-    console.warn("Missing checkout data");
-    return new Response("Missing checkout data", { status: 400 });
-  }
-
-  const creditsToAdd = CREDIT_MAP[priceId];
-  if (!creditsToAdd) {
-    console.warn("No credit mapping for product ID:", priceId);
-    return new Response("Unknown product", { status: 400 });
-  }
-
-  // You must map email to your Supabase user_id
-  const { data: userId, error } = await supabase.rpc("get_user_id_by_email", {
-    input_email: email,
-  });
-
-  if (error || !userId) {
-    console.error("❌ Could not find user for email: ", error?.message);
-    return new Response("User not found", { status: 404 });
-  }
-
-  const { error: updateError } = await supabase.rpc("add_credits_by_email", {
-    input_email: email,
-    credits_to_add: creditsToAdd,
-  });
-  if (updateError) {
-    console.error("❌ Could not update credits: ", updateError?.message);
-    return new Response("User not found", { status: 404 });
-  }
-
-  console.log(`✅ Added ${creditsToAdd} credits to user ${userId}`);
-  return new Response("OK", { status: 200 });
 }
