@@ -20,7 +20,7 @@ interface ProjectPreviewProps {
 
 const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const { darkMode } = useThemeStore();
-  const { setSelectedProject, projects, setProjects } = useProjectStore();
+  const { setSelectedProject, deleteProject } = useProjectStore();
   const { activeModal, setActiveModal } = useModalStore();
   const { loading, del } = useApi();
   const { formatTime } = useTimeAgo();
@@ -55,23 +55,6 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
       formatTime(date) +
       (formatTime(date).startsWith("now") ? "" : " ago")
     );
-  };
-
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const success = await del(`/api/projects/${project.id}`);
-      await del(`/api/storage?filePath=${project.id}`);
-      if (success) {
-        setProjects(projects.filter((p) => p.id !== project.id));
-        toast.success("Successfully deleted!");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong!");
-    }
-
-    setActiveModal(null);
   };
 
   // Close menu when clicking outside
@@ -288,7 +271,9 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
                 Cancel
               </button>
               <button
-                onClick={handleDelete}
+                onClick={(e) =>
+                  deleteProject(e, toast, project, del, setActiveModal)
+                }
                 className={`px-4 py-2 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white ${
                   loading && "animate-glow cursor-not-allowed"
                 }`}

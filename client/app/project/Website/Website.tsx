@@ -6,7 +6,7 @@ import {
   isLayoutElement,
   isTextOnly,
 } from "@/app/utils/Elements";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ActionElements from "./ActionElements";
 import ChangesBar from "./ChangesBar";
 import EditModal from "./EditModal";
@@ -47,6 +47,18 @@ const Website: React.FC<WebsiteProps> = ({
   const { selectedProject } = useProjectStore();
   const [showTextEditModal, setShowTextEditModal] = useState(false);
   const [modalTextValue, setModalTextValue] = useState("");
+
+  // Refs to keep latest values for event handlers
+  const hoveredElementRef = useRef<ElementPos | null>(null);
+  const selectedElementRef = useRef<ElementPos | null>(null);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    hoveredElementRef.current = hoveredElement;
+  }, [hoveredElement]);
+  useEffect(() => {
+    selectedElementRef.current = selectedElement;
+  }, [selectedElement]);
 
   const updateHoverPos = useCallback(
     (target: HTMLElement | undefined) => {
@@ -246,25 +258,23 @@ const Website: React.FC<WebsiteProps> = ({
 
   const injectDisableInteractionStyle = useCallback(
     (iframeDoc: Document) => {
-      iframeDoc.querySelectorAll("*").forEach((el) => {
-        if (!["SCRIPT", "HEAD", "META", "LINK"].includes(el.tagName)) {
-          const htmlEl = el as HTMLElement;
-          htmlEl.style.cursor = "crosshair";
-          const originalHref = htmlEl.getAttribute("href");
-          if (originalHref) {
-            htmlEl.setAttribute("data-original-href", originalHref);
-          }
-          htmlEl.removeAttribute("href");
-          htmlEl.onmouseover = (e) => e.stopImmediatePropagation();
-          htmlEl.onmouseenter = (e) => e.stopImmediatePropagation();
-          htmlEl.onclick = (e) => {
-            handleClick(e);
-            e.stopImmediatePropagation();
-          };
-          htmlEl.onfocus = (e) => e.stopImmediatePropagation();
-          htmlEl.onmousedown = (e) => e.stopImmediatePropagation();
-          htmlEl.onmouseup = (e) => e.stopImmediatePropagation();
+      iframeDoc.body.style.cursor = "crosshair";
+      iframeDoc.body.querySelectorAll("*").forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const originalHref = htmlEl.getAttribute("href");
+        if (originalHref) {
+          htmlEl.setAttribute("data-original-href", originalHref);
         }
+        htmlEl.removeAttribute("href");
+        htmlEl.onmouseover = (e) => e.stopImmediatePropagation();
+        htmlEl.onmouseenter = (e) => e.stopImmediatePropagation();
+        htmlEl.onclick = (e) => {
+          handleClick(e);
+          e.stopImmediatePropagation();
+        };
+        htmlEl.onfocus = (e) => e.stopImmediatePropagation();
+        htmlEl.onmousedown = (e) => e.stopImmediatePropagation();
+        htmlEl.onmouseup = (e) => e.stopImmediatePropagation();
       });
     },
     [handleClick]
@@ -287,29 +297,29 @@ const Website: React.FC<WebsiteProps> = ({
 
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
-    iframeDoc.addEventListener("scroll", () => {
-      updateToolbarPos(selectedElement?.element);
-      updateHoverPos(hoveredElement?.element);
-      updateClickPos(selectedElement?.element);
-    });
-    iframe.contentWindow?.addEventListener("resize", () => {
-      updateToolbarPos(selectedElement?.element);
-      updateHoverPos(hoveredElement?.element);
-      updateClickPos(selectedElement?.element);
-    });
+
+    const handleScrollOrResize = () => {
+      updateToolbarPos(selectedElementRef.current?.element);
+      updateHoverPos(hoveredElementRef.current?.element);
+      updateClickPos(selectedElementRef.current?.element);
+    };
+
+    iframeDoc.addEventListener("scroll", handleScrollOrResize);
+    iframe.contentWindow?.addEventListener("resize", handleScrollOrResize);
 
     return () => {
       iframeDoc.removeEventListener("mousemove", handleMouseMove);
       iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
+      iframeDoc.removeEventListener("scroll", handleScrollOrResize);
+      iframe.contentWindow?.removeEventListener("resize", handleScrollOrResize);
     };
+    // Only include stable dependencies to avoid infinite loops
   }, [
     selector,
     selectedProject,
-    selectedElement,
     setSelectedElement,
     scale,
     isEditing,
-    hoveredElement?.element,
     iframeRef,
     handleClick,
     handleMouseLeave,

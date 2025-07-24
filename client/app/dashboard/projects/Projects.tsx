@@ -17,7 +17,7 @@ type SortOption = "Edited" | "Created" | "alphabetical";
 const Projects = () => {
   const [sortBy, setSortBy] = useState<SortOption>("Edited");
   const [creating, setCreating] = useState(false);
-  const { projects, setProjects, selectedProject, setSelectedProject } =
+  const { projects, setProjects, selectedProject, createProject } =
     useProjectStore();
   const { darkMode } = useThemeStore();
   const toast = useToast();
@@ -38,34 +38,6 @@ const Projects = () => {
     };
     getProjects();
   }, [setProjects, setLoading, get]);
-
-  const createProject = async () => {
-    if (projects.length >= 4) {
-      toast.warning("Only 4 or less projects allowed.");
-      return;
-    }
-
-    setCreating(true);
-    const toastId = toast.loading("Creating project...");
-    try {
-      const newProject: Project[] = await post("/api/projects/");
-      const projectWithGlow = { ...newProject[0], created: true };
-
-      setProjects([projectWithGlow, ...projects]);
-
-      setTimeout(() => {
-        setCreating(false);
-        setSelectedProject(projectWithGlow);
-        toast.dismiss(toastId);
-        toast.success("Project Created!");
-      }, 300);
-    } catch (err) {
-      console.error(err);
-      toast.dismiss(toastId);
-      toast.error("Something went wrong!");
-      setCreating(false);
-    }
-  };
 
   const sortProjects = (projects: Project[]): Project[] => {
     return [...projects].sort((a, b) => {
@@ -119,7 +91,7 @@ const Projects = () => {
                 style={{
                   animationDelay: "0.2s",
                 }}
-                onClick={createProject}
+                onClick={() => createProject(toast, post, setCreating)}
               >
                 <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
                 <p className="md:hidden">New Project</p>

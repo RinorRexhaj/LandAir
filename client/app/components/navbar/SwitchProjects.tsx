@@ -1,10 +1,19 @@
+import useApi from "@/app/hooks/useApi";
+import useToast from "@/app/hooks/useToast";
 import { useProjectStore } from "@/app/store/useProjectsStore";
-import { faCheck, faSort } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faPlusCircle,
+  faSort,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useRef, useState, useEffect } from "react";
 
 const SwitchProjects = () => {
-  const { projects, setSelectedProject, selectedProject } = useProjectStore();
+  const { projects, setSelectedProject, selectedProject, createProject } =
+    useProjectStore();
+  const toast = useToast();
+  const { post } = useApi();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +48,20 @@ const SwitchProjects = () => {
       </button>
       {open && (
         <div className="absolute left-0 top-10 min-w-[180px] max-w-[240px] bg-zinc-900 text-white shadow-lg rounded-lg z-50 py-2 animate-fadeFast border border-zinc-700">
+          {/* Create Project Button */}
+          {projects.length < 4 && (
+            <button
+              key={"create-project-switch"}
+              className={`w-full flex justify-between items-center text-left px-4 py-2 transition-colors text-sm truncate rounded-none hover:bg-zinc-800`}
+              onClick={() => {
+                createProject(toast, post);
+                setOpen(false);
+              }}
+            >
+              New Project
+              <FontAwesomeIcon icon={faPlusCircle} />
+            </button>
+          )}
           {projects.length === 0 ? (
             <div className="px-4 py-2 text-sm text-zinc-400">
               No projects found

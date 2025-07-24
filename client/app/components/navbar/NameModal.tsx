@@ -113,7 +113,7 @@ const NameModal: React.FC<NameModalProps> = ({
             darkMode ? "text-white" : "text-zinc-900"
           }`}
         >
-          Edit Project Name
+          Edit Project
         </h2>
         <form onSubmit={saveName}>
           <input
