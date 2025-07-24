@@ -4,6 +4,7 @@ import Code from "../Pages/Code";
 import Website from "../Website/Website";
 import PreviewHeader from "./PreviewHeader";
 import { ElementPos } from "@/app/types/Element";
+import { useToolbarStore } from "@/app/store/useToolbarStore";
 
 interface PreviewProps {
   getUrl: () => void;
@@ -20,8 +21,9 @@ const Preview: React.FC<PreviewProps> = ({
   selectedElement,
   setSelectedElement,
 }) => {
-  const [mobile, setMobile] = useState(0);
-  const [selector, setSelector] = useState(false);
+  // const [mobile, setMobile] = useState(0);
+  // const [selector, setSelector] = useState(false);
+  const { mobile, selector, setMobile, setSelector } = useToolbarStore();
   const [scale, setScale] = useState(1);
   const mainRef = useRef<HTMLDivElement | null>(null);
   const { selectedProject } = useProjectStore();
@@ -64,7 +66,7 @@ const Preview: React.FC<PreviewProps> = ({
     window.addEventListener("resize", updateScale);
     updateScale();
     return () => window.removeEventListener("resize", updateScale);
-  }, [mobile]);
+  }, [mobile, setMobile, setSelector]);
 
   return (
     <div

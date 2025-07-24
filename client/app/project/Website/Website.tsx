@@ -281,6 +281,26 @@ const Website: React.FC<WebsiteProps> = ({
   );
 
   useEffect(() => {
+    console.log("ok");
+    iframeRef.current?.contentDocument?.body
+      .querySelectorAll("*")
+      .forEach((el) => {
+        const htmlEl = el as HTMLAnchorElement;
+        htmlEl.onclick = (e) => {
+          const href = htmlEl.getAttribute("href");
+          if (
+            href === "/" ||
+            href === "#" ||
+            href === "" ||
+            (href && href.startsWith("#"))
+          ) {
+            e.preventDefault();
+          }
+        };
+      });
+  }, []);
+
+  useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !selectedProject?.file) return;
 
@@ -288,9 +308,9 @@ const Website: React.FC<WebsiteProps> = ({
     if (!iframeDoc || !iframeDoc.body) return;
 
     if (!selector) {
+      removeDisableInteractionStyle(iframeDoc);
       setElementType(null);
       setSelectedElement(null);
-      removeDisableInteractionStyle(iframeDoc);
     } else {
       injectDisableInteractionStyle(iframeDoc);
     }

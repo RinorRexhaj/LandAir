@@ -5,7 +5,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import ActionButtons from "../[id]/ActionButtons";
+import ActionButtons from "../Main/ActionButtons";
 import { useThemeStore } from "@/app/store/useThemeStore";
 
 interface PreviewHeaderProps {

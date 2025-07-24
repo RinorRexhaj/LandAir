@@ -1,6 +1,7 @@
 import useApi from "@/app/hooks/useApi";
 import useToast from "@/app/hooks/useToast";
 import { useProjectStore } from "@/app/store/useProjectsStore";
+import { useToolbarStore } from "@/app/store/useToolbarStore";
 import {
   faCheck,
   faPlusCircle,
@@ -12,6 +13,7 @@ import React, { useRef, useState, useEffect } from "react";
 const SwitchProjects = () => {
   const { projects, setSelectedProject, selectedProject, createProject } =
     useProjectStore();
+  const { setMobile, setSelector } = useToolbarStore();
   const toast = useToast();
   const { post } = useApi();
   const [open, setOpen] = useState(false);
@@ -81,6 +83,8 @@ const SwitchProjects = () => {
                   onClick={() => {
                     if (!isActive) {
                       setSelectedProject(project);
+                      setMobile(0);
+                      setSelector(false);
                     }
                     setOpen(false);
                   }}

@@ -31,9 +31,24 @@ export async function deploy(
   ];
 
   const deployed = await getProjectUrl(project_id);
-  const subdomain =
-    deployed.url?.replace(/^https?:\/\/|\.landair\.app$/g, "") ||
-    (await generateUniqueSubdomain(project_name));
+  const existingUrl = deployed.url;
+
+  // If already deployed, just re-deploy content, skip aliasing
+  if (existingUrl && existingUrl.startsWith("https://")) {
+    const subdomain = existingUrl.replace(/^https?:\/\/|\.landair\.app$/g, "");
+
+    const deployment = await createDeployment(files, subdomain);
+    if ("error" in deployment) {
+      return { error: "Error in deployment: " + deployment.error };
+    }
+
+    await waitUntilReady(deployment.id);
+    return { url: existingUrl }; // Reuse original domain
+  }
+
+  // First-time deployment
+  const subdomain = await generateUniqueSubdomain(project_name);
+  const domain = `${subdomain}.landair.app`;
 
   const deployment = await createDeployment(files, subdomain);
   if ("error" in deployment) {
@@ -41,12 +56,12 @@ export async function deploy(
   }
 
   await waitUntilReady(deployment.id);
-  const aliasRes = await aliasDeployment(deployment.id, subdomain);
 
+  const aliasRes = await aliasDeployment(deployment.id, subdomain);
   if ("error" in aliasRes) return { error: "Failed to alias deployment" };
 
-  await updateProjectUrl(user_id, project_id, `https://${aliasRes.alias}`);
-  return { url: `https://${aliasRes.alias}` };
+  await updateProjectUrl(user_id, project_id, `https://${domain}`);
+  return { url: `https://${domain}` };
 }
 
 async function createDeployment(files: DeployFile[], name: string) {
@@ -182,6 +197,29 @@ async function aliasDeployment(deploymentId: string, subdomain: string) {
 
   if (!res.ok) {
     return { error: json.error?.message || "Failed to alias deployment" };
+  }
+
+  const domainRes = await fetch(
+    `https://api.vercel.com/v10/projects/${subdomain}/domains`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${VERCEL_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: alias,
+      }),
+    }
+  );
+
+  if (!domainRes.ok) {
+    const err = await domainRes.json();
+    return {
+      error:
+        err.error?.message ||
+        `Failed to assign custom domain (${alias}) to project`,
+    };
   }
 
   return { alias };

@@ -17,10 +17,9 @@ interface ChangesBarProps {
 }
 
 const ChangesBar: React.FC<ChangesBarProps> = ({
-  selectedElement,
   setChanged,
   setSelector,
-  setSelectedElement,
+  // setSelectedElement,
   iframeRef,
   setIsEditing,
   hasUnsavedChanges,
@@ -42,10 +41,7 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
           <button
             onClick={async () => {
               setSelector(false);
-              const saved = await handleSaveChanges(
-                selectedElement?.element || null,
-                iframeRef
-              );
+              const saved = await handleSaveChanges(iframeRef);
               if (saved) {
                 setChanged(true);
                 setHasUnsavedChanges(false);
@@ -73,12 +69,14 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
             <FontAwesomeIcon icon={faUndo} className="w-4 h-4" />
           </button>
           <button
-            onClick={() => {
-              handleDiscardChanges(iframeRef);
-              setHasUnsavedChanges(false);
-              setSelector(false);
-              setSelectedElement(null);
-              setIsEditing(false);
+            onClick={async () => {
+              const discarded = await handleDiscardChanges(iframeRef);
+              if (discarded) {
+                setSelector(false);
+                // setSelectedElement(null);
+                setHasUnsavedChanges(false);
+                setIsEditing(false);
+              }
             }}
             title="Discard"
             className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-red-500/80 ${

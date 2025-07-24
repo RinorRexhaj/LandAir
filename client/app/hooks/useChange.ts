@@ -84,7 +84,6 @@ const useChange = () => {
 
   // Save changes
   const handleSaveChanges = async (
-    selectedElement: HTMLElement | null,
     iframeRef: RefObject<HTMLIFrameElement | null>
   ): Promise<boolean> => {
     if (!selectedProject) return false;
@@ -95,18 +94,7 @@ const useChange = () => {
     const toastId = toast.loading("Saving...");
 
     // Clean up styles
-    iframeDoc.querySelectorAll("*").forEach((el) => {
-      const elem = el as HTMLElement;
-      elem.style.backgroundColor = "";
-      elem.style.outline = "";
-      if (elem.contentEditable === "true") elem.contentEditable = "false";
-      elem.removeAttribute("data-original-html");
-    });
-
-    if (selectedElement) {
-      selectedElement.style.backgroundColor = "";
-      selectedElement.style.outline = "";
-    }
+    removeDisableInteractionStyle(iframeDoc);
 
     // --- IMAGE UPLOAD LOGIC START ---
     // Find all <img> tags with data URLs
@@ -192,7 +180,6 @@ const useChange = () => {
       });
 
       clearChanges();
-      removeDisableInteractionStyle(iframeDoc);
       toast.update(toastId, "success", "Changes saved!");
       return true;
     } catch (err) {
@@ -203,21 +190,22 @@ const useChange = () => {
   };
 
   // Discard changes
-  const handleDiscardChanges = (
+  const handleDiscardChanges = async (
     iframeRef: RefObject<HTMLIFrameElement | null>
   ) => {
-    if (!iframeRef.current || !selectedProject?.file) return;
+    if (!iframeRef.current || !selectedProject?.file) return false;
 
     const iframeDoc = iframeRef.current.contentDocument;
-    if (!iframeDoc) return;
+    if (!iframeDoc) return false;
 
     iframeDoc.open();
+    iframeDoc.clear();
     iframeDoc.write(selectedProject.file);
     iframeDoc.close();
 
     clearChanges();
-    removeDisableInteractionStyle(iframeDoc);
     toast.info("Changes discarded.");
+    return true;
   };
 
   const handleContentDelete = (selectedElement: HTMLElement) => {
@@ -259,19 +247,18 @@ const useChange = () => {
   };
 
   const removeDisableInteractionStyle = (iframeDoc: Document) => {
+    iframeDoc.body.style = "";
     iframeDoc.getElementById("disable-interaction-style")?.remove();
     iframeDoc.querySelectorAll("*").forEach((el) => {
-      if (!["SCRIPT", "HEAD", "META"].includes(el.tagName)) {
+      if (!["SCRIPT", "HEAD", "META", "LINK"].includes(el.tagName)) {
         const htmlEl = el as HTMLElement;
-        htmlEl.style.cursor = "";
         const originalHref = htmlEl.getAttribute("data-original-href");
         if (originalHref) {
           htmlEl.setAttribute("href", originalHref);
         }
         htmlEl.removeAttribute("data-original-href");
-        htmlEl.onclick = (e) => {
-          e.preventDefault();
-        };
+        htmlEl.removeAttribute("data-original-html");
+        htmlEl.onclick = null; // Remove any custom click handler to restore default behavior
       }
     });
   };
