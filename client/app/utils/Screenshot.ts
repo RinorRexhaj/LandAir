@@ -9,7 +9,7 @@ export const takeScreenshot = async (
     return;
   }
 
-  const section = iframeDoc.getElementsByTagName("section")[0];
+  const section = iframeDoc.getElementById("home");
   if (!section) {
     console.error("No <section> element found inside iframe");
     return;

@@ -258,7 +258,12 @@ const useChange = () => {
         }
         htmlEl.removeAttribute("data-original-href");
         htmlEl.removeAttribute("data-original-html");
-        htmlEl.onclick = null; // Remove any custom click handler to restore default behavior
+        const href = htmlEl.getAttribute("href");
+        htmlEl.onclick = (e) => {
+          if (htmlEl.tagName === "A" && (href === "/" || href === "#"))
+            e.preventDefault();
+          else return null;
+        };
       }
     });
   };

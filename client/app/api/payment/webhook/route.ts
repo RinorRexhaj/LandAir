@@ -19,12 +19,12 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body) {
+    if (!body || !body.data) {
       return new Response("No body data", { status: 401 });
     }
 
-    const priceId = body?.items[0]?.price_id;
-    const email = body?.customer?.email;
+    const priceId = body?.data?.items[0]?.price_id;
+    const email = body?.data?.customer?.email;
 
     if (!priceId || !email) {
       console.warn("Missing checkout data");
