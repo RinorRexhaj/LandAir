@@ -8,6 +8,7 @@ const supabase = createClient(
 
 const growth = process.env.NEXT_PUBLIC_PADDLE_GROWTH_ID || "";
 const scale = process.env.NEXT_PUBLIC_PADDLE_SCALE_ID || "";
+const key = process.env.PADDLE_KEY || "";
 
 // Map LemonSqueezy product IDs to credits
 const CREDIT_MAP: Record<string, number> = {
@@ -24,11 +25,28 @@ export async function POST(req: NextRequest) {
     }
 
     const priceId = body?.data?.items[0]?.price_id;
-    const email = body?.data?.customer?.email;
+    const customerId = body?.data?.customer_id;
 
-    if (!priceId || !email) {
+    if (!priceId || !customerId) {
       console.warn("Missing checkout data");
       return new Response("Missing checkout data", { status: 400 });
+    }
+
+    const getEmail = await fetch(
+      `https://sandbox-api.paddle.com/customers/${customerId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const emailRes = await getEmail.json();
+    const email = emailRes?.data?.email;
+
+    if (!emailRes || !email) {
+      console.warn("Could not get customer's email");
+      return new Response("Could not get customer's email", { status: 400 });
     }
 
     const creditsToAdd = CREDIT_MAP[priceId];
