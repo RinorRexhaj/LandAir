@@ -18,6 +18,10 @@ export interface Relevance {
   }[];
 }
 
+export interface Enhancement {
+  answer: string;
+}
+
 export interface RelevanceOutput {
   type: string;
   update: ToolOutput;

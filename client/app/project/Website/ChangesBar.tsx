@@ -19,7 +19,7 @@ interface ChangesBarProps {
 const ChangesBar: React.FC<ChangesBarProps> = ({
   setChanged,
   setSelector,
-  // setSelectedElement,
+  setSelectedElement,
   iframeRef,
   setIsEditing,
   hasUnsavedChanges,
@@ -73,7 +73,7 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
               const discarded = await handleDiscardChanges(iframeRef);
               if (discarded) {
                 setSelector(false);
-                // setSelectedElement(null);
+                setSelectedElement(null);
                 setHasUnsavedChanges(false);
                 setIsEditing(false);
               }

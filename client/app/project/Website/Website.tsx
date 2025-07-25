@@ -239,7 +239,6 @@ const Website: React.FC<WebsiteProps> = ({
       // Deselect if clicking the same element
       if (selectedElement?.element === target) {
         if (!isEditing) {
-          target.contentEditable = "false";
           setIsEditing(false);
           setSelectedElement(null);
           return;
@@ -313,22 +312,21 @@ const Website: React.FC<WebsiteProps> = ({
       iframeDoc.removeEventListener("scroll", handleScrollOrResize);
       iframe.contentWindow?.removeEventListener("resize", handleScrollOrResize);
     };
-    // Only include stable dependencies to avoid infinite loops
   }, [
     selector,
     selectedProject,
-    setSelectedElement,
     scale,
     isEditing,
     iframeRef,
-    handleClick,
-    handleMouseLeave,
-    handleMouseMove,
-    injectDisableInteractionStyle,
-    updateClickPos,
-    updateHoverPos,
-    updateToolbarPos,
     removeDisableInteractionStyle,
+    setElementType,
+    setSelectedElement,
+    injectDisableInteractionStyle,
+    handleMouseMove,
+    handleMouseLeave,
+    updateToolbarPos,
+    updateHoverPos,
+    updateClickPos,
   ]);
 
   const getWidth = () => {

@@ -4,7 +4,7 @@ import {
   faArrowDown,
   faPaperPlane,
   faSpinner,
-  // faWandMagicSparkles,
+  faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
@@ -18,6 +18,7 @@ import BotMessage from "./BotMessage";
 import { takeScreenshot } from "@/app/utils/Screenshot";
 import {
   ChangeOutput,
+  Enhancement,
   RelevanceOutput,
   ToolOutput,
 } from "@/app/types/Relevance";
@@ -46,7 +47,7 @@ const Prompt: React.FC<PromptProps> = ({
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // const [result, setResult] = useState(false);
-  // const [enhancing, setEnhancing] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
   const { get, post, put } = useApi();
   const { selectedProject, changeProject } = useProjectStore();
   const { darkMode } = useThemeStore();
@@ -84,14 +85,17 @@ const Prompt: React.FC<PromptProps> = ({
     })();
   }, [selectedProject, get]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-
-    // Auto-resize textarea
+  // Helper function to auto-resize textarea
+  const resizeTextarea = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    // resizeTextarea(); // Remove direct call
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -353,32 +357,31 @@ const Prompt: React.FC<PromptProps> = ({
     return typeof res === "object" && res !== null && "output" in res;
   }
 
-  // const enhanceLastMessage = async () => {
-  //   if (enhancing || isGenerating) return;
+  // Auto-resize textarea whenever input changes
+  useEffect(() => {
+    resizeTextarea();
+  }, [input]);
 
-  //   setEnhancing(true);
+  const enhanceLastMessage = async () => {
+    if (enhancing || isGenerating) return;
 
-  //   try {
-  //     const enhanced: Relevance = await post(`/api/relevance`, {
-  //       type: "enhance",
-  //       prompt: input,
-  //     });
+    setEnhancing(true);
 
-  //     const newMsg: ChatMessage = {
-  //       id: Date.now() + 2,
-  //       sender: true,
-  //       message: enhanced.answer,
-  //       projectId: String(selectedProject?.id || ""),
-  //     };
-  //     setMessages((prev) => [...prev, newMsg]);
-  //     await post(`/api/chat`, newMsg);
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error("Failed to enhance description");
-  //   } finally {
-  //     setEnhancing(false);
-  //   }
-  // };
+    try {
+      const enhanced: Enhancement = await post(`/api/relevance`, {
+        type: "enhance",
+        prompt: input,
+      });
+
+      setInput(enhanced.answer);
+      // resizeTextarea(); // Remove direct call
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to enhance description");
+    } finally {
+      setEnhancing(false);
+    }
+  };
 
   const handleRetry = () => {
     if (lastFailedInput) {
@@ -504,9 +507,9 @@ const Prompt: React.FC<PromptProps> = ({
                 ? "Describe your website idea..."
                 : "Describe the changes clearly. Use the selector to highlight the section you want changed..."
             }
-            className={`w-full h-auto max-h-32 overflow-y-auto bg-inherit p-1 text-sm resize-none minimal-scrollbar focus:outline-none placeholder-gray-400 ${
+            className={`w-full h-auto max-h-32 overflow-y-auto mb-2 bg-inherit p-1 text-sm resize-none minimal-scrollbar focus:outline-none placeholder-gray-400 ${
               darkMode ? "text-white" : "text-zinc-900"
-            }`}
+            } ${enhancing && "animate-glow"}`}
           />
 
           <div className="w-full flex items-center gap-0 justify-between">
@@ -529,9 +532,29 @@ const Prompt: React.FC<PromptProps> = ({
                 />
               </div>{" "}
               <button
+                type="button"
+                className="ml-1.5 px-2.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60"
+                disabled={
+                  !input ||
+                  input.length < 10 ||
+                  isGenerating ||
+                  enhancing ||
+                  changing
+                }
+                title={"Enhance"}
+                onClick={enhanceLastMessage}
+              >
+                <FontAwesomeIcon
+                  icon={faWandMagicSparkles}
+                  className={`${enhancing && "animate-pulse"}`}
+                />
+              </button>
+              <button
                 type="submit"
                 className="ml-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
-                disabled={!input || isGenerating || changing || credits < 3}
+                disabled={
+                  !input || isGenerating || enhancing || changing || credits < 3
+                }
                 title={credits < 3 ? "Not enough credits" : "Generate"}
               >
                 {isGenerating ? (
