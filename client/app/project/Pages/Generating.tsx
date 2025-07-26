@@ -14,9 +14,12 @@ const Generating = () => {
   const [shimmer, setShimmer] = useState(false);
 
   useEffect(() => {
-    let timeout = setTimeout(() => setTextShow(true), 1000);
-    timeout = setTimeout(() => setShimmer(true), 1500);
-    return () => clearTimeout(timeout);
+    const timeout1 = setTimeout(() => setTextShow(true), 1000);
+    const timeout2 = setTimeout(() => setShimmer(true), 2000);
+    return () => {
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+    };
   }, []);
 
   const bgMain = darkMode ? "bg-zinc-900" : "bg-white";
@@ -27,6 +30,7 @@ const Generating = () => {
     <div
       className={`relative w-full h-full mx-auto shadow-2xl z-40 rounded-xl overflow-hidden animate-fade-in-slow ${bgMain}`}
     >
+      {/* Header */}
       <div
         className={`w-full flex items-center justify-between px-6 py-4 text-2xl ${bgMain} ${textMain}`}
       >
@@ -48,49 +52,82 @@ const Generating = () => {
         style={{ animationDelay: "0.6s" }}
       ></div>
 
-      <div
-        className={`relative h-full flex justify-center items-center ${bgMain} animate-stretch [animation-fill-mode:backwards]`}
-        style={{ animationDelay: "1.4s" }}
-      ></div>
-
+      {/* Shimmer highlight */}
       {shimmer && (
-        <>
+        <div className="absolute top-0 mt-10 left-0 w-full h-full pointer-events-none z-30 overflow-hidden">
           <div
-            className={`absolute top-0 left-0 w-full h-full pointer-events-none z-30 overflow-hidden`}
-          >
-            <div
-              className={`w-full h-1/6 ${
-                darkMode
-                  ? "bg-gradient-to-b from-white/10 via-white/20 to-white/10"
-                  : "bg-gradient-to-b from-slate-500/50 via-white to-slate-500/50"
-              } blur-xl opacity-70 animate-shimmerDown [animation-fill-mode:backwards] rounded-lg`}
-              style={{
-                animationDelay: "1.4s",
-                animationDuration: "2.5s",
-              }}
-            ></div>
-          </div>
-        </>
+            className={`w-full h-1/6 ${
+              darkMode
+                ? "bg-gradient-to-b from-white/10 via-white/20 to-white/10"
+                : "bg-gradient-to-b from-slate-500/50 via-white to-slate-500/50"
+            } blur-xl opacity-70 animate-shimmerDown [animation-fill-mode:backwards] rounded-lg`}
+            style={{
+              animationDelay: "1.4s",
+              animationDuration: "2.5s",
+            }}
+          ></div>
+        </div>
       )}
 
-      {textShow && (
-        <>
+      {/* Simulated layout generation (skeleton blocks) */}
+      {shimmer && (
+        <div className="absolute top-10 inset-0 z-10 flex flex-col items-center gap-4 px-8 py-10">
+          {/* Simulated Hero Section */}
           <div
-            className={`absolute top-1/2 -translate-y-1/2 z-50 w-full flex justify-center text-2xl font-bold overflow-hidden transform ${textMain}`}
-          >
-            {"Creating Dream Site...".split("").map((char, index) => (
+            className="w-full h-8 rounded bg-gray-300 dark:bg-zinc-700 animate-fade-in-slow"
+            style={{ animationDelay: "0.1s", animationFillMode: "both" }}
+          ></div>
+          <div
+            className="w-3/4 h-6 rounded bg-gray-200 dark:bg-zinc-600 animate-fade-in-slow"
+            style={{ animationDelay: "0.3s", animationFillMode: "both" }}
+          ></div>
+          <div
+            className="w-full h-48 rounded-lg bg-gray-200 dark:bg-zinc-700 animate-fade-in-slow"
+            style={{ animationDelay: "0.5s", animationFillMode: "both" }}
+          ></div>
+
+          {/* Simulated Content Blocks */}
+          <div
+            className="w-full h-6 rounded bg-gray-300 dark:bg-zinc-700 animate-fade-in-slow"
+            style={{ animationDelay: "0.7s", animationFillMode: "both" }}
+          ></div>
+          <div
+            className="w-5/6 h-6 rounded bg-gray-300 dark:bg-zinc-700 animate-fade-in-slow"
+            style={{ animationDelay: "0.9s", animationFillMode: "both" }}
+          ></div>
+          <div
+            className="w-2/3 h-6 rounded bg-gray-300 dark:bg-zinc-700 animate-fade-in-slow"
+            style={{ animationDelay: "1.1s", animationFillMode: "both" }}
+          ></div>
+
+          {/* Simulated CTA Button */}
+          <div
+            className="w-32 h-10 rounded-full bg-gray-400 dark:bg-zinc-600 animate-fade-in-slow mt-4"
+            style={{ animationDelay: "1.3s", animationFillMode: "both" }}
+          ></div>
+        </div>
+      )}
+
+      {/* Code-like typing feedback */}
+      {textShow && (
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 z-50 w-11/12 text-wrap flex flex-wrap justify-center text-lg md:text-2xl font-mono font-bold overflow-hidden transform ${textMain}`}
+        >
+          {"<div>Building your dream site...</div>"
+            .split("")
+            .map((char, index) => (
               <span
                 className="animate-textReveal [animation-fill-mode:backwards]"
-                style={{ animationDelay: `${index * 0.025}s` }}
+                style={{ animationDelay: `${index * 0.02}s` }}
                 key={`${char}-${index}`}
               >
                 {char === " " ? "\u00A0" : char}
               </span>
             ))}
-          </div>
-        </>
+        </div>
       )}
 
+      {/* Footer icons */}
       <div
         className={`w-full absolute flex justify-between items-center px-6 bottom-0 h-14 z-40 shadow-md shadow-gray-100 ${bgMain} ${textMain}`}
       >
