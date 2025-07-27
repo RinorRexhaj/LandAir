@@ -20,16 +20,10 @@ const useChange = () => {
 
   // Track changes when content is edited
   const handleContentEdit = (element: HTMLElement) => {
-    const tagName = element.tagName.toLowerCase();
-    const isVoid = ["img", "input", "br", "hr", "meta", "link"].includes(
-      tagName
-    );
-
     const originalHTML =
-      element.getAttribute("data-original-html") ||
-      (isVoid ? element.outerHTML : element.innerHTML);
+      element.getAttribute("data-original-html") || element.outerHTML;
 
-    const newHTML = isVoid ? element.outerHTML : element.innerHTML;
+    const newHTML = element.outerHTML;
 
     if (originalHTML !== newHTML) {
       const existingChangeIndex = changes.findIndex(
@@ -49,25 +43,14 @@ const useChange = () => {
     if (!lastChange) return false;
 
     if (lastChange.type === "edit") {
-      const tagName = lastChange.element.tagName.toLowerCase();
-      const isVoid = ["img", "input", "br", "hr", "meta", "link"].includes(
-        tagName
-      );
-
-      if (isVoid) {
-        // For void elements, replace outerHTML
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = lastChange.originalHTML;
-        const restored = wrapper.firstElementChild;
-        if (restored && lastChange.element.parentNode) {
-          lastChange.element.parentNode.replaceChild(
-            restored,
-            lastChange.element
-          );
-        }
-      } else {
-        // For text elements, revert innerHTML
-        lastChange.element.innerHTML = lastChange.originalHTML;
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = lastChange.originalHTML;
+      const restored = wrapper.firstElementChild;
+      if (restored && lastChange.element.parentNode) {
+        lastChange.element.parentNode.replaceChild(
+          restored,
+          lastChange.element
+        );
       }
     } else if (lastChange.type === "delete") {
       // Re-insert the deleted element

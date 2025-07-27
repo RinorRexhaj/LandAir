@@ -5,3 +5,9 @@ export interface ElementPos {
   left: number;
   top: number;
 }
+
+export interface ElementStyles {
+  color: string;
+  backgroundColor: string;
+  fontWeight: string;
+}
