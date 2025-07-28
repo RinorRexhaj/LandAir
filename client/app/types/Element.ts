@@ -10,4 +10,5 @@ export interface ElementStyles {
   color: string;
   backgroundColor: string;
   fontWeight: string;
+  fontSize: string;
 }

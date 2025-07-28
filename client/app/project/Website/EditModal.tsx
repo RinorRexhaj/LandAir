@@ -26,10 +26,17 @@ const EditModal: React.FC<EditModalProps> = ({
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [initialStyles, setInitialStyles] = useState<ElementStyles>({
+    color: "#000000",
+    backgroundColor: "rgba(0, 0, 0, 0)",
+    fontWeight: "normal",
+    fontSize: "12px",
+  });
   const [computedStyles, setComputedStyles] = useState<ElementStyles>({
     color: "#000000",
     backgroundColor: "rgba(0, 0, 0, 0)",
     fontWeight: "normal",
+    fontSize: "12px",
   });
 
   useEffect(() => {
@@ -51,9 +58,11 @@ const EditModal: React.FC<EditModalProps> = ({
         color: rgbToHex(style.color),
         backgroundColor: rgbToHex(style.backgroundColor),
         fontWeight: style.fontWeight,
+        fontSize: style.fontSize,
       };
 
       setComputedStyles(computedStyleObj);
+      setInitialStyles(computedStyleObj);
     }
 
     setTimeout(() => autoResize(), 0);
@@ -149,7 +158,7 @@ const EditModal: React.FC<EditModalProps> = ({
             <input
               className={`p-2 rounded border ${
                 darkMode
-                  ? "bg-zinc-800 border-zinc-700"
+                  ? "bg-inherit border-zinc-700"
                   : "bg-zinc-100 border-zinc-300"
               } focus:outline-none`}
               value={link}
@@ -162,62 +171,138 @@ const EditModal: React.FC<EditModalProps> = ({
           </div>
         )}
 
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2 items-center mb-2">
+        <div className="w-full flex flex-col gap-2">
+          <div className="w-full overflow-hidden flex gap-2 items-center mb-2">
             <div className="w-full">
               <label className="text-sm font-medium">Text Color</label>
-              <input
-                type="color"
-                className="w-full h-10 p-1 bg-zinc-800 rounded border border-zinc-700 focus:outline-none"
-                value={computedStyles.color}
-                onChange={(e) => {
-                  if (selectedElement) {
-                    selectedElement.element.style.color = e.target.value;
-                  }
-                }}
-              />
+              <div
+                className={`flex items-center gap-2 py-1 px-1.5  bg-inherit rounded border ${
+                  darkMode ? "border-zinc-700" : "border-zinc-300"
+                }`}
+              >
+                <input
+                  type="color"
+                  className={`w-8 h-7 bg-inherit`}
+                  value={computedStyles.color}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (selectedElement) {
+                      selectedElement.element.style.color = value;
+                      setComputedStyles({ ...computedStyles, color: value });
+                    }
+                  }}
+                />
+                <input
+                  type="text"
+                  className={`w-full bg-inherit ${
+                    darkMode ? "text-white" : "text-zinc-900"
+                  } focus:outline-none`}
+                  value={computedStyles.color}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (selectedElement) {
+                      selectedElement.element.style.color = value;
+                      setComputedStyles({ ...computedStyles, color: value });
+                    }
+                  }}
+                  placeholder="#ffffff"
+                />
+              </div>
             </div>
 
             <div className="w-full">
               <label className="text-sm font-medium">Background Color</label>
+              <div
+                className={`flex items-center gap-2 py-1 px-1.5  bg-inherit rounded border ${
+                  darkMode ? "border-zinc-700" : "border-zinc-300"
+                } focus:outline-none`}
+              >
+                <input
+                  type="color"
+                  className="w-8 h-7 bg-inherit"
+                  value={computedStyles.backgroundColor}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (selectedElement) {
+                      selectedElement.element.style.backgroundColor = value;
+                      setComputedStyles({
+                        ...computedStyles,
+                        backgroundColor: value,
+                      });
+                    }
+                  }}
+                />
+                <input
+                  type="text"
+                  className={`w-full bg-inherit ${
+                    darkMode ? "text-white" : "text-zinc-900"
+                  } focus:outline-none`}
+                  value={computedStyles.backgroundColor}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (selectedElement) {
+                      selectedElement.element.style.backgroundColor = value;
+                      setComputedStyles({
+                        ...computedStyles,
+                        backgroundColor: value,
+                      });
+                    }
+                  }}
+                  placeholder="None"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full overflow-hidden flex gap-2 items-center">
+            <div className="w-full">
+              <label className="text-sm font-medium">Font Size</label>
               <input
-                type="color"
-                className="w-full h-10 p-1 bg-zinc-800 rounded border border-zinc-700 focus:outline-none"
-                value={computedStyles.backgroundColor}
+                type="text"
+                className={`w-full font-medium bg-inherit rounded px-2 py-1 border ${
+                  darkMode ? "border-zinc-700" : "border-zinc-300"
+                } focus:outline-none`}
+                value={computedStyles.fontSize}
                 onChange={(e) => {
+                  const value = e.target.value;
                   if (selectedElement) {
-                    selectedElement.element.style.backgroundColor =
-                      e.target.value;
+                    selectedElement.element.style.fontSize = value;
+                    setComputedStyles({ ...computedStyles, fontSize: value });
                   }
                 }}
               />
             </div>
+            <div className="w-full flex flex-col">
+              <label className="text-sm font-medium">Font Weight</label>
+              <select
+                className={`cursor-pointer px-2 py-1.5 font-medium rounded bg-inherit border ${
+                  darkMode
+                    ? "border-zinc-700 bg-zinc-900 text-white"
+                    : "bg-inherit border-zinc-300 text-zinc-900"
+                } focus:outline-none`}
+                value={computedStyles.fontWeight}
+                onChange={(e) => {
+                  if (selectedElement) {
+                    selectedElement.element.style.fontWeight = e.target.value;
+                    setComputedStyles({
+                      ...computedStyles,
+                      fontWeight: e.target.value,
+                    });
+                  }
+                }}
+              >
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="400">400</option>
+                <option value="500">500</option>
+                <option value="600">600</option>
+                <option value="700">700</option>
+                <option value="800">800</option>
+                <option value="900">900</option>
+              </select>
+            </div>
           </div>
-
-          <label className="text-sm font-medium">Font Weight</label>
-          <select
-            className={`p-2 rounded border ${
-              darkMode
-                ? "bg-zinc-800 border-zinc-700 text-white"
-                : "bg-zinc-100 border-zinc-300 text-zinc-900"
-            } focus:outline-none`}
-            value={computedStyles.fontWeight}
-            onChange={(e) => {
-              if (selectedElement) {
-                selectedElement.element.style.fontWeight = e.target.value;
-              }
-            }}
-          >
-            <option value="100">100</option>
-            <option value="200">200</option>
-            <option value="300">300</option>
-            <option value="400">400</option>
-            <option value="500">500</option>
-            <option value="600">600</option>
-            <option value="700">700</option>
-            <option value="800">800</option>
-            <option value="900">900</option>
-          </select>
         </div>
 
         <div className="flex gap-2 justify-end mt-4">
@@ -231,7 +316,7 @@ const EditModal: React.FC<EditModalProps> = ({
             className="px-3 py-1 rounded bg-gray-500 text-white hover:bg-gray-600"
             onClick={() => {
               if (selectedElement?.element) {
-                resetStyles(selectedElement?.element, computedStyles);
+                resetStyles(selectedElement?.element, initialStyles);
               }
               handleUndoChange();
               setShowTextEditModal(false);
