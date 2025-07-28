@@ -4,7 +4,6 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
-import { PaddleType } from "@/app/types/Paddle";
 import { useCreditStore } from "@/app/store/useCreditStore";
 import useToast from "@/app/hooks/useToast";
 
@@ -36,38 +35,11 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         script.id = scriptId;
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
         script.onload = async () => {
-          // const { token }: { token: string } = await get("/api/payment/paddle");
-          // if (!token) {
-          //   console.error("No Paddle client token received");
-          //   return;
-          // }
           const token = process.env.NEXT_PUBLIC_PADDLE_TOKEN;
-          // @ts-expect-error paddle
-          Paddle.Environment.set("sandbox");
           // @ts-expect-error paddle
           Paddle.Initialize({
             token,
-            eventCallback: async function (data: PaddleType) {
-              if (data.data.status === "completed") {
-                // const body = data.data;
-                // const res = await post(`/api/payment/webhook`, {
-                //   body,
-                // });
-                // if (res === "OK") {
-                //   // Fetch the latest credits from the backend
-                //   const { credits }: { credits: number } = await get(
-                //     "/api/credits"
-                //   );
-                //   if (typeof credits === "number") {
-                //     setCredits(credits);
-                //     toast.success("Credits purchased successfully!");
-                //   } else {
-                //     toast.error("Could not fetch updated credits.");
-                //   }
-                // } else {
-                //   toast.error("Something went wrong!");
-                // }
-              }
+            eventCallback: async function () {
               setRedirecting(false);
             },
           });
@@ -80,30 +52,9 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             // Already loaded, just setup again
             const token = process.env.NEXT_PUBLIC_PADDLE_TOKEN;
             // @ts-expect-error paddle
-            Paddle.Environment.set("sandbox");
-            // @ts-expect-error paddle
             Paddle.Initialize({
               token,
-              eventCallback: async function (data: PaddleType) {
-                if (data.data.status === "completed") {
-                  // const res = await post(`/api/payment/webhook`, {
-                  //   data: data.data,
-                  // });
-                  // if (res === "OK") {
-                  //   // Fetch the latest credits from the backend
-                  //   const { credits }: { credits: number } = await get(
-                  //     "/api/credits"
-                  //   );
-                  //   if (typeof credits === "number") {
-                  //     setCredits(credits);
-                  //     toast.success("Credits purchased successfully!");
-                  //   } else {
-                  //     toast.error("Could not fetch updated credits.");
-                  //   }
-                  // } else {
-                  //   toast.error("Something went wrong!");
-                  // }
-                }
+              eventCallback: async function () {
                 setRedirecting(false);
               },
             });

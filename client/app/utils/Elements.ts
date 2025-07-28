@@ -1,3 +1,11 @@
+import {
+  faAlignCenter,
+  faAlignJustify,
+  faAlignLeft,
+  faAlignRight,
+  faStrikethrough,
+  faUnderline,
+} from "@fortawesome/free-solid-svg-icons";
 import { ElementStyles } from "../types/Element";
 
 export const isTextOnly = (el: HTMLElement): boolean => {
@@ -62,4 +70,19 @@ export const resetStyles = (el: HTMLElement, styles: ElementStyles) => {
   el.style.color = styles.color;
   el.style.backgroundColor = styles.backgroundColor;
   el.style.fontWeight = styles.fontWeight;
+  el.style.textAlign = styles.textAlign;
+  el.style.textDecoration = styles.textDecoration;
+  el.style.fontStyle = styles.fontStyle;
+};
+
+export const getAlignIcon = (align: string) => {
+  if (align === "center") return faAlignCenter;
+  else if (align === "left") return faAlignLeft;
+  else if (align === "right") return faAlignRight;
+  else return faAlignJustify;
+};
+
+export const getDecorIcon = (decor: string) => {
+  if (decor === "underline") return faUnderline;
+  else return faStrikethrough;
 };

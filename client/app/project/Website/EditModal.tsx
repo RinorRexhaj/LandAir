@@ -2,7 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import useChange from "@/app/hooks/useChange";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { ElementPos, ElementStyles } from "@/app/types/Element";
-import { resetStyles, rgbToHex } from "@/app/utils/Elements";
+import {
+  getAlignIcon,
+  getDecorIcon,
+  resetStyles,
+  rgbToHex,
+} from "@/app/utils/Elements";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faItalic } from "@fortawesome/free-solid-svg-icons";
 
 interface EditModalProps {
   modalTextValue: string;
@@ -31,12 +38,18 @@ const EditModal: React.FC<EditModalProps> = ({
     backgroundColor: "rgba(0, 0, 0, 0)",
     fontWeight: "normal",
     fontSize: "12px",
+    textAlign: "center",
+    textDecoration: "none",
+    fontStyle: "none",
   });
   const [computedStyles, setComputedStyles] = useState<ElementStyles>({
     color: "#000000",
     backgroundColor: "rgba(0, 0, 0, 0)",
     fontWeight: "normal",
     fontSize: "12px",
+    textAlign: "center",
+    textDecoration: "none",
+    fontStyle: "none",
   });
 
   useEffect(() => {
@@ -54,11 +67,14 @@ const EditModal: React.FC<EditModalProps> = ({
 
     if (selectedElement?.element) {
       const style = window.getComputedStyle(selectedElement.element);
-      const computedStyleObj = {
+      const computedStyleObj: ElementStyles = {
         color: rgbToHex(style.color),
         backgroundColor: rgbToHex(style.backgroundColor),
         fontWeight: style.fontWeight,
         fontSize: style.fontSize,
+        textAlign: style.textAlign,
+        textDecoration: style.textDecoration,
+        fontStyle: style.fontStyle,
       };
 
       setComputedStyles(computedStyleObj);
@@ -301,6 +317,98 @@ const EditModal: React.FC<EditModalProps> = ({
                 <option value="800">800</option>
                 <option value="900">900</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full flex items-center gap-2">
+          <div className="w-full">
+            <label className="text-sm font-medium mb-1 block">Text Align</label>
+            <div className="flex gap-1">
+              {["left", "center", "right", "justify"].map((align) => (
+                <button
+                  key={align}
+                  className={`px-2 py-1 rounded border text-sm ${
+                    computedStyles.textAlign === align
+                      ? "bg-zinc-600 text-white border-zinc-500"
+                      : darkMode
+                      ? "bg-zinc-800 text-white border-zinc-700"
+                      : "bg-white text-zinc-900 border-zinc-300"
+                  }`}
+                  onClick={() => {
+                    if (selectedElement) {
+                      selectedElement.element.style.textAlign = align;
+                      setComputedStyles({
+                        ...computedStyles,
+                        textAlign: align,
+                      });
+                    }
+                  }}
+                  type="button"
+                >
+                  <FontAwesomeIcon icon={getAlignIcon(align)} />
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="w-full">
+            <label className="text-sm font-medium mb-1 block">
+              Text Decoration
+            </label>
+            <div className="flex gap-1">
+              <button
+                key={"decor-italic"}
+                className={`px-2 py-1 rounded border text-sm capitalize ${
+                  computedStyles.fontStyle === "italic"
+                    ? "bg-zinc-600 text-white border-zinc-500"
+                    : darkMode
+                    ? "bg-zinc-800 text-white border-zinc-700"
+                    : "bg-white text-zinc-900 border-zinc-300"
+                }`}
+                onClick={() => {
+                  if (selectedElement) {
+                    const isSelected = computedStyles.fontStyle === "italic";
+                    selectedElement.element.style.fontStyle = isSelected
+                      ? ""
+                      : "italic";
+                    setComputedStyles({
+                      ...computedStyles,
+                      fontStyle: isSelected ? "" : "italic",
+                    });
+                  }
+                }}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faItalic} />
+              </button>
+              {["underline", "line-through"].map((decoration) => (
+                <button
+                  key={decoration}
+                  className={`px-2 py-1 rounded border text-sm capitalize ${
+                    computedStyles.textDecoration === decoration
+                      ? "bg-zinc-600 text-white border-zinc-500"
+                      : darkMode
+                      ? "bg-zinc-800 text-white border-zinc-700"
+                      : "bg-white text-zinc-900 border-zinc-300"
+                  }`}
+                  onClick={() => {
+                    if (selectedElement) {
+                      const isSelected =
+                        computedStyles.textDecoration === decoration;
+                      selectedElement.element.style.textDecoration = isSelected
+                        ? ""
+                        : decoration;
+                      setComputedStyles({
+                        ...computedStyles,
+                        textDecoration: isSelected ? "" : decoration,
+                      });
+                    }
+                  }}
+                  type="button"
+                >
+                  <FontAwesomeIcon icon={getDecorIcon(decoration)} />
+                </button>
+              ))}
             </div>
           </div>
         </div>

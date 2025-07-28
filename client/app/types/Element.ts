@@ -11,4 +11,7 @@ export interface ElementStyles {
   backgroundColor: string;
   fontWeight: string;
   fontSize: string;
+  textAlign: string;
+  textDecoration: string;
+  fontStyle: string;
 }
