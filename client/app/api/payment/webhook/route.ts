@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     const getEmail = await fetch(
-      `https://sandbox-api.paddle.com/customers/${customerId}`,
+      `https://api.paddle.com/customers/${customerId}`,
       {
         headers: {
           Authorization: `Bearer ${key}`,

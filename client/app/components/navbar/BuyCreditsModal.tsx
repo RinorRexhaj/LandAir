@@ -39,6 +39,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
           // @ts-expect-error paddle
           Paddle.Initialize({
             token,
+            pwCustomer: null,
             eventCallback: async function () {
               setRedirecting(false);
             },
@@ -54,6 +55,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             // @ts-expect-error paddle
             Paddle.Initialize({
               token,
+              pwCustomer: null,
               eventCallback: async function () {
                 setRedirecting(false);
               },
