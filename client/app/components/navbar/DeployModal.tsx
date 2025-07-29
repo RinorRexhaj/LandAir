@@ -227,7 +227,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
           </a>
         )}
 
-        <div className="flex justify-end gap-4 pt-2">
+        <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={() => setShowDeployModal(false)}
             className={`px-4 py-2 rounded-lg font-medium ${
@@ -262,16 +262,16 @@ const DeployModal: React.FC<DeployModalProps> = ({
               <>
                 <FontAwesomeIcon icon={faRocket} className="w-4 h-4" />
                 {selectedProject?.url ? "Update" : "Deploy"}
-                <span className="flex gap-1">
-                  (3{" "}
+
+                <span className="flex gap-0.5 items-center ml-1">
+                  3{" "}
                   <Image
                     src={"/img/credit.svg"}
                     alt="Credits"
                     width={16}
                     height={16}
-                    className="-mr-1 mt-0.5"
+                    className=""
                   />
-                  )
                 </span>
               </>
             )}

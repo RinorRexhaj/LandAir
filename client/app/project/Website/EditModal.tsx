@@ -18,6 +18,7 @@ interface EditModalProps {
   setSelectedElement: (el: ElementPos | null) => void;
   setHasUnsavedChanges: (ch: boolean) => void;
   setShowTextEditModal: (show: boolean) => void;
+  elementType: "image" | "text" | "layout" | null;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -27,6 +28,7 @@ const EditModal: React.FC<EditModalProps> = ({
   setHasUnsavedChanges,
   setShowTextEditModal,
   setSelectedElement,
+  elementType,
 }) => {
   const { darkMode } = useThemeStore();
   const { handleContentEdit, handleUndoChange } = useChange();
@@ -123,7 +125,9 @@ const EditModal: React.FC<EditModalProps> = ({
     if (selectedElement) {
       const el = selectedElement.element;
 
-      el.textContent = modalTextValue;
+      if (elementType === "text") {
+        el.textContent = modalTextValue;
+      }
 
       if (el.tagName === "A") {
         const trimmedLink = link.trim();
@@ -145,6 +149,21 @@ const EditModal: React.FC<EditModalProps> = ({
     setSelectedElement(null);
   };
 
+  /*
+    <div className="fixed tb:fixed w-full tb:inset-0 z-40 flex items-center justify-center tb:bg-black tb:bg-opacity-30">
+      <div
+        className={`${
+          darkMode ? "bg-zinc-900 text-white" : "bg-white text-zinc-900"
+        } absolute top-1 right-9 tb:static rounded border border-zinc-700 shadow-lg p-6 flex flex-col gap-4 font-semibold`}
+        style={{
+          width:
+            document.body.clientWidth > 1000
+              ? "calc(33.333333% - 24px)"
+              : "384px",
+        }}
+      >
+  */
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
       <div
@@ -152,20 +171,33 @@ const EditModal: React.FC<EditModalProps> = ({
           darkMode ? "bg-zinc-900 text-white" : "bg-white text-zinc-900"
         } rounded-lg shadow-lg p-6 w-96 flex flex-col gap-4 font-semibold`}
       >
-        <h3 className="text-lg font-semibold">Edit Element</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Edit Element</h3>
+          <p
+            className={`lowercase py-0.5 flex items-center justify-center px-3 border rounded ${
+              darkMode
+                ? "border-zinc-700 bg-zinc-800 text-white"
+                : "border-zinc-300 bg-zinc-100 text-zinc-900"
+            }`}
+          >
+            {selectedElement?.element.tagName}
+          </p>
+        </div>
 
-        <textarea
-          ref={textareaRef}
-          className={`${
-            darkMode ? "border-zinc-700" : "border-zinc-300"
-          } border bg-inherit rounded p-2 w-full resize-none focus:outline-none`}
-          value={modalTextValue}
-          onChange={(e) => {
-            setModalTextValue(e.target.value);
-            autoResize();
-          }}
-          autoFocus
-        />
+        {elementType === "text" && (
+          <textarea
+            ref={textareaRef}
+            className={`${
+              darkMode ? "border-zinc-700" : "border-zinc-300"
+            } border bg-inherit rounded p-2 w-full resize-none focus:outline-none`}
+            value={modalTextValue}
+            onChange={(e) => {
+              setModalTextValue(e.target.value);
+              autoResize();
+            }}
+            autoFocus
+          />
+        )}
 
         {/* Link input (if <a>) */}
         {selectedElement?.element.tagName === "A" && (

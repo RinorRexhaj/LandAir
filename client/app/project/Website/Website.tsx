@@ -327,6 +327,7 @@ const Website: React.FC<WebsiteProps> = ({
     updateToolbarPos,
     updateHoverPos,
     updateClickPos,
+    showTextEditModal,
   ]);
 
   const getWidth = () => {
@@ -348,7 +349,7 @@ const Website: React.FC<WebsiteProps> = ({
   if (!selectedProject) return;
 
   return (
-    <div className="relative">
+    <div className="">
       <iframe
         ref={iframeRef}
         key={selectedProject.file}
@@ -396,6 +397,7 @@ const Website: React.FC<WebsiteProps> = ({
           setModalTextValue={setModalTextValue}
           setSelectedElement={setSelectedElement}
           setShowTextEditModal={setShowTextEditModal}
+          elementType={elementType}
         />
       )}
     </div>

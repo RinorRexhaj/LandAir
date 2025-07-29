@@ -87,99 +87,93 @@ const ActionElements: React.FC<ActionElementsProps> = ({
             top: toolBarPos?.top,
           }}
         >
-          {elementType !== "layout" && (
-            <>
-              <button
-                onClick={() => {
-                  if (elementType === "image") {
-                    const input = document.createElement("input");
-                    input.type = "file";
-                    input.accept = "image/*";
+          <button
+            onClick={() => {
+              if (elementType === "image") {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
 
-                    input.onchange = (e: Event) => {
-                      const target = e.target as HTMLInputElement;
-                      const file = target.files?.[0];
-                      if (!file) return;
+                input.onchange = (e: Event) => {
+                  const target = e.target as HTMLInputElement;
+                  const file = target.files?.[0];
+                  if (!file) return;
 
-                      if (file.size > 1024 * 1024) {
-                        alert("Image must be less than 1MB");
-                        return;
-                      }
+                  if (file.size > 1024 * 1024) {
+                    alert("Image must be less than 1MB");
+                    return;
+                  }
 
-                      const reader = new FileReader();
-                      reader.onload = () => {
-                        const dataUrl = reader.result as string;
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const dataUrl = reader.result as string;
 
-                        // Store original HTML if not already stored
-                        if (
-                          !selectedElement.element.getAttribute(
-                            "data-original-html"
-                          )
-                        ) {
-                          selectedElement.element.setAttribute(
-                            "data-original-html",
-                            selectedElement.element.outerHTML
-                          );
-                        }
-
-                        selectedElement.element.setAttribute("src", dataUrl);
-
-                        // Call the change tracking function
-                        handleContentEdit(selectedElement.element);
-                        setIsEditing(false);
-                        setHasUnsavedChanges(true);
-                      };
-
-                      reader.readAsDataURL(file);
-                    };
-
-                    input.click();
-                  } else if (elementType === "text") {
-                    // Open modal for text editing
-                    setModalTextValue(
-                      selectedElement.element.textContent || ""
-                    );
-                    setShowTextEditModal(true);
-                  } else {
-                    // fallback to previous logic for mixed content
-                    if (!isEditing) {
-                      selectedElement.element.contentEditable = "true";
-                      selectedElement.element.style.outline = "none";
+                    // Store original HTML if not already stored
+                    if (
+                      !selectedElement.element.getAttribute(
+                        "data-original-html"
+                      )
+                    ) {
                       selectedElement.element.setAttribute(
                         "data-original-html",
-                        selectedElement.element.innerHTML
+                        selectedElement.element.outerHTML
                       );
-                      selectedElement.element.addEventListener("input", () => {
-                        handleContentEdit(selectedElement.element);
-                        setHasUnsavedChanges(true);
-                      });
-                      selectedElement.element.focus();
-                    } else {
-                      selectedElement.element.contentEditable = "false";
-                      selectedElement.element.blur();
                     }
-                    setIsEditing(!isEditing);
-                  }
-                }}
-                className={`hover:text-blue-500 flex items-center gap-1`}
-                title="Edit"
-              >
-                <FontAwesomeIcon
-                  icon={
-                    isEditing
-                      ? faCheck
-                      : elementType === "image"
-                      ? faImage
-                      : faPenToSquare
-                  }
-                />
-                <p className={`md:hidden font-medium`}>
-                  {isEditing ? "Save" : "Edit"}
-                </p>
-              </button>
-              <span className="w-px h-4 bg-zinc-400"></span>
-            </>
-          )}
+
+                    selectedElement.element.setAttribute("src", dataUrl);
+
+                    // Call the change tracking function
+                    handleContentEdit(selectedElement.element);
+                    setIsEditing(false);
+                    setHasUnsavedChanges(true);
+                  };
+
+                  reader.readAsDataURL(file);
+                };
+
+                input.click();
+              } else if (elementType === "text" || elementType === "layout") {
+                // Open modal for text editing
+                setModalTextValue(selectedElement.element.textContent || "");
+                setShowTextEditModal(true);
+              } else {
+                // fallback to previous logic for mixed content
+                if (!isEditing) {
+                  selectedElement.element.contentEditable = "true";
+                  selectedElement.element.style.outline = "none";
+                  selectedElement.element.setAttribute(
+                    "data-original-html",
+                    selectedElement.element.innerHTML
+                  );
+                  selectedElement.element.addEventListener("input", () => {
+                    handleContentEdit(selectedElement.element);
+                    setHasUnsavedChanges(true);
+                  });
+                  selectedElement.element.focus();
+                } else {
+                  selectedElement.element.contentEditable = "false";
+                  selectedElement.element.blur();
+                }
+                setIsEditing(!isEditing);
+              }
+            }}
+            className={`hover:text-blue-500 flex items-center gap-1`}
+            title="Edit"
+          >
+            <FontAwesomeIcon
+              icon={
+                isEditing
+                  ? faCheck
+                  : elementType === "image"
+                  ? faImage
+                  : faPenToSquare
+              }
+            />
+            <p className={`md:hidden font-medium`}>
+              {isEditing ? "Save" : "Edit"}
+            </p>
+          </button>
+          <span className="w-px h-4 bg-zinc-400"></span>
 
           <button
             onClick={() => {
