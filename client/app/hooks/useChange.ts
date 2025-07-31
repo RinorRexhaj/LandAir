@@ -229,7 +229,6 @@ const useChange = () => {
   };
 
   const removeDisableInteractionStyle = (iframeDoc: Document) => {
-    console.log("ok");
     iframeDoc.body.style = "";
     iframeDoc.getElementById("disable-interaction-style")?.remove();
     iframeDoc.querySelectorAll("*").forEach((el) => {
@@ -241,11 +240,7 @@ const useChange = () => {
         }
         htmlEl.removeAttribute("data-original-href");
         htmlEl.removeAttribute("data-original-html");
-        const href = htmlEl.getAttribute("href");
-        htmlEl.onclick = (e) => {
-          if (href === "/" || href === "#") e.preventDefault();
-          else return null;
-        };
+        htmlEl.onclick = null;
       }
     });
   };

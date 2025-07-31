@@ -72,6 +72,9 @@ export const resetStyles = (el: HTMLElement, styles: ElementStyles) => {
   el.style.textAlign = styles.textAlign;
   el.style.textDecoration = styles.textDecoration;
   el.style.fontStyle = styles.fontStyle;
+  el.style.flexDirection = styles.flexDirection || "";
+  el.style.alignItems = styles.alignItems || "";
+  el.style.justifyContent = styles.justifyContent || "";
 };
 
 export const getAlignIcon = (align: string) => {

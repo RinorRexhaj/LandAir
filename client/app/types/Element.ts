@@ -14,4 +14,7 @@ export interface ElementStyles {
   textAlign: string;
   textDecoration: string;
   fontStyle: string;
+  flexDirection?: string;
+  justifyContent?: string;
+  alignItems?: string;
 }
