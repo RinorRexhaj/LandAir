@@ -7,7 +7,7 @@ import DashboardNavbar from "../components/navbar/DashboardNavbar";
 import Projects from "./projects/Projects";
 import { useThemeStore } from "../store/useThemeStore";
 import { ToastContainer } from "react-toastify";
-import Templates from "./Templates";
+import Templates from "./templates/Templates";
 import { useProjectStore } from "../store/useProjectsStore";
 
 const Dashboard = () => {
