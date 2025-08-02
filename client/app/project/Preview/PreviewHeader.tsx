@@ -25,7 +25,7 @@ const PreviewHeader: React.FC<PreviewHeaderProps> = ({
 
   return (
     <div
-      className={`fixed top-0.5 z-30 left-[45%] -translate-x-1/2 md:top-12 mt-0.5 md:left-3 md:translate-x-0 flex gap-1 flex-wrap rounded-md px-1.5 py-1`}
+      className={`fixed top-0.5 z-40 md:z-30 left-[45%] -translate-x-1/2 md:top-12 md:mt-0.5 md:left-3 md:translate-x-0 flex gap-1 flex-wrap rounded-md px-1.5 py-1`}
     >
       {/* Device Toggle */}
       <div
