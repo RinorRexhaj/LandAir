@@ -1,10 +1,10 @@
 // components/ActionButtons.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
   faArrowUpRightFromSquare,
   faCrosshairs,
   faDownload,
-  faEllipsisVertical,
+  // faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useThemeStore } from "../../store/useThemeStore";
@@ -22,13 +22,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   mobile,
   toggleSelector,
 }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  // const [menuOpen, setMenuOpen] = useState(false);
   const { darkMode } = useThemeStore();
   const { selectedProject } = useProjectStore();
 
   return (
     <div
-      className={`relative flex items-center  rounded-lg transition-all duration-200
+      className={`relative flex items-center rounded-lg transition-all duration-200
         ${
           darkMode
             ? "bg-zinc-800/80 border-gray-200/20"
@@ -36,7 +36,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         }`}
     >
       {/* Desktop Buttons */}
-      <div className="sm:hidden flex px-1.5 py-1 gap-1">
+      <div className="flex px-1.5 py-1 gap-1">
         <button
           onClick={() => handleOpenFullSize(selectedProject)}
           title="Open Full Size Page"
@@ -79,7 +79,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       </div>
 
       {/* Mobile Dropdown Menu */}
-      <div className="hidden sm:flex relative">
+      {/* <div className="hidden sm:flex relative">
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
           className="p-2 text-sm opacity-80 hover:opacity-100 "
@@ -135,7 +135,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             </button>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

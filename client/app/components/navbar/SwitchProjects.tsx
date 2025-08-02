@@ -49,7 +49,7 @@ const SwitchProjects = () => {
         <FontAwesomeIcon icon={faSort} />
       </button>
       {open && (
-        <div className="absolute left-0 top-10 min-w-[180px] max-w-[240px] bg-zinc-900 text-white shadow-lg rounded-lg z-50 py-2 animate-fadeFast border border-zinc-700">
+        <div className="fixed left-4 top-12 min-w-[180px] w-52 max-w-[260px] bg-zinc-900 text-white shadow-lg rounded-lg py-2 animate-fadeFast border border-zinc-800">
           {/* Create Project Button */}
           {projects.length < 4 && (
             <button

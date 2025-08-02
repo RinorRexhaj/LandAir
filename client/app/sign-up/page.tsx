@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useVanta } from "../hooks/useVanta";
 import Image from "next/image";
 import { supabase } from "../utils/Supabase";
-import { useState } from "react";
 
 const SignInPage = () => {
   const vantaRef = useVanta<HTMLDivElement>({
@@ -13,11 +12,11 @@ const SignInPage = () => {
     backgroundColor: 0x000000,
   });
 
-  const [isSignUp, setIsSignUp] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  // const [isSignUp, setIsSignUp] = useState(true);
+  // const [email, setEmail] = useState("");
+  // const [password, setPassword] = useState("");
+  // const [error, setError] = useState<string | null>(null);
+  // const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -32,21 +31,21 @@ const SignInPage = () => {
     }
   };
 
-  const handleEmailSignIn = async () => {
-    setLoading(true);
-    setError(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      // Optionally redirect or show success
-      window.location.href = "/dashboard";
-    }
-  };
+  // const handleEmailSignIn = async () => {
+  //   setLoading(true);
+  //   setError(null);
+  //   const { error } = await supabase.auth.signInWithPassword({
+  //     email,
+  //     password,
+  //   });
+  //   setLoading(false);
+  //   if (error) {
+  //     setError(error.message);
+  //   } else {
+  //     // Optionally redirect or show success
+  //     window.location.href = "/dashboard";
+  //   }
+  // };
 
   return (
     <div ref={vantaRef} className="h-dvh w-full relative overflow-hidden">
@@ -54,7 +53,7 @@ const SignInPage = () => {
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div className="w-full max-w-md bg-white/5 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-8 text-white">
           {/* Toggle Sign Up / Log In */}
-          <div className="flex justify-center mb-6">
+          {/* <div className="flex justify-center mb-6">
             <button
               className={`px-4 py-2 rounded-l-lg font-semibold transition-colors ${
                 isSignUp
@@ -77,7 +76,7 @@ const SignInPage = () => {
             >
               Log In
             </button>
-          </div>
+          </div> */}
 
           {/* Header */}
           <div className="relative text-center mb-6">
@@ -86,22 +85,16 @@ const SignInPage = () => {
                 <FontAwesomeIcon icon={faArrowLeft} className="h-5" />
               </Link>
               <h2 className="text-3xl md:text-2xl font-bold">
-                {isSignUp ? "Welcome to LandAir" : "Welcome Back"}
+                {"Welcome to LandAir"}
               </h2>
             </div>
             <p className="mt-2 text-gray-300">
-              {isSignUp ? (
+              {
                 <>
                   Join <span className="font-semibold text-white">LandAir</span>{" "}
                   and start building amazing pages.
                 </>
-              ) : (
-                <>
-                  Log in to your{" "}
-                  <span className="font-semibold text-white">LandAir</span>{" "}
-                  account.
-                </>
-              )}
+              }
             </p>
           </div>
 
@@ -117,12 +110,10 @@ const SignInPage = () => {
               height={32}
               width={32}
             />
-            <span>
-              {isSignUp ? "Sign up with Google" : "Sign in with Google"}
-            </span>
+            <span>{"Sign up with Google"}</span>
           </button>
 
-          {/* Email/Password Log In */}
+          {/* Email/Password Log In
           {!isSignUp && (
             <form className="mt-6 flex flex-col gap-3">
               <input
@@ -153,10 +144,10 @@ const SignInPage = () => {
                 <p className="text-red-400 text-sm text-center">{error}</p>
               )}
             </form>
-          )}
+          )} */}
 
           <p className="text-center text-sm mt-4 text-white/50">
-            By signing {isSignUp ? "up" : "in"} you agree to our{" "}
+            By signing up you agree to our{" "}
             <a
               href="/terms-of-service"
               className="text-blue-400 hover:underline"

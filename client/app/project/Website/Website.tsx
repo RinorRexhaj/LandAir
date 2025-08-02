@@ -133,24 +133,38 @@ const Website: React.FC<WebsiteProps> = ({
   const updateToolbarPos = useCallback(
     (target: HTMLElement | null | undefined) => {
       const element = target || selectedElement?.element;
-      if (!element) return;
-      if (!iframeRef.current) return;
+      if (!element || !iframeRef.current) return;
 
       const rect = element.getBoundingClientRect();
       const clientHeight = iframeRef.current.clientHeight;
+      const clientWidth = iframeRef.current.clientWidth;
 
       const elementHeight = rect.height * scale;
       const visibleHeight = clientHeight * scale;
 
       let top: number;
-      const left: number = rect.x * scale;
+      let left: number = rect.x * scale;
 
+      // Vertical positioning logic
       if (elementHeight >= visibleHeight - 100) {
         top = rect.bottom * scale - 30;
       } else {
-        // Regular positioning logic
         top =
           rect.y * scale < 50 ? rect.bottom * scale + 2 : rect.y * scale - 33;
+        if (document.body.clientWidth < 768) {
+          top += 33;
+        }
+      }
+
+      // Horizontal positioning constraints
+      const toolbarWidth = 200; // set this to your actual toolbar width
+      const padding = 12;
+
+      if (left + toolbarWidth > clientWidth * scale - padding) {
+        left = clientWidth * scale - toolbarWidth - padding;
+      }
+      if (left < padding) {
+        left = padding;
       }
 
       setToolBarPos({ top, left });
@@ -289,6 +303,35 @@ const Website: React.FC<WebsiteProps> = ({
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!iframeDoc || !iframeDoc.body) return;
 
+    const scrollbarStyle = `
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: rgba(100, 100, 100, 0.3);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(100, 100, 100, 0.5);
+      }
+      body {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
+      }
+    `;
+
+    const injectScrollbarStyle = () => {
+      const iframeDoc =
+        iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) return;
+
+      const styleEl = iframeDoc.createElement("style");
+      styleEl.innerHTML = scrollbarStyle;
+      iframeDoc.head.appendChild(styleEl);
+    };
+
     if (!selector) {
       removeDisableInteractionStyle(iframeDoc);
       setElementType(null);
@@ -297,6 +340,7 @@ const Website: React.FC<WebsiteProps> = ({
       injectDisableInteractionStyle(iframeDoc);
     }
 
+    iframe.addEventListener("load", injectScrollbarStyle);
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
 
@@ -310,6 +354,7 @@ const Website: React.FC<WebsiteProps> = ({
     iframe.contentWindow?.addEventListener("resize", handleScrollOrResize);
 
     return () => {
+      iframe.removeEventListener("load", injectScrollbarStyle);
       iframeDoc.removeEventListener("mousemove", handleMouseMove);
       iframeDoc.removeEventListener("mouseleave", handleMouseLeave);
       iframeDoc.removeEventListener("scroll", handleScrollOrResize);
@@ -341,13 +386,18 @@ const Website: React.FC<WebsiteProps> = ({
   const getHeight = () => {
     const height = document.body.clientHeight;
     const width = document.body.clientWidth;
-    const extra = (height * 200) / width + 21.5;
+    const extra = (height * 200) / width + 20;
     const mobileExtra =
       (height > width ? height / width : width / height) +
       (height > width ? height / width : width / height) * 3;
     if (mobile) return `calc(${scale * 100 + mobileExtra}dvh)`;
-    return height * (1 / scale) - extra;
+    let finalHeight = height * (1 / scale) - extra;
+    console.log(width);
+    if (width < 768) finalHeight -= 250;
+    return finalHeight;
   };
+
+  // const getHeight = () => document.body.clientHeight / scale - 113;
 
   if (!selectedProject) return;
 
@@ -357,7 +407,9 @@ const Website: React.FC<WebsiteProps> = ({
         ref={iframeRef}
         key={selectedProject.file}
         srcDoc={selectedProject.file}
-        className={`rounded-lg shadow-md`}
+        className={`rounded-xl shadow-md ${
+          document.body.clientWidth < 768 ? "top-24" : ""
+        }`}
         style={{
           border: "none",
           width: getWidth(),

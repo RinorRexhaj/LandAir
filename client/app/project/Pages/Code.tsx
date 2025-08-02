@@ -58,10 +58,10 @@ const Code: React.FC<CodeProps> = ({ file, getUrl, setChanged }) => {
   };
 
   return (
-    <div className="w-full rounded-md overflow-hidden relative">
+    <div className="w-full rounded-md overflow-hidden md:overflow-visible relative">
       {/* Top Control Bar */}
       <div
-        className={`absolute z-40 top-0 right-0 flex gap-2 p-2 rounded-md border border-zinc-400/20 ${
+        className={`absolute z-40 top-0 md:-mt-1.5 right-0 flex gap-2 p-2 rounded-md border md:border-none border-zinc-400/20 ${
           darkMode ? "bg-zinc-900" : "bg-gray-100"
         } shadow-lg`}
       >
@@ -101,7 +101,11 @@ const Code: React.FC<CodeProps> = ({ file, getUrl, setChanged }) => {
 
       {/* Monaco Editor */}
       <Editor
-        height="calc(100vh)"
+        height={
+          document.body.clientWidth < 768
+            ? "calc(100dvh - 80px)"
+            : `calc(100dvh)`
+        }
         defaultLanguage="html"
         theme={darkMode ? "vs-dark" : "light"}
         value={code}
@@ -112,7 +116,7 @@ const Code: React.FC<CodeProps> = ({ file, getUrl, setChanged }) => {
         }}
         className={`${
           isSaving && "animate-glow cursor-not-allowed pointer-events-none"
-        }`}
+        } ${document.body.clientWidth < 768 ? "mt-10" : ""}`}
         onChange={(value) => setCode(value || "")}
       />
     </div>

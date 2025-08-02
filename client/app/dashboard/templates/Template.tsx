@@ -2,9 +2,16 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
+import { useMemo } from "react";
 
 const Template = ({ template, index }: { template: string; index: number }) => {
   const { darkMode } = useThemeStore();
+
+  const imageUrl = useMemo(
+    () =>
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/Templates/${template} Template/screenshot.png`,
+    [template]
+  );
 
   return (
     <div
@@ -23,7 +30,7 @@ const Template = ({ template, index }: { template: string; index: number }) => {
       {/* Screenshot */}
       <div className="w-full h-40 relative rounded-tl-xl rounded-tr-xl overflow-hidden">
         <Image
-          src={`https://ykzubtnhyebwtqzaawan.supabase.co/storage/v1/object/public/pages/Templates/${template}%20Template/screenshot.png`}
+          src={`${imageUrl}`}
           alt={`${template} Template Screenshot`}
           fill
           className="object-cover object-top animate-fade"

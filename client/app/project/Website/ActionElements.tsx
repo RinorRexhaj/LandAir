@@ -9,7 +9,7 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { RefObject } from "react";
+import React, { RefObject, useEffect, useState } from "react";
 
 interface ActionElementsProps {
   selector: boolean;
@@ -48,10 +48,20 @@ const ActionElements: React.FC<ActionElementsProps> = ({
   const { handleContentDelete, handleContentEdit, handleCloneElement } =
     useChange();
   const { darkMode } = useThemeStore();
+  const [animationKey, setAnimationKey] = useState(0);
+
+  // Trigger animation when selectedElement changes
+  useEffect(() => {
+    if (selectedElement) {
+      setAnimationKey((prev) => prev + 1);
+    }
+  }, [selectedElement]);
+
+  if (!selector) return null;
 
   return (
     <>
-      {selector && hoveredElement && iframeRef.current && (
+      {hoveredElement && iframeRef.current && (
         <div
           className={`bg-blue-500 opacity-50 pointer-events-none`}
           style={{
@@ -63,7 +73,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
           }}
         ></div>
       )}
-      {selector && selectedElement && selectedVisible && iframeRef.current && (
+      {selectedElement && selectedVisible && iframeRef.current && (
         <div
           className="outline-dashed outline-2 outline-blue-700 opacity-100 pointer-events-none"
           style={{
@@ -75,13 +85,14 @@ const ActionElements: React.FC<ActionElementsProps> = ({
           }}
         ></div>
       )}
-      {selectedElement && selector && (
+      {selectedElement && (
         <div
+          key={animationKey}
           className={`absolute z-40 ${
             darkMode
-              ? "bg-zinc-900 text-white border-zinc-700"
+              ? "bg-zinc-800 text-white "
               : "text-zinc-900 bg-white border-zinc-200"
-          } px-3 py-1.5 flex gap-2 items-center rounded text-xs shadow-lg border-2 `}
+          } px-4 py-2 flex gap-2 items-center rounded text-xs shadow-2xl animate-fadeFast [animation-fill-mode:backwards]`}
           style={{
             left: toolBarPos?.left,
             top: toolBarPos?.top,
@@ -157,7 +168,7 @@ const ActionElements: React.FC<ActionElementsProps> = ({
                 setIsEditing(!isEditing);
               }
             }}
-            className={`hover:text-blue-500 flex items-center gap-1`}
+            className={`hover:text-blue-500 flex items-center gap-1 font-medium`}
             title="Edit"
           >
             <FontAwesomeIcon
@@ -169,11 +180,9 @@ const ActionElements: React.FC<ActionElementsProps> = ({
                   : faPenToSquare
               }
             />
-            <p className={`md:hidden font-medium`}>
-              {isEditing ? "Save" : "Edit"}
-            </p>
+            <p className={`md:hidden`}>{isEditing ? "Save" : "Edit"}</p>
           </button>
-          <span className="w-px h-4 bg-zinc-400"></span>
+          <span className="w-px h-4 bg-zinc-500"></span>
 
           <button
             onClick={() => {
@@ -181,20 +190,20 @@ const ActionElements: React.FC<ActionElementsProps> = ({
               handleCloneElement(selectedElement.element);
               setSelectedElement(null);
             }}
-            className="hover:text-slate-600 flex items-center gap-1 font-semibold"
+            className="hover:text-slate-600 flex items-center gap-1 font-medium"
             title="Clone"
           >
             <FontAwesomeIcon icon={faClone} />
             <p className="md:hidden">Clone</p>
           </button>
-          <span className="w-px h-4 bg-zinc-400"></span>
+          <span className="w-px h-4 bg-zinc-500"></span>
           <button
             onClick={() => {
               setHasUnsavedChanges(true);
               handleContentDelete(selectedElement.element);
               setSelectedElement(null);
             }}
-            className="hover:text-red-500 flex items-center gap-1 font-semibold"
+            className="hover:text-red-500 flex items-center gap-1 font-medium"
             title="Delete"
           >
             <FontAwesomeIcon icon={faTrash} />

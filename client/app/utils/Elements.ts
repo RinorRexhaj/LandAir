@@ -19,14 +19,14 @@ export const isTextOnly = (el: HTMLElement): boolean => {
 export const isImageElement = (el: HTMLElement): boolean => {
   const isImgTag = el.tagName === "IMG";
 
-  // const hasSingleImgChild = el.querySelectorAll("img").length === 1;
+  const hasSingleImgChild = el.querySelectorAll("img").length === 1;
 
   const bg = window.getComputedStyle(el).backgroundImage;
   const hasBackgroundImage = Boolean(
     bg && bg !== "none" && bg.includes("url(")
   );
 
-  return isImgTag || hasBackgroundImage;
+  return isImgTag || hasBackgroundImage || hasSingleImgChild;
 };
 
 export const isLayoutElement = (el: HTMLElement): boolean => {

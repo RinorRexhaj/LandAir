@@ -32,7 +32,7 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
     <>
       {hasUnsavedChanges && (
         <div
-          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[175px] md:ml-[100px] flex p-1 gap-1 rounded-lg items-center z-40 transition-all animate-fade duration-200 ${
+          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[175px] md:ml-[99px] md:top-12 md:mt-1.5 flex p-1 gap-1 rounded-lg items-center z-40 transition-all animate-fade duration-200 ${
             darkMode
               ? "bg-zinc-800/80 border-gray-200/20"
               : "bg-zinc-100/80 border-gray-300/50"

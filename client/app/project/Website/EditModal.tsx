@@ -178,7 +178,7 @@ const EditModal: React.FC<EditModalProps> = ({
           darkMode ? "bg-zinc-900 text-white" : "bg-white text-zinc-900"
         } rounded-lg h-fit max-h-[80%] shadow-lg p-6 ${
           elementType === "layout" ? "max-w-[35%]" : "w-96"
-        } tb:max-w-[85%] flex flex-col gap-4 font-semibold`}
+        } tb:max-w-[85%] flex flex-col gap-4 font-semibold animate-fadeFast `}
       >
         <div className="relative flex justify-between items-center">
           <h3 className="text-lg font-semibold">Edit Element</h3>
