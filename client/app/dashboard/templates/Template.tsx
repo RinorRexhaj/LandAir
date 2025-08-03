@@ -1,15 +1,25 @@
 import { useThemeStore } from "@/app/store/useThemeStore";
-import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { Template as TemplateType } from "@/app/types/Template";
+import {
+  faArrowUpRightFromSquare,
+  faPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { useMemo } from "react";
 
-const Template = ({ template, index }: { template: string; index: number }) => {
+interface TemplateProps {
+  template: TemplateType;
+  index: number;
+  onUseTemplate: (template: string) => void;
+}
+
+const Template = ({ template, index, onUseTemplate }: TemplateProps) => {
   const { darkMode } = useThemeStore();
 
   const imageUrl = useMemo(
     () =>
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/Templates/${template} Template/screenshot.png`,
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/Templates/${template.name} Template/screenshot.png`,
     [template]
   );
 
@@ -21,16 +31,13 @@ const Template = ({ template, index }: { template: string; index: number }) => {
           : "bg-gray-200/60 hover:bg-gray-200"
       }`}
       style={{
-        animationDelay: index * 0.3 + 0.2 + "s",
-      }}
-      onClick={() => {
-        // setSelectedProject(project);
+        animationDelay: `${index * 0.3 + 0.2}s`,
       }}
     >
       {/* Screenshot */}
       <div className="w-full h-40 relative rounded-tl-xl rounded-tr-xl overflow-hidden">
         <Image
-          src={`${imageUrl}`}
+          src={imageUrl}
           alt={`${template} Template Screenshot`}
           fill
           className="object-cover object-top animate-fade"
@@ -38,29 +45,56 @@ const Template = ({ template, index }: { template: string; index: number }) => {
         />
       </div>
 
-      {/* Text Content */}
-      <div className="w-full p-4 flex justify-between gap-1">
-        <h3
-          className={`text-base font-semibold truncate ${
-            darkMode ? "text-white" : "text-zinc-900"
+      {/* Text and Actions */}
+      <div className="w-full flex flex-col gap-1 px-4 py-3">
+        <div className="w-full flex justify-between items-center">
+          <h3
+            className={`text-base font-semibold truncate ${
+              darkMode ? "text-white" : "text-zinc-900"
+            }`}
+          >
+            {template.name} Template
+          </h3>
+
+          <div className="flex gap-1 items-center">
+            {/* Live Preview Button */}
+            <a
+              href={`https://${template.name}-template.landair.app`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`px-2 py-1 rounded hover:scale-105 transition ${
+                darkMode
+                  ? "hover:bg-white/10 text-white"
+                  : "hover:bg-black/10 text-black"
+              }`}
+              title="Live Preview"
+            >
+              <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+            </a>
+
+            {/* Use Button */}
+            <button
+              onClick={() => onUseTemplate(template.name)}
+              className={`px-2 py-1 rounded hover:scale-105 transition ${
+                darkMode
+                  ? "hover:bg-blue-500/20 text-blue-400"
+                  : "hover:bg-blue-500/10 text-blue-600"
+              }`}
+              title="Use Template"
+            >
+              <FontAwesomeIcon icon={faPlus} />
+            </button>
+          </div>
+        </div>
+        <span
+          className={`w-fit px-4 py-1 rounded-full text-sm font-semibold capitalize ${
+            template.type === "free"
+              ? "bg-blue-600 text-white"
+              : "bg-violet-700 text-white"
           }`}
         >
-          {template} Template
-        </h3>
-        <div>
-          <a
-            className={`w-full flex gap-2 items-center text-left px-4 py-2 text-sm ${
-              darkMode
-                ? "hover:bg-red-500/20 text-red-400"
-                : "hover:bg-red-500/10 text-red-500"
-            }`}
-            href={`https://${template}-template.landair.app`}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-          </a>
-        </div>
+          {template.type}
+        </span>
       </div>
     </div>
   );

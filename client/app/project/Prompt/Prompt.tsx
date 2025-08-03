@@ -2,7 +2,8 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowDown,
-  faPaperPlane,
+  faArrowRotateRight,
+  faArrowUp,
   faSpinner,
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
@@ -60,7 +61,7 @@ const Prompt: React.FC<PromptProps> = ({
   const toast = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // const { enhanceImages } = useUnsplash();
-  const [lastFailedInput, setLastFailedInput] = useState<string | null>(null);
+  const [lastFailedInput, setLastFailedInput] = useState<number | null>(null);
 
   useEffect(() => {
     if (!selectedProject) {
@@ -234,7 +235,8 @@ const Prompt: React.FC<PromptProps> = ({
       toast.error("Failed to start generation");
       setIsGenerating(false);
       setChanging(false);
-      setLastFailedInput(currentInput); // Set for retry
+      const lastMsg: ChatMessage = messages[messages.length - 1];
+      setLastFailedInput(lastMsg.id); // Set for retry
     }
 
     if (!overrideInput) setInput("");
@@ -244,7 +246,8 @@ const Prompt: React.FC<PromptProps> = ({
     toast.error("Something went wrong!");
     setIsGenerating(false);
     setChanging(false);
-    setLastFailedInput(input); // Set for retry
+    const lastMsg: ChatMessage = messages[messages.length - 1];
+    setLastFailedInput(lastMsg.id); // Set for retry
     const botMsg: ChatMessage = {
       id: Date.now() + 1,
       sender: false,
@@ -383,11 +386,12 @@ const Prompt: React.FC<PromptProps> = ({
     }
   };
 
-  const handleRetry = () => {
-    if (lastFailedInput) {
-      handleSubmit(lastFailedInput);
-    }
-  };
+  // const handleRetry = () => {
+  //   if (lastFailedInput) {
+  //     const lastMsg: ChatMessage = messages[messages.length - 1];
+  //     setLastFailedInput(lastMsg.id); // Set for retry
+  //   }
+  // };
 
   return (
     <div
@@ -423,16 +427,6 @@ const Prompt: React.FC<PromptProps> = ({
           ""
         )}
         {/* Retry button if last message failed */}
-        {lastFailedInput && (
-          <div className="flex justify-center mt-2">
-            <button
-              onClick={handleRetry}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-            >
-              Retry Last Message
-            </button>
-          </div>
-        )}
         {messages.map((msg, i) => (
           <div
             key={String(msg.id) || String(i)}
@@ -450,6 +444,9 @@ const Prompt: React.FC<PromptProps> = ({
                     : "bg-zinc-200/70 text-zinc-900"
                 } shadow-sm`}
               >
+                {lastFailedInput === msg.id && (
+                  <FontAwesomeIcon icon={faArrowRotateRight} />
+                )}
                 {msg.message}
               </div>
             ) : (
@@ -459,11 +456,7 @@ const Prompt: React.FC<PromptProps> = ({
           </div>
         ))}
         {(isGenerating || changing) && (
-          <div className="relative flex items-center gap-2 text-sm top-2 text-zinc-500 dark:text-zinc-400">
-            <FontAwesomeIcon
-              icon={faSpinner}
-              className="animate-spin w-4 h-4"
-            />
+          <div className="relative flex items-center gap-2 text-sm top-2 left-2 text-zinc-500 dark:text-zinc-400">
             {"Generating..."}
           </div>
         )}
@@ -499,7 +492,7 @@ const Prompt: React.FC<PromptProps> = ({
             ref={textareaRef}
             value={input}
             rows={2}
-            maxLength={500}
+            maxLength={2000}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder={
@@ -513,16 +506,8 @@ const Prompt: React.FC<PromptProps> = ({
           />
 
           <div className="w-full flex items-center gap-0 justify-between">
-            <p className="ml-1 mt-4 text-xs flex items-center text-zinc-500">
-              {input.length}/500
-            </p>
-            <div className="flex items-center">
-              {selectedElement && (
-                <div className="py-2 px-3 mr-1.5 min-w-10 rounded-lg bg-zinc-900/80 text-sm font-semibold flex items-center justify-center text-zinc-300 lowercase">
-                  {selectedElement?.element.tagName}
-                </div>
-              )}
-              <div className="bg-zinc-600 p-2 text-xs rounded-lg font-semibold flex items-center gap-0.5 text-zinc-300">
+            <div className="flex">
+              <div className="bg-zinc-600  p-2 text-xs rounded-lg font-semibold flex items-center gap-0.5 text-zinc-300">
                 <p className="text-sm">3</p>
                 <Image
                   src={"/img/credit.svg"}
@@ -531,9 +516,16 @@ const Prompt: React.FC<PromptProps> = ({
                   width={14}
                 />
               </div>{" "}
+              {selectedElement && (
+                <div className="py-2 px-3 ml-1.5 min-w-10 rounded-lg bg-zinc-900/80 outline outline-1 outline-zinc-600 text-sm font-semibold flex items-center justify-center text-zinc-300 lowercase">
+                  {selectedElement?.element.tagName}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center">
               <button
                 type="button"
-                className="ml-1.5 px-2.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60"
+                className="ml-1.5 px-2.5 py-1.5 rounded-lg  bg-inherit text-white disabled:opacity-60"
                 disabled={
                   !input ||
                   input.length < 10 ||
@@ -551,7 +543,7 @@ const Prompt: React.FC<PromptProps> = ({
               </button>
               <button
                 type="submit"
-                className="ml-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-60"
+                className="ml-1.5 px-3 py-1.5 rounded-lg outline outline-zinc-600 bg-zinc-900 text-white disabled:opacity-60"
                 disabled={
                   !input || isGenerating || enhancing || changing || credits < 3
                 }
@@ -560,7 +552,7 @@ const Prompt: React.FC<PromptProps> = ({
                 {isGenerating ? (
                   <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
                 ) : (
-                  <FontAwesomeIcon icon={faPaperPlane} />
+                  <FontAwesomeIcon icon={faArrowUp} />
                 )}
               </button>
             </div>

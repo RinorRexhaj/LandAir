@@ -1,8 +1,12 @@
 import React from "react";
 import { useThemeStore } from "../../store/useThemeStore";
 import Template from "./Template";
+import { Template as TemplateType } from "@/app/types/Template";
 
-const templates: string[] = ["Portfolio", "Marketing"];
+const templates: TemplateType[] = [
+  { name: "Portfolio", type: "free" },
+  { name: "Marketing", type: "premium" },
+];
 
 const Templates = () => {
   const { darkMode } = useThemeStore();
@@ -22,9 +26,10 @@ const Templates = () => {
       <div className="grid sm:grid-cols-1 tb:grid-cols-2 grid-cols-4 gap-4 animate-fade [animation-fill-mode:backwards]">
         {templates.map((template, index) => (
           <Template
-            key={template + "-template"}
+            key={template.name + "-template"}
             template={template}
             index={index}
+            onUseTemplate={() => {}}
           />
         ))}
       </div>
