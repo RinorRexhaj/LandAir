@@ -395,7 +395,7 @@ const Prompt: React.FC<PromptProps> = ({
 
   return (
     <div
-      className={`h-full flex flex-col justify-between w-full mx-auto p-2 rounded-md overflow-hidden animate-fade ${
+      className={`h-full sm:-mt-1.5 flex flex-col justify-between w-full mx-auto p-2 rounded-md overflow-hidden animate-fade ${
         darkMode ? "bg-zinc-800" : ""
       }`}
     >

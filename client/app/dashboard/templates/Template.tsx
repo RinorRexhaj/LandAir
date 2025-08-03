@@ -62,7 +62,7 @@ const Template = ({ template, index, onUseTemplate }: TemplateProps) => {
               href={`https://${template.name}-template.landair.app`}
               target="_blank"
               rel="noopener noreferrer"
-              className={`px-2 py-1 rounded hover:scale-105 transition ${
+              className={`px-2 py-1 rounded transition ${
                 darkMode
                   ? "hover:bg-white/10 text-white"
                   : "hover:bg-black/10 text-black"
@@ -75,7 +75,7 @@ const Template = ({ template, index, onUseTemplate }: TemplateProps) => {
             {/* Use Button */}
             <button
               onClick={() => onUseTemplate(template.name)}
-              className={`px-2 py-1 rounded hover:scale-105 transition ${
+              className={`px-2 py-1 rounded transition ${
                 darkMode
                   ? "hover:bg-blue-500/20 text-blue-400"
                   : "hover:bg-blue-500/10 text-blue-600"
@@ -86,15 +86,17 @@ const Template = ({ template, index, onUseTemplate }: TemplateProps) => {
             </button>
           </div>
         </div>
-        <span
-          className={`w-fit px-4 py-1 rounded-full text-sm font-semibold capitalize ${
-            template.type === "free"
-              ? "bg-blue-600 text-white"
-              : "bg-violet-700 text-white"
-          }`}
-        >
-          {template.type}
-        </span>
+        <div className="flex gap-2">
+          <span
+            className={`w-fit px-3 py-1 rounded-lg text-sm font-semibold capitalize ${
+              template.type === "free"
+                ? "bg-blue-600/80 text-blue-100"
+                : "bg-violet-700/80 text-violet-100"
+            }`}
+          >
+            {template.type}
+          </span>
+        </div>
       </div>
     </div>
   );

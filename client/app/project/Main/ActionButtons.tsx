@@ -3,12 +3,12 @@ import React from "react";
 import {
   faArrowUpRightFromSquare,
   faCrosshairs,
-  faDownload,
+  // faDownload,
   // faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useThemeStore } from "../../store/useThemeStore";
-import { handleDownload, handleOpenFullSize } from "../../utils/ProjectActions";
+import { handleOpenFullSize } from "../../utils/ProjectActions";
 import { useProjectStore } from "../../store/useProjectsStore";
 
 interface ActionButtonsProps {
@@ -36,7 +36,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         }`}
     >
       {/* Desktop Buttons */}
-      <div className="flex px-1.5 py-1 gap-1">
+      <div className="flex px-1.5 py-1 gap-1 sm:gap-0">
         <button
           onClick={() => handleOpenFullSize(selectedProject)}
           title="Open Full Size Page"
@@ -50,7 +50,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           />
         </button>
 
-        <button
+        {/* <button
           onClick={() => handleDownload(selectedProject)}
           title="Download"
           className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 hover:opacity-100 ${
@@ -58,7 +58,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           }`}
         >
           <FontAwesomeIcon icon={faDownload} className="w-3.5 h-3.5" />
-        </button>
+        </button> */}
 
         <button
           onClick={toggleSelector}

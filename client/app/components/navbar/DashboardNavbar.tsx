@@ -7,8 +7,8 @@ import { useThemeStore } from "@/app/store/useThemeStore";
 import BuyCreditsModal from "./BuyCreditsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowCircleLeft,
-  faList,
+  faBars,
+  faChevronLeft,
   faXmarkCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { useProjectStore } from "@/app/store/useProjectsStore";
@@ -69,15 +69,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   if (selectedProject) setSelectedProject(null);
                 }}
                 className={`mt-0.5 flex items-center justify-center rounded-lg ${
-                  darkMode ? (selectedProject ? "hover:bg-white/5" : "") : ""
-                } ${
                   selectedProject ? "p-2" : "bg-inherit hover:bg-inherit"
                 } transition-colors`}
                 title="Toggle Menu"
               >
                 {selectedProject ? (
                   <FontAwesomeIcon
-                    icon={faArrowCircleLeft}
+                    icon={faChevronLeft}
                     className={`w-4 h-4 ${
                       darkMode ? "text-white" : "text-zinc-900"
                     }`}
@@ -165,16 +163,16 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             </div>
             <div className="hidden relative tb:flex">
               <button
-                className={`px-3 py-2.5 flex items-center justify-center rounded-lg transition ${
-                  darkMode
-                    ? "bg-zinc-600/50 hover:bg-zinc-700"
-                    : "hover:bg-zinc-100"
+                className={`px-2.5 py-2 flex items-center justify-center rounded-lg transition ${
+                  darkMode ? "hover:bg-zinc-800" : "hover:bg-zinc-100"
                 }`}
                 onClick={() => setListOpen(!listOpen)}
               >
                 <FontAwesomeIcon
-                  icon={faList}
-                  className={`${darkMode ? "text-white" : "text-zinc-900"}`}
+                  icon={faBars}
+                  className={`w-5 h-5 ${
+                    darkMode ? "text-white" : "text-zinc-900"
+                  }`}
                 />
               </button>
               {listOpen && (

@@ -32,7 +32,7 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
     <>
       {hasUnsavedChanges && (
         <div
-          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[175px] md:left-[135px] sm:left-[99px] md:top-12 md:mt-1.5 flex p-1 gap-1 rounded-lg items-center z-40 transition-all animate-fade duration-200 ${
+          className={`fixed top-1.5 left-[45%] -translate-x-1/2 ml-[159px] md:left-[118px] sm:left-[72px] md:top-12 md:mt-1.5 flex p-1 gap-1 sm:gap-0 rounded-lg items-center z-40 transition-all animate-fade duration-200 ${
             darkMode
               ? "bg-zinc-800/80 border-gray-200/20"
               : "bg-zinc-100/80 border-gray-300/50"
@@ -48,7 +48,7 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
               }
             }}
             title="Save"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-blue-500/70 ${
+            className={`flex items-center gap-1 px-2  py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-blue-500/70 ${
               !darkMode && "hover:text-zinc-100"
             }`}
           >
@@ -60,7 +60,7 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
               if (noChanges) setHasUnsavedChanges(false);
             }}
             title="Undo"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100  ${
+            className={`flex items-center gap-1 px-2  py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100  ${
               darkMode
                 ? "hover:bg-zinc-500"
                 : "hover:bg-zinc-700/70 hover:text-white"
@@ -79,7 +79,7 @@ const ChangesBar: React.FC<ChangesBarProps> = ({
               }
             }}
             title="Discard"
-            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-red-500/80 ${
+            className={`flex items-center gap-1 px-2  py-1.5 rounded-md text-sm opacity-80 font-medium transition-all duration-200 focus:outline-none hover:opacity-100 hover:bg-red-500/80 ${
               !darkMode && "hover:text-zinc-100"
             }`}
           >
