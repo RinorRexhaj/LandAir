@@ -10,7 +10,9 @@ interface ProjectStore {
   createProject: (
     toast: ReturnType<typeof import("../hooks/useToast").default>,
     post: <T = unknown, D = unknown>(url: string, data?: D) => Promise<T>,
-    setCreating?: (creating: boolean) => void
+    setCreating?: (creating: boolean) => void,
+    template?: string,
+    fetch?: <T = unknown>(url: string) => Promise<T>
   ) => Promise<void>;
   deleteProject: (
     e: React.MouseEvent,
@@ -38,7 +40,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     }
   },
 
-  createProject: async (toast, post, setCreating?) => {
+  createProject: async (toast, post, setCreating?, template?, fetch?) => {
     const { projects, setProjects, setSelectedProject } = get();
     if (projects.length >= 4) {
       toast.warning("Only 4 or less projects allowed.");
@@ -50,8 +52,18 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       const newProject: Project[] = await post("/api/projects/");
       const projectWithGlow = { ...newProject[0], created: true };
       setProjects([projectWithGlow, ...projects]);
-      setTimeout(() => {
+      setTimeout(async () => {
         if (setCreating) setCreating(false);
+        if (template && fetch) {
+          const url = await fetch(`/api/storage?template=${template}`);
+          const content: string = await fetch(`${url}`);
+          projectWithGlow.file = content;
+          const formData = new FormData();
+          formData.append("content", content);
+          formData.append("filePath", `${projectWithGlow?.id}`);
+          formData.append("type", "html");
+          await post(`/api/storage/`, formData);
+        }
         setSelectedProject(projectWithGlow);
         toast.dismiss(toastId);
         toast.success("Project Created!");

@@ -70,7 +70,7 @@ const Projects = () => {
       ) : (
         <>
           {/* Header */}
-          <div>
+          <div className="">
             <div className="flex items-center justify-between">
               <h2
                 className={`text-xl font-semibold ${
@@ -107,7 +107,7 @@ const Projects = () => {
 
             {/* Projects List */}
             <div
-              className={`grid sm:grid-cols-1 tb:grid-cols-2 grid-cols-4 gap-4 animate-fade [animation-fill-mode:backwards] ${
+              className={`grid sm:grid-cols-1 tb:grid-cols-2 grid-cols-4 gap-6 animate-fade [animation-fill-mode:backwards] ${
                 creating && "animate-glow"
               }`}
               style={{ animationDelay: "0.15s" }}

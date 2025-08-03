@@ -7,8 +7,7 @@ import { useModalStore } from "@/app/store/useModalStore";
 import { Project } from "@/app/types/Project";
 import { faEdit, faImage, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import useAuth from "@/app/hooks/useAuth";
 import NameModal from "@/app/components/navbar/NameModal";
@@ -29,7 +28,6 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const [showMenu, setShowMenu] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const [hover, setHover] = useState(false);
-  const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const deleteModalId = `delete-${project.id}`;
@@ -37,9 +35,13 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   const showDeleteModal = activeModal === deleteModalId;
   const showRenameModal = activeModal === renameModalId;
 
-  const imageUrl = imgError
-    ? ""
-    : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/${user?.id}/${project.id}/screenshot.png`;
+  const imageUrl = useMemo(
+    () =>
+      imgError
+        ? ""
+        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/${user?.id}/${project.id}/screenshot.png`,
+    [imgError, project.id, user?.id]
+  );
 
   const formatProjectDate = (project: Project) => {
     const date =
@@ -127,14 +129,9 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
   return (
     <>
       <div
-        className={`relative rounded-xl group transition-transform hover:-translate-y-1 cursor-pointer bg-gray-100 ${
-          darkMode
-            ? "bg-zinc-700/30 hover:bg-zinc-700/50"
-            : "bg-gray-200/60 hover:bg-gray-200"
-        }`}
+        className={`relative rounded-xl group transition-transform hover:-translate-y-1 cursor-pointer`}
         onClick={() => {
           setSelectedProject(project);
-          router.push(`/project/${project.id}`);
         }}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
@@ -143,12 +140,12 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         <div
           ref={menuRef}
           onClick={(e) => e.stopPropagation()}
-          className="transition-opacity absolute bottom-10 right-2"
+          className="transition-opacity absolute bottom-7 right-2"
         >
           <div className="text-left">
             <button
               onClick={handleMenuClick}
-              className={`px-2 py-1 rounded-lg ${
+              className={`px-2 py-0.5 rounded-lg ${
                 darkMode
                   ? "text-gray-400 hover:bg-zinc-700"
                   : "text-gray-600 hover:bg-gray-200"
@@ -192,7 +189,11 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         </div>
 
         {/* Screenshot */}
-        <div className="w-full h-40 relative rounded-tl-xl rounded-tr-xl overflow-hidden">
+        <div
+          className={`aspect-[16/9] w-full relative rounded-lg border ${
+            darkMode ? "border-zinc-800" : "border-zinc-200"
+          } overflow-hidden shadow`}
+        >
           {imageUrl && !authLoading ? (
             <Image
               src={`${imageUrl}?v=${Date.now()}`}
@@ -206,7 +207,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
             <div
               className={`${
                 darkMode ? "bg-zinc-900/50" : "bg-zinc-300/50"
-              } w-full border border-zinc-500/20 border-b-0 rounded-xl rounded-bl-none rounded-br-none h-full flex items-center justify-center`}
+              } w-full border border-zinc-500/20 rounded-lg h-full flex items-center justify-center`}
             >
               <FontAwesomeIcon icon={faImage} className="w-8 h-8" />
             </div>
@@ -214,16 +215,16 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         </div>
 
         {/* Text Content */}
-        <div className="p-4 flex flex-col gap-1">
+        <div className="p-2 flex flex-col gap-0.5">
           <h3
-            className={`text-base font-semibold truncate ${
+            className={`font-semibold truncate ${
               darkMode ? "text-white" : "text-zinc-900"
             }`}
           >
             {project.project_name}
           </h3>
           <p
-            className={`text-sm ${
+            className={`text-sm font-medium ${
               darkMode ? "text-gray-400" : "text-zinc-600"
             } truncate`}
           >

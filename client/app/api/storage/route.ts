@@ -10,12 +10,18 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const project_id = searchParams.get("project_id");
+  const template = searchParams.get("template");
 
-  if (!project_id) {
-    return NextResponse.json({ error: "Missing project_id" }, { status: 400 });
+  if (!project_id && !template) {
+    return NextResponse.json(
+      { error: "Missing project_id or template" },
+      { status: 400 }
+    );
   }
 
-  const path = `${validation.user.id}/${project_id}/index.html`;
+  const path = `${project_id ? validation.user.id : "Templates"}/${
+    project_id || template + " Template"
+  }/index.html`;
   const publicUrl = await getFile(path);
   return NextResponse.json(publicUrl);
 }

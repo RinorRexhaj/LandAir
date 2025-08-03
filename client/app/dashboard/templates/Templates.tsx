@@ -23,13 +23,12 @@ const Templates = () => {
       >
         Templates <p className="text-lg text-zinc-100/60"></p>
       </h2>
-      <div className="grid sm:grid-cols-1 tb:grid-cols-2 grid-cols-4 gap-4 animate-fade [animation-fill-mode:backwards]">
+      <div className="grid sm:grid-cols-1 tb:grid-cols-2 grid-cols-4 gap-6 animate-fade [animation-fill-mode:backwards]">
         {templates.map((template, index) => (
           <Template
             key={template.name + "-template"}
             template={template}
             index={index}
-            onUseTemplate={() => {}}
           />
         ))}
       </div>

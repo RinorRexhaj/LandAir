@@ -1,3 +1,6 @@
+import useApi from "@/app/hooks/useApi";
+import useToast from "@/app/hooks/useToast";
+import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { Template as TemplateType } from "@/app/types/Template";
 import {
@@ -6,16 +9,19 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 interface TemplateProps {
   template: TemplateType;
   index: number;
-  onUseTemplate: (template: string) => void;
 }
 
-const Template = ({ template, index, onUseTemplate }: TemplateProps) => {
+const Template = ({ template, index }: TemplateProps) => {
   const { darkMode } = useThemeStore();
+  const { createProject } = useProjectStore();
+  const toast = useToast();
+  const { post, get } = useApi();
+  const [creating, setCreating] = useState(false);
 
   const imageUrl = useMemo(
     () =>
@@ -25,70 +31,78 @@ const Template = ({ template, index, onUseTemplate }: TemplateProps) => {
 
   return (
     <div
-      className={`relative rounded-xl group transition-transform hover:-translate-y-1 cursor-pointer animate-slideIn [animation-fill-mode:backwards] bg-gray-100 ${
-        darkMode
-          ? "bg-zinc-700/30 hover:bg-zinc-700/50"
-          : "bg-gray-200/60 hover:bg-gray-200"
-      }`}
+      className={`relative rounded-xl group transition-transform hover:-translate-y-1 cursor-pointer animate-slideIn [animation-fill-mode:backwards] `}
       style={{
         animationDelay: `${index * 0.3 + 0.2}s`,
       }}
     >
       {/* Screenshot */}
-      <div className="w-full h-40 relative rounded-tl-xl rounded-tr-xl overflow-hidden">
+      <div
+        className={`aspect-[16/9] w-full relative rounded-lg border ${
+          darkMode ? "border-zinc-800" : "border-zinc-200"
+        } overflow-hidden shadow ${creating && "animate-glow"}`}
+      >
+        {/* Dark overlay when hovering */}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-60 transition-opacity duration-300 z-10" />
         <Image
           src={imageUrl}
           alt={`${template} Template Screenshot`}
           fill
-          className="object-cover object-top animate-fade"
+          className={`object-cover object-top animate-fade`}
           sizes="(max-width: 500px) 100%, (max-width: 1000px) 50%, 25%"
         />
       </div>
 
       {/* Text and Actions */}
-      <div className="w-full flex flex-col gap-1 px-4 py-3">
+      <div className="w-full flex flex-col gap-1 p-2">
         <div className="w-full flex justify-between items-center">
           <h3
             className={`text-base font-semibold truncate ${
               darkMode ? "text-white" : "text-zinc-900"
             }`}
           >
-            {template.name} Template
+            {template.name}
           </h3>
 
-          <div className="flex gap-1 items-center">
+          <div
+            className={`
+              absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -mt-4
+              flex flex-col gap-2 items-center
+              opacity-0 group-hover:opacity-100 transition-opacity duration-300
+              backdrop-blur-md bg-black/40 p-4 rounded-xl z-20 shadow-lg
+            `}
+          >
             {/* Live Preview Button */}
             <a
               href={`https://${template.name}-template.landair.app`}
               target="_blank"
               rel="noopener noreferrer"
-              className={`px-2 py-1 rounded transition ${
-                darkMode
-                  ? "hover:bg-white/10 text-white"
-                  : "hover:bg-black/10 text-black"
-              }`}
+              className="flex items-center gap-2 px-4 py-2 rounded-md w-32 
+               bg-white text-zinc-900 font-semibold text-sm shadow hover:bg-zinc-100
+               transition duration-200"
               title="Live Preview"
             >
               <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+              <span>Preview</span>
             </a>
 
             {/* Use Button */}
             <button
-              onClick={() => onUseTemplate(template.name)}
-              className={`px-2 py-1 rounded transition ${
-                darkMode
-                  ? "hover:bg-blue-500/20 text-blue-400"
-                  : "hover:bg-blue-500/10 text-blue-600"
-              }`}
+              onClick={() =>
+                createProject(toast, post, setCreating, template.name, get)
+              }
+              className="flex items-center gap-2 px-4 py-2 rounded-md w-32
+               bg-zinc-700 text-white font-semibold text-sm shadow hover:bg-zinc-800
+               transition duration-200"
               title="Use Template"
             >
               <FontAwesomeIcon icon={faPlus} />
+              <span>Use</span>
             </button>
           </div>
-        </div>
-        <div className="flex gap-2">
+
           <span
-            className={`w-fit px-3 py-1 rounded-lg text-sm font-semibold capitalize ${
+            className={`w-fit px-3 py-1 -mr-1 rounded-lg text-xs font-semibold capitalize ${
               template.type === "free"
                 ? "bg-blue-600/80 text-blue-100"
                 : "bg-violet-700/80 text-violet-100"

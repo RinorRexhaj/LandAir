@@ -67,8 +67,8 @@ const Dashboard = () => {
         /> */}
         <ToastContainer closeOnClick hideProgressBar icon={false} limit={3} />
         <main
-          className={`flex flex-col gap-8 flex-1 ${
-            selectedProject ? "px-4 py-6" : "px-8 py-4"
+          className={`flex flex-col gap-6 flex-1 ${
+            selectedProject ? "px-4 py-6" : "px-6 py-3"
           } md:p-4`}
         >
           <Projects />

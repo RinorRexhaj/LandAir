@@ -392,7 +392,6 @@ const Website: React.FC<WebsiteProps> = ({
       (height > width ? height / width : width / height) * 3;
     if (mobile) return `calc(${scale * 100 + mobileExtra}dvh)`;
     let finalHeight = height * (1 / scale) - extra;
-    console.log(width);
     if (width < 768) finalHeight -= 250;
     return finalHeight;
   };
