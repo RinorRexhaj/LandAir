@@ -42,6 +42,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             token,
             pwCustomer: null,
             eventCallback: async function (data: PaddleType) {
+              console.log(data);
               if (data.data.status === "completed") {
                 const { credits }: { credits: number } = await get(
                   `/api/credits`
@@ -65,6 +66,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
               token,
               pwCustomer: null,
               eventCallback: async function (data: PaddleType) {
+                console.log(data);
                 if (data.data.status === "completed") {
                   const { credits }: { credits: number } = await get(
                     `/api/credits`
