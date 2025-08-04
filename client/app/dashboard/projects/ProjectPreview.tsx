@@ -196,7 +196,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
         >
           {imageUrl && !authLoading ? (
             <Image
-              src={`${imageUrl}?v=${Date.now()}`}
+              src={`${imageUrl}`}
               alt={`${project.project_name} Screenshot`}
               fill
               onError={() => setImgError(true)}

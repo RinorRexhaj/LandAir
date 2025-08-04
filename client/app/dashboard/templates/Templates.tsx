@@ -6,6 +6,8 @@ import { Template as TemplateType } from "@/app/types/Template";
 const templates: TemplateType[] = [
   { name: "Portfolio", type: "free" },
   { name: "Marketing", type: "premium" },
+  { name: "E-Commerce", type: "premium" },
+  { name: "SaaS", type: "free" },
 ];
 
 const Templates = () => {

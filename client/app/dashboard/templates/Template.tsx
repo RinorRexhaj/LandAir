@@ -25,15 +25,15 @@ const Template = ({ template, index }: TemplateProps) => {
 
   const imageUrl = useMemo(
     () =>
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/Templates/${template.name} Template/screenshot.png`,
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/Templates/${template.name}/screenshot.png`,
     [template]
   );
 
   return (
     <div
-      className={`relative rounded-xl group transition-transform hover:-translate-y-1 cursor-pointer animate-slideIn [animation-fill-mode:backwards] `}
+      className={`relative rounded-xl group transition-transform hover:-translate-y-1 cursor-pointer animate-fade-in-slow [animation-fill-mode:backwards] `}
       style={{
-        animationDelay: `${index * 0.3 + 0.2}s`,
+        animationDelay: `${index * 0.2 + 0.1}s`,
       }}
     >
       {/* Screenshot */}

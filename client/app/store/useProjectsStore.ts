@@ -56,13 +56,28 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         if (setCreating) setCreating(false);
         if (template && fetch) {
           const url = await fetch(`/api/storage?template=${template}`);
-          const content: string = await fetch(`${url}`);
-          projectWithGlow.file = content;
+          const [content, screenshotRaw] = await Promise.all([
+            fetch(`${url}`),
+            fetch(
+              `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/Templates/${template}/screenshot.png`
+            ),
+          ]);
+          projectWithGlow.file = content as string;
           const formData = new FormData();
-          formData.append("content", content);
+          formData.append("content", content as string);
           formData.append("filePath", `${projectWithGlow?.id}`);
           formData.append("type", "html");
-          await post(`/api/storage/`, formData);
+          const screenshotData = new FormData();
+          screenshotData.append("content", screenshotRaw as File);
+          screenshotData.append(
+            "filePath",
+            `${projectWithGlow.id}/screenshot.png`
+          );
+          screenshotData.append("type", "image");
+          await Promise.all([
+            post(`/api/storage/`, formData),
+            post(`/api/storage/`, screenshotData),
+          ]);
         }
         setSelectedProject(projectWithGlow);
         toast.dismiss(toastId);

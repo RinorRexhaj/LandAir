@@ -28,10 +28,10 @@ export const uploadImage = async (
   file: File,
   filePath: string
 ): Promise<string> => {
-  const MAX_SIZE = 1 * 1024 * 1024; // 1MB
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
   if (file.size > MAX_SIZE) {
-    throw new Error("File size exceeds 1MB limit.");
+    throw new Error("File size exceeds 5MB limit.");
   }
 
   const { error } = await supabase.storage

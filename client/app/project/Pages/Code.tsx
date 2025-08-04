@@ -30,10 +30,12 @@ const Code: React.FC<CodeProps> = ({ file, getUrl, setChanged }) => {
     formData.append("filePath", `${selectedProject?.id}`);
     formData.append("type", "html");
     try {
-      await post(`/api/storage/`, formData);
-      await put(`/api/projects/${selectedProject?.id}`, {
-        new_name: selectedProject?.project_name,
-      });
+      await Promise.all([
+        post(`/api/storage/`, formData),
+        put(`/api/projects/${selectedProject?.id}`, {
+          new_name: selectedProject?.project_name,
+        }),
+      ]);
       setSaved(true);
       toast.success("Changes saved!");
       setChanged(true);

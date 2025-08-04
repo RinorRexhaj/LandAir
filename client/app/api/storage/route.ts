@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const path = `${project_id ? validation.user.id : "Templates"}/${
-    project_id || template + " Template"
+    project_id || template
   }/index.html`;
   const publicUrl = await getFile(path);
   return NextResponse.json(publicUrl);
