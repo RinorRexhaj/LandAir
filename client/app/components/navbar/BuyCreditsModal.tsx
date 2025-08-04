@@ -6,6 +6,7 @@ import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
 import { useCreditStore } from "@/app/store/useCreditStore";
 import useToast from "@/app/hooks/useToast";
+import { PaddleType } from "@/app/types/Paddle";
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
@@ -40,8 +41,15 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
           Paddle.Initialize({
             token,
             pwCustomer: null,
-            eventCallback: async function () {
+            eventCallback: async function (data: PaddleType) {
+              if (data.data.status === "completed") {
+                const { credits }: { credits: number } = await get(
+                  `/api/credits`
+                );
+                setCredits(credits);
+              }
               setRedirecting(false);
+              return data;
             },
           });
         };
@@ -56,8 +64,15 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             Paddle.Initialize({
               token,
               pwCustomer: null,
-              eventCallback: async function () {
+              eventCallback: async function (data: PaddleType) {
+                if (data.data.status === "completed") {
+                  const { credits }: { credits: number } = await get(
+                    `/api/credits`
+                  );
+                  setCredits(credits);
+                }
                 setRedirecting(false);
+                return data;
               },
             });
           };
