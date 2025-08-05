@@ -7,8 +7,11 @@ const templates: TemplateType[] = [
   { name: "Portfolio", type: "free" },
   { name: "Marketing", type: "premium" },
   { name: "E-Commerce", type: "premium" },
+  { name: "Dashboard", type: "premium" },
   { name: "SaaS", type: "free" },
-  { name: "Countdown", type: "free" },
+  { name: "Event", type: "free" },
+  { name: "Docs", type: "free" },
+  { name: "Restaurant", type: "free" },
 ];
 
 const Templates = () => {

@@ -4,15 +4,22 @@ export const takeScreenshot = async (
   iframe: HTMLIFrameElement
 ): Promise<File | undefined> => {
   const iframeDoc = iframe.contentDocument;
+
   if (!iframeDoc) {
     console.error("No iframe document available");
     return;
   }
 
-  const section = iframeDoc.getElementById("home");
+  // Wait a bit more for any dynamic content to load
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  let section = iframeDoc.getElementById("home");
   if (!section) {
-    console.error("No <section> element found inside iframe");
-    return;
+    section = iframeDoc.getElementById("hero");
+    if (!section) {
+      console.error("No <section> element found inside iframe");
+      return;
+    }
   }
 
   const sectionStyle = iframeDoc.defaultView?.getComputedStyle(section);

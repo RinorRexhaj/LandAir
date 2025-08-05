@@ -28,7 +28,7 @@ const Generating = () => {
 
   return (
     <div
-      className={`relative w-full h-full mx-auto shadow-2xl z-40 rounded-xl overflow-hidden animate-fade-in-slow ${bgMain}`}
+      className={`relative w-full h-full mx-auto shadow-2xl z-20 rounded-xl overflow-hidden animate-fade-in-slow ${bgMain}`}
     >
       {/* Header */}
       <div

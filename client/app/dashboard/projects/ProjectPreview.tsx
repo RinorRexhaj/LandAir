@@ -155,13 +155,13 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
             </button>
             {showMenu && (
               <div
-                className={`absolute right-0 top-8 w-32 rounded-md animate-fadeFast shadow-lg z-40 ${
+                className={`absolute right-0 top-8 w-24 rounded-md animate-fadeFast shadow-lg z-40 ${
                   darkMode ? "bg-zinc-800" : "bg-white"
                 }`}
               >
-                <div className="py-1">
+                <div className="py-1.5 px-2 flex justify-center">
                   <button
-                    className={`w-full flex gap-2 items-center text-left px-4 py-2 text-sm ${
+                    className={`w-full flex gap-2 items-center justify-center p-2 rounded text-sm ${
                       darkMode
                         ? "hover:bg-zinc-700 text-gray-200"
                         : "hover:bg-gray-100 text-zinc-800"
@@ -169,10 +169,10 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
                     onClick={handleRenameClick}
                   >
                     <FontAwesomeIcon icon={faEdit} />
-                    <p className="">Rename</p>
+                    {/* <p className="">Rename</p> */}
                   </button>
                   <button
-                    className={`w-full flex gap-2 items-center text-left px-4 py-2 text-sm ${
+                    className={`w-full flex gap-2 items-center justify-center p-2 rounded text-sm ${
                       darkMode
                         ? "hover:bg-red-500/20 text-red-400"
                         : "hover:bg-red-500/10 text-red-500"
@@ -180,7 +180,7 @@ const ProjectPreview: React.FC<ProjectPreviewProps> = ({ project, sortBy }) => {
                     onClick={handleDeleteClick}
                   >
                     <FontAwesomeIcon icon={faTrash} />
-                    <p className="">Delete</p>
+                    {/* <p className="">Delete</p> */}
                   </button>
                 </div>
               </div>

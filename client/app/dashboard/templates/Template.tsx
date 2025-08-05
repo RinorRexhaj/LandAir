@@ -1,5 +1,6 @@
 import useApi from "@/app/hooks/useApi";
 import useToast from "@/app/hooks/useToast";
+import { useCreditStore } from "@/app/store/useCreditStore";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import { useThemeStore } from "@/app/store/useThemeStore";
 import { Template as TemplateType } from "@/app/types/Template";
@@ -19,8 +20,9 @@ interface TemplateProps {
 const Template = ({ template, index }: TemplateProps) => {
   const { darkMode } = useThemeStore();
   const { createProject } = useProjectStore();
+  const { post, get, put } = useApi();
+  const { setCredits } = useCreditStore();
   const toast = useToast();
-  const { post, get } = useApi();
   const [creating, setCreating] = useState(false);
 
   const imageUrl = useMemo(
@@ -88,9 +90,21 @@ const Template = ({ template, index }: TemplateProps) => {
 
             {/* Use Button */}
             <button
-              onClick={() =>
-                createProject(toast, post, setCreating, template.name, get)
-              }
+              onClick={async () => {
+                await createProject(
+                  toast,
+                  post,
+                  setCreating,
+                  template.name,
+                  get
+                );
+                if (template.type === "premium") {
+                  const { credits }: { credits: number } = await put(
+                    `/api/credits`
+                  );
+                  setCredits(credits);
+                }
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-md w-32
                bg-zinc-700 text-white font-semibold text-sm shadow hover:bg-zinc-800
                transition duration-200"
@@ -98,6 +112,17 @@ const Template = ({ template, index }: TemplateProps) => {
             >
               <FontAwesomeIcon icon={faPlus} />
               <span>Use</span>
+              {template.type === "premium" && (
+                <span className="flex items-center gap-1 ml-2">
+                  3{" "}
+                  <Image
+                    src={"/img/credit.svg"}
+                    alt="Credits"
+                    width={14}
+                    height={14}
+                  />
+                </span>
+              )}
             </button>
           </div>
 

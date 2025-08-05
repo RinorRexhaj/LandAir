@@ -32,7 +32,7 @@ interface PromptProps {
   isGenerating: boolean;
   setIsGenerating: (generating: boolean) => void;
   setProjectFile: (file: boolean) => void;
-  getUrl: () => void;
+  getUrl: (created?: boolean) => Promise<void>;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   selectedElement: ElementPos | null;
 }
@@ -153,6 +153,12 @@ const Prompt: React.FC<PromptProps> = ({
     const iframe = iframeRef.current;
     if (!iframe) return;
 
+    // Wait for iframe to fully load before taking screenshot
+    await waitForIframeLoad(iframe);
+
+    // Additional delay to ensure content is fully rendered
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const screenshot = await takeScreenshot(iframe);
     if (screenshot) {
       const screenshotData = new FormData();
@@ -178,6 +184,31 @@ const Prompt: React.FC<PromptProps> = ({
           resolve();
         }
       }, 100); // Check every 100ms
+    });
+  };
+
+  // Helper function to wait for iframe to fully load
+  const waitForIframeLoad = (iframe: HTMLIFrameElement) => {
+    return new Promise<void>((resolve) => {
+      // If iframe is already loaded, resolve immediately
+      if (iframe.contentDocument?.readyState === "complete") {
+        resolve();
+        return;
+      }
+
+      // Wait for load event
+      const handleLoad = () => {
+        iframe.removeEventListener("load", handleLoad);
+        resolve();
+      };
+
+      iframe.addEventListener("load", handleLoad);
+
+      // Fallback timeout in case load event doesn't fire
+      setTimeout(() => {
+        iframe.removeEventListener("load", handleLoad);
+        resolve();
+      }, 5000); // 5 second timeout
     });
   };
 
@@ -299,7 +330,6 @@ const Prompt: React.FC<PromptProps> = ({
               code,
             }
           );
-
           summary = generationSummary.answer;
         } else if (taskType === "changes") {
           if (isStructuredOutput(rawOutput)) {
@@ -336,7 +366,7 @@ const Prompt: React.FC<PromptProps> = ({
           new_name: selectedProject?.project_name,
         });
 
-        getUrl();
+        await getUrl();
         setCredits(updatedCredits);
         toast.success("Website Generated!");
         setProjectFile(true);
@@ -538,7 +568,9 @@ const Prompt: React.FC<PromptProps> = ({
               >
                 <FontAwesomeIcon
                   icon={faWandMagicSparkles}
-                  className={`${enhancing && "animate-pulse"}`}
+                  className={`${enhancing && "animate-pulse"} ${
+                    !darkMode && "text-zinc-900"
+                  }`}
                 />
               </button>
               <button
