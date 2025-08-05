@@ -32,7 +32,7 @@ interface PromptProps {
   isGenerating: boolean;
   setIsGenerating: (generating: boolean) => void;
   setProjectFile: (file: boolean) => void;
-  getUrl: (created?: boolean) => Promise<void>;
+  getUrl: () => Promise<void>;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   selectedElement: ElementPos | null;
 }
@@ -302,6 +302,7 @@ const Prompt: React.FC<PromptProps> = ({
           changeProject({
             ...selectedProject,
             id: selectedProject?.id,
+            created: false,
             last_edited: new Date(),
           });
 

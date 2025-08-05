@@ -23,39 +23,38 @@ const ProjectPage = () => {
   );
   const { darkMode } = useThemeStore();
   const { user } = useAuth();
+  const [changed, setChanged] = useState(false);
   const { setLoading, loading, get } = useApi();
 
-  const getUrl = useCallback(
-    async (created?: boolean) => {
-      if (!selectedProject || created) return;
-      setLoading(true);
-      try {
-        const url = await get(`/api/storage?project_id=${selectedProject.id}`);
-        const content: string = await get(`${url}?v=${Date.now()}`);
+  const getUrl = useCallback(async () => {
+    if (!selectedProject || selectedProject.created) return;
+    setLoading(true);
+    const url = await get(`/api/storage?project_id=${selectedProject.id}`);
+    console.log(changed);
+    const content: string = await get(`${url}?v=${Date.now()}`);
 
-        if (url && content) {
-          setSelectedProject({ ...selectedProject, file: content });
-          setProjectFile(true);
-        } else {
-          setSelectedProject({ ...selectedProject, file: undefined });
-          setProjectFile(false);
-        }
-      } catch (error) {
-        console.error("Error fetching project URL:", error);
-        setSelectedProject({ ...selectedProject, file: undefined });
-        setProjectFile(false);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [get, selectedProject, setLoading, setSelectedProject]
-  );
+    if (url && content) {
+      setSelectedProject({ ...selectedProject, file: content });
+      setProjectFile(true);
+    } else {
+      setSelectedProject({ ...selectedProject, file: undefined });
+      setProjectFile(false);
+    }
+  }, [get, selectedProject, setLoading, setSelectedProject, changed]);
 
   useEffect(() => {
     if (!user || !selectedProject || selectedProject.file) return;
 
-    getUrl(selectedProject.created);
-  }, [user, selectedProject, getUrl]);
+    getUrl();
+  }, [
+    user,
+    selectedProject,
+    projectFile,
+    setSelectedProject,
+    get,
+    setLoading,
+    getUrl,
+  ]);
 
   if (!selectedProject) return null;
 
@@ -121,7 +120,7 @@ const ProjectPage = () => {
             <Preview
               getUrl={getUrl}
               iframeRef={iframeRef}
-              setChanged={() => {}} // No-op function since changed state is no longer used
+              setChanged={setChanged}
               selectedElement={selectedElement}
               setSelectedElement={setSelectedElement}
             />
