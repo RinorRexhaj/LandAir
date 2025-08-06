@@ -282,9 +282,6 @@ const Website: React.FC<WebsiteProps> = ({
         htmlEl.onmouseover = (e) => e.stopImmediatePropagation();
         htmlEl.onmouseenter = (e) => e.stopImmediatePropagation();
         htmlEl.onclick = (e) => {
-          if (htmlEl.tagName === "BUTTON") {
-            e.preventDefault();
-          }
           handleClick(e);
           e.stopImmediatePropagation();
         };
