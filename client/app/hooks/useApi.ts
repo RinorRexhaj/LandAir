@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from "react";
 import { supabase } from "../utils/Supabase";
 
 const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+const imageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 
 const useApi = () => {
   const [loading, setLoading] = useState(false);
@@ -103,6 +104,32 @@ const useApi = () => {
     }
   }, []);
 
+  const getBlob = useCallback(async (endpoint: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const token = session?.access_token;
+
+      const response = await axios.get(`${imageUrl}${endpoint}`, {
+        responseType: "blob",
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+
+      return response.data as Blob;
+    } catch (err) {
+      const error = err as AxiosError;
+      setError(
+        (error.response?.data as { error?: string })?.error || error.message
+      );
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const apiMethods = useMemo(
     () => ({
       get: <T = unknown>(url: string, params?: Record<string, unknown>) =>
@@ -121,6 +148,7 @@ const useApi = () => {
   return {
     ...apiMethods,
     download,
+    getBlob,
     loading,
     setLoading,
     error,

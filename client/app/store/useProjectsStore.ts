@@ -12,7 +12,8 @@ interface ProjectStore {
     post: <T = unknown, D = unknown>(url: string, data?: D) => Promise<T>,
     setCreating?: (creating: boolean) => void,
     template?: string,
-    fetch?: <T = unknown>(url: string) => Promise<T>
+    fetch?: <T = unknown>(url: string) => Promise<T>,
+    getBlob?: (endpoint: string) => Promise<Blob>
   ) => Promise<void>;
   deleteProject: (
     e: React.MouseEvent,
@@ -40,7 +41,14 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     }
   },
 
-  createProject: async (toast, post, setCreating?, template?, fetch?) => {
+  createProject: async (
+    toast,
+    post,
+    setCreating?,
+    template?,
+    fetch?,
+    getBlob?
+  ) => {
     const { projects, setProjects, setSelectedProject } = get();
     if (projects.length >= 4) {
       toast.warning("Only 4 or less projects allowed.");
@@ -54,30 +62,40 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       setProjects([projectWithGlow, ...projects]);
       setTimeout(async () => {
         if (setCreating) setCreating(false);
-        if (template && fetch) {
-          const url = await fetch(`/api/storage?template=${template}`);
-          const [content, screenshotRaw] = await Promise.all([
-            fetch(`${url}`),
-            fetch(
-              `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pages/Templates/${template}/screenshot.png`
-            ),
-          ]);
-          projectWithGlow.file = content as string;
-          const formData = new FormData();
-          formData.append("content", content as string);
-          formData.append("filePath", `${projectWithGlow?.id}`);
-          formData.append("type", "html");
-          const screenshotData = new FormData();
-          screenshotData.append("content", screenshotRaw as File);
-          screenshotData.append(
-            "filePath",
-            `${projectWithGlow.id}/screenshot.png`
-          );
-          screenshotData.append("type", "image");
-          await Promise.all([
-            post(`/api/storage/`, formData),
-            post(`/api/storage/`, screenshotData),
-          ]);
+        if (template && fetch && getBlob) {
+          try {
+            const url = await fetch(`/api/storage?template=${template}`);
+            const content = await fetch(`${url}`);
+            projectWithGlow.file = content as string;
+            const formData = new FormData();
+            formData.append("content", content as string);
+            formData.append("filePath", `${projectWithGlow?.id}`);
+            formData.append("type", "html");
+
+            const screenshotBlob: Blob = await getBlob(
+              `/storage/v1/object/public/pages/Templates/${template}/screenshot.png`
+            );
+            const screenshotFile = new File(
+              [screenshotBlob],
+              "screenshot.png",
+              { type: "image/png" }
+            );
+            const screenshotData = new FormData();
+            screenshotData.append("content", screenshotFile);
+            screenshotData.append(
+              "filePath",
+              `${projectWithGlow.id}/screenshot.png`
+            );
+            screenshotData.append("type", "image");
+            await post(`/api/storage/`, formData);
+            await post(`/api/storage/`, screenshotData);
+          } catch (error) {
+            console.error(error);
+            setSelectedProject(projectWithGlow);
+            toast.dismiss(toastId);
+            toast.error("Could not save screenshot!");
+            if (setCreating) setCreating(false);
+          }
         }
         setSelectedProject(projectWithGlow);
         toast.dismiss(toastId);

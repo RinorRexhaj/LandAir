@@ -20,7 +20,7 @@ interface TemplateProps {
 const Template = ({ template, index }: TemplateProps) => {
   const { darkMode } = useThemeStore();
   const { createProject } = useProjectStore();
-  const { post, get, put } = useApi();
+  const { post, get, put, getBlob } = useApi();
   const { setCredits } = useCreditStore();
   const toast = useToast();
   const [creating, setCreating] = useState(false);
@@ -96,7 +96,8 @@ const Template = ({ template, index }: TemplateProps) => {
                   post,
                   setCreating,
                   template.name,
-                  get
+                  get,
+                  getBlob
                 );
                 if (template.type === "premium") {
                   const { credits }: { credits: number } = await put(
