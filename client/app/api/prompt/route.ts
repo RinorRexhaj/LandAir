@@ -1,22 +1,24 @@
-// app/api/outline/route.ts
-import { NextRequest } from "next/server";
-import { streamText } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { startResponse } from "./system-prompts";
+import { NextRequest, NextResponse } from "next/server";
+import { generateWebsite, startResponse } from "./prompt";
+import { validateRequest } from "../validateRequest";
 
 export const runtime = "edge"; // optional but gives low-latency streaming on Vercel
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const userPrompt =
-    body?.prompt ?? "Generate a short outline for a marketing website.";
-
-  const result = streamText({
-    model: openai("gpt-4o-mini"),
-    system: startResponse,
-    prompt: userPrompt,
-    temperature: 0.2,
-  });
-
-  return result.toUIMessageStreamResponse();
+  try {
+    const validation = await validateRequest(req);
+    if (validation instanceof NextResponse) {
+      return validation;
+    }
+    const { type, prompt } = await req.json();
+    if (type === "start") {
+      const start = await startResponse(prompt);
+      return start;
+    } else if (type === "generate") {
+      const website = await generateWebsite(prompt);
+      return website;
+    }
+  } catch (err) {
+    return NextResponse.json(err);
+  }
 }

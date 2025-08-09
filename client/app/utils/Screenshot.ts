@@ -82,3 +82,31 @@ export const takeScreenshot = async (
     return;
   }
 };
+
+export const createIframe = async (code: string) => {
+  const iframe = document.createElement("iframe");
+  iframe.id = "mock-iframe";
+  iframe.srcdoc = code;
+  iframe.width = "800";
+  iframe.height = "600";
+  iframe.style.border = "none";
+  iframe.style.position = "absolute";
+  iframe.style.left = "-9999px"; // hide off-screen
+
+  // Append to DOM so it can actually render
+  document.body.appendChild(iframe);
+
+  // Wait for iframe to fully load
+  await new Promise<void>((resolve) => {
+    iframe.onload = () => resolve();
+  });
+
+  // Optional: Give the browser a tiny delay to paint content
+  await new Promise((r) => setTimeout(r, 100));
+
+  return iframe;
+};
+
+export const removeIframe = () => {
+  document.getElementById("mock-iframe")?.remove();
+};

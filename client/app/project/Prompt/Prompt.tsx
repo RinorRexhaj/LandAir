@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowDown,
@@ -16,16 +16,20 @@ import useToast from "@/app/hooks/useToast";
 import { ChatMessage } from "@/app/types/Chat";
 import SkeletonChatBubble from "./SkeletonChat";
 import BotMessage from "./BotMessage";
-import { takeScreenshot } from "@/app/utils/Screenshot";
+// import { takeScreenshot } from "@/app/utils/Screenshot";
 import {
-  ChangeOutput,
+  // ChangeOutput,
   Enhancement,
-  RelevanceOutput,
-  ToolOutput,
+  // RelevanceOutput,
+  // ToolOutput,
 } from "@/app/types/Relevance";
-import makeChanges from "@/app/utils/Changes";
+// import makeChanges from "@/app/utils/Changes";
 import { ElementPos } from "@/app/types/Element";
 import Image from "next/image";
+import { useCompletion } from "@ai-sdk/react";
+// import useAuth from "@/app/hooks/useAuth";
+import { supabase } from "@/app/utils/Supabase";
+import useGenerate from "@/app/hooks/useGenerate";
 // import useUnsplash from "@/app/hooks/useUnsplash";
 
 interface PromptProps {
@@ -40,19 +44,19 @@ interface PromptProps {
 const Prompt: React.FC<PromptProps> = ({
   isGenerating,
   setIsGenerating,
-  setProjectFile,
-  getUrl,
-  iframeRef,
+  // setProjectFile,
+  // getUrl,
+  // iframeRef,
   selectedElement,
 }) => {
-  const [input, setInput] = useState("");
+  // const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // const [result, setResult] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
-  const { get, post, put } = useApi();
-  const { selectedProject, changeProject } = useProjectStore();
+  const { get, post } = useApi();
+  const { selectedProject } = useProjectStore();
   const { darkMode } = useThemeStore();
-  const { credits, setCredits } = useCreditStore();
+  const { credits } = useCreditStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -62,14 +66,37 @@ const Prompt: React.FC<PromptProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // const { enhanceImages } = useUnsplash();
   const [lastFailedInput, setLastFailedInput] = useState<number | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const { generateWebsite } = useGenerate();
+  const {
+    input,
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    completion,
+    isLoading,
+  } = useCompletion({
+    api: "/api/prompt",
+    body: {
+      type: taskType,
+    },
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  // Get the Supabase access token on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const accessToken = data?.session?.access_token;
+      if (accessToken) {
+        setToken(accessToken);
+      }
+    });
+  }, []);
 
   useEffect(() => {
-    if (!selectedProject) {
+    if (!selectedProject?.id) {
       setMessages([]);
       return;
-    }
-    if (selectedProject.file) {
-      setTaskType("changes");
     }
     (async () => {
       setLoading(true);
@@ -84,7 +111,7 @@ const Prompt: React.FC<PromptProps> = ({
         setLoading(false);
       }
     })();
-  }, [selectedProject, get]);
+  }, [selectedProject?.id, get]);
 
   // Helper function to auto-resize textarea
   const resizeTextarea = () => {
@@ -94,32 +121,12 @@ const Prompt: React.FC<PromptProps> = ({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-    // resizeTextarea(); // Remove direct call
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault(); // Prevent newline
-      handleSubmit(); // Submit form
+      handleFormSubmit(); // Submit form
     }
   };
-
-  const pollGenerationStatus = useCallback(
-    async (taskId: string) => {
-      try {
-        const status: RelevanceOutput = await get(
-          `/api/relevance?taskId=${taskId}&type=${taskType}`
-        );
-        return status;
-      } catch (error) {
-        toast.error("Failed to poll generation status");
-        throw error;
-      }
-    },
-    [get, toast, taskType]
-  );
 
   useEffect(() => {
     scrollToBottom();
@@ -146,250 +153,88 @@ const Prompt: React.FC<PromptProps> = ({
     }
   };
 
-  const updateScreenshot = async () => {
-    // Wait until iframeRef.current is available
-    await waitForIframe();
-
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    // Wait for iframe to fully load before taking screenshot
-    await waitForIframeLoad(iframe);
-
-    // Additional delay to ensure content is fully rendered
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const screenshot = await takeScreenshot(iframe);
-    if (screenshot) {
-      const screenshotData = new FormData();
-      screenshotData.append("content", screenshot);
-      screenshotData.append(
-        "filePath",
-        `${selectedProject?.id}/screenshot.png`
-      );
-      screenshotData.append("type", "image");
-
-      await post(`/api/storage/`, screenshotData);
-    }
-  };
-
-  // Helper function to wait asynchronously for iframeRef to be set
-  const waitForIframe = () => {
-    return new Promise<void>((resolve) => {
-      if (iframeRef.current) return resolve();
-
-      const checkInterval = setInterval(() => {
-        if (iframeRef.current) {
-          clearInterval(checkInterval);
-          resolve();
-        }
-      }, 100); // Check every 100ms
-    });
-  };
-
-  // Helper function to wait for iframe to fully load
-  const waitForIframeLoad = (iframe: HTMLIFrameElement) => {
-    return new Promise<void>((resolve) => {
-      // If iframe is already loaded, resolve immediately
-      if (iframe.contentDocument?.readyState === "complete") {
-        resolve();
-        return;
-      }
-
-      // Wait for load event
-      const handleLoad = () => {
-        iframe.removeEventListener("load", handleLoad);
-        resolve();
-      };
-
-      iframe.addEventListener("load", handleLoad);
-
-      // Fallback timeout in case load event doesn't fire
-      setTimeout(() => {
-        iframe.removeEventListener("load", handleLoad);
-        resolve();
-      }, 5000); // 5 second timeout
-    });
-  };
-
-  const handleSubmit = async (overrideInput?: string) => {
+  const handleFormSubmit = async () => {
     textareaRef.current?.blur();
-    const currentInput = overrideInput !== undefined ? overrideInput : input;
-    if (!currentInput || isGenerating || credits < 3 || !selectedProject)
-      return;
+    if (!input || isGenerating || credits < 3 || !selectedProject) return;
 
-    const taskType = !selectedProject.file ? "generate" : "changes";
+    setIsGenerating(true);
+    const taskType = "start";
     setTaskType(taskType);
-    setInput(overrideInput ? input : "");
-    setLastFailedInput(null); // Clear retry state on new submit
-    // Optimistically add user message
+    setInput("");
+    setLastFailedInput(null);
+
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      sender: true,
+      message: input,
+      projectId: String(selectedProject.id),
+    };
+
+    // Add user message + placeholder bot message
     setMessages((prev) => [
       ...prev,
+      userMessage,
       {
-        id: Date.now(),
-        sender: true,
-        message: currentInput,
+        id: Date.now() + 10,
+        sender: false,
+        message: "",
         projectId: String(selectedProject.id),
       },
     ]);
-    if (taskType === "generate") {
-      setIsGenerating(true);
-    } else {
-      setChanging(true);
-    }
 
     try {
-      // Save user message to DB
-      await post(`/api/chat`, {
-        sender: true,
-        message: currentInput,
-        projectId: String(selectedProject.id),
-      });
-
-      let code: string = "";
-      if (taskType === "changes") {
-        if (!selectedElement) {
-          code = selectedProject.file || "";
-        } else {
-          code = selectedElement.element.outerHTML;
-        }
-      }
-
-      const taskId: string = await post(`/api/relevance`, {
-        prompt: currentInput,
-        type: taskType,
-        code,
-      });
-      await startPolling(taskId);
+      await post(`/api/chat`, userMessage); // save user msg
+      handleSubmit(); // start streaming
+      generateWebsite(input);
     } catch (error) {
       console.error(error);
       toast.error("Failed to start generation");
       setIsGenerating(false);
       setChanging(false);
-      const lastMsg: ChatMessage = messages[messages.length - 1];
-      setLastFailedInput(lastMsg.id); // Set for retry
+
+      const lastMsg = messages[messages.length - 1];
+      setLastFailedInput(lastMsg.id);
+    } finally {
+      setIsGenerating(false);
     }
-
-    if (!overrideInput) setInput("");
   };
 
-  const failOutput = async () => {
-    toast.error("Something went wrong!");
-    setIsGenerating(false);
-    setChanging(false);
-    const lastMsg: ChatMessage = messages[messages.length - 1];
-    setLastFailedInput(lastMsg.id); // Set for retry
-    const botMsg: ChatMessage = {
-      id: Date.now() + 1,
-      sender: false,
-      message: "Something went wrong! Please try again.",
-      projectId: String(selectedProject?.id || ""),
-    };
-    setMessages((prev) => [...prev, botMsg]);
-    await post(`/api/chat`, botMsg);
-  };
+  // Keep placeholder updated with live text
+  useEffect(() => {
+    if (!messages.length || taskType === "generate") return;
+    setMessages((prev) =>
+      prev.map((m, i) =>
+        i === prev.length - 1 && !m.sender ? { ...m, message: completion } : m
+      )
+    );
+  }, [completion, messages.length, taskType]);
 
-  const startPolling = async (taskId: string) => {
-    try {
-      const status = await pollGenerationStatus(taskId);
-
-      if (status?.type === "complete") {
-        // setResult(true);
-        const { credits: updatedCredits }: { credits: number } = await put(
-          `/api/credits`
-        );
-        if (selectedProject)
-          changeProject({
-            ...selectedProject,
-            id: selectedProject?.id,
-            created: false,
-            last_edited: new Date(),
-          });
-
-        const rawOutput = status.update;
-
-        let code: string | ChangeOutput[] = "";
-        let summary = "";
-
-        if (taskType === "generate") {
-          if (
-            !rawOutput ||
-            typeof rawOutput !== "object" ||
-            "output" in rawOutput
-          ) {
-            await failOutput();
-            return;
-          }
-
-          code = rawOutput.answer;
-          code = code.replace(/^```html\s*|```$/g, "").trim();
-
-          const generationSummary: { answer: string } = await post(
-            `/api/relevance`,
-            {
-              type: "summary",
-              code,
-            }
-          );
-          summary = generationSummary.answer;
-        } else if (taskType === "changes") {
-          if (isStructuredOutput(rawOutput)) {
-            const sections = rawOutput.output.code;
-            const newCode = makeChanges(sections, iframeRef.current);
-            if (newCode) {
-              code = newCode;
-            }
-            summary = rawOutput.output.summary;
-          } else {
-            await failOutput();
-            return;
-          }
-        }
-
-        // Add bot message to DB and UI
-        const botMsg: ChatMessage = {
-          id: Date.now() + 1,
+  // When streaming ends, freeze and save
+  useEffect(() => {
+    if (!isLoading && completion) {
+      if (taskType !== "generate") {
+        const finalText = String(completion);
+        const finalMsg = {
+          id: Date.now() + 20,
           sender: false,
-          message: summary,
-          projectId: String(selectedProject?.id || ""),
+          message: finalText,
+          projectId: String(selectedProject?.id),
         };
-        setMessages((prev) => [...prev, botMsg]);
-        await post(`/api/chat`, botMsg);
 
-        const filePath = `${selectedProject?.id}`;
-        const formData = new FormData();
-        formData.append("content", code);
-        formData.append("filePath", filePath);
-        formData.append("type", "html");
+        // Update message to frozen text
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === prev.length - 1 && !m.sender
+              ? { ...m, message: finalText }
+              : m
+          )
+        );
 
-        await post("/api/storage/", formData);
-        await put(`/api/projects/${selectedProject?.id}`, {
-          new_name: selectedProject?.project_name,
-        });
-
-        await getUrl();
-        setCredits(updatedCredits);
-        toast.success("Website Generated!");
-        setProjectFile(true);
-        setIsGenerating(false);
-        setChanging(false);
-        await updateScreenshot();
-      } else if (status?.type === "failed") {
-        await failOutput();
-      } else {
-        setTimeout(() => startPolling(taskId), 4000);
+        // Save bot message
+        post(`/api/chat`, finalMsg).catch(console.error);
       }
-    } catch (error) {
-      console.error(error);
-      await failOutput();
     }
-  };
-
-  function isStructuredOutput(res: ToolOutput): res is {
-    output: { code: ChangeOutput[]; summary: string };
-  } {
-    return typeof res === "object" && res !== null && "output" in res;
-  }
+  }, [isLoading, completion, selectedProject?.id, post, taskType]);
 
   // Auto-resize textarea whenever input changes
   useEffect(() => {
@@ -457,7 +302,6 @@ const Prompt: React.FC<PromptProps> = ({
         ) : (
           ""
         )}
-        {/* Retry button if last message failed */}
         {messages.map((msg, i) => (
           <div
             key={String(msg.id) || String(i)}
@@ -486,7 +330,7 @@ const Prompt: React.FC<PromptProps> = ({
             )}
           </div>
         ))}
-        {(isGenerating || changing) && (
+        {(isGenerating || changing || isLoading) && (
           <div className="relative flex items-center gap-2 text-sm top-2 left-2 text-zinc-500 dark:text-zinc-400">
             {"Generating..."}
           </div>
@@ -515,7 +359,7 @@ const Prompt: React.FC<PromptProps> = ({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            handleSubmit();
+            handleFormSubmit();
           }}
           className="flex flex-col items-center flex-1"
         >

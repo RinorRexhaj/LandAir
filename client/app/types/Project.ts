@@ -1,5 +1,5 @@
 export interface Project {
-  id: number;
+  id: string;
   created_at: Date;
   user_id: string;
   project_name: string;

@@ -1,13 +1,14 @@
 import { useThemeStore } from "@/app/store/useThemeStore";
-import Image from "next/image";
+// import Image from "next/image";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 
 const BotMessage: React.FC<{ message: string }> = ({ message }) => {
   const { darkMode } = useThemeStore();
+  if (!message) return;
   return (
-    <div className="w-full flex items-start ml-1 gap-0">
-      <Image
+    <div className="w-full flex items-start gap-0">
+      {/* <Image
         src={`/icons${!darkMode ? "-dark" : ""}/favicon-120x120.png`}
         alt="LandAir"
         width={32}
@@ -16,9 +17,9 @@ const BotMessage: React.FC<{ message: string }> = ({ message }) => {
         style={{
           animationDelay: "0.25s",
         }}
-      />
+      /> */}
       <div
-        className={`flex-1 max-w-[85%] rounded-xl px-4 ${
+        className={`flex-1 w-full rounded-xl px-2 ${
           darkMode ? "bg-zinc-800/50" : "bg-zinc-50"
         } shadow-sm`}
       >

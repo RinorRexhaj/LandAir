@@ -24,11 +24,14 @@ const useAuth = () => {
     }, 300);
   }, [router]);
 
+  const getToken = async () =>
+    (await supabase.auth.getSession()).data.session?.access_token;
+
   useEffect(() => {
     getUser();
   }, [getUser]);
 
-  return { user, loading, setLoading, getUser };
+  return { user, loading, setLoading, getUser, getToken };
 };
 
 export default useAuth;

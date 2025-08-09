@@ -295,7 +295,7 @@ const Website: React.FC<WebsiteProps> = ({
 
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (!iframe || !selectedProject?.file) return;
+    if (!iframe) return;
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!iframeDoc || !iframeDoc.body) return;
@@ -359,8 +359,6 @@ const Website: React.FC<WebsiteProps> = ({
     };
   }, [
     selector,
-    selectedProject,
-    scale,
     isEditing,
     iframeRef,
     removeDisableInteractionStyle,

@@ -4,7 +4,7 @@ import Preview from "../Preview/Preview";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDisplay, faRobot } from "@fortawesome/free-solid-svg-icons";
 import { useThemeStore } from "@/app/store/useThemeStore";
-import Generating from "../Pages/Generating";
+// import Generating from "../Pages/Generating";
 import { useProjectStore } from "@/app/store/useProjectsStore";
 import useAuth from "@/app/hooks/useAuth";
 import useApi from "@/app/hooks/useApi";
@@ -27,7 +27,7 @@ const ProjectPage = () => {
   const { setLoading, loading, get } = useApi();
 
   const getUrl = useCallback(async () => {
-    if (!selectedProject || selectedProject.created) return;
+    if (!selectedProject?.id || selectedProject.created) return;
     setLoading(true);
     const url = await get(`/api/storage?project_id=${selectedProject.id}`);
     console.log(changed);
@@ -114,9 +114,7 @@ const ProjectPage = () => {
             activeView === "preview" ? "tb:w-full" : "tb:hidden"
           }`}
         >
-          {isGenerating ? (
-            <Generating />
-          ) : projectFile || selectedProject.file ? (
+          {projectFile || selectedProject.file ? (
             <Preview
               getUrl={getUrl}
               iframeRef={iframeRef}
