@@ -5,6 +5,7 @@ import {
   faSignOutAlt,
   faTimes,
   faSpinner,
+  faQuestionCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "../../utils/Supabase";
 import { useRouter } from "next/navigation";
@@ -110,16 +111,21 @@ const AccountModal: React.FC<AccountModalProps> = ({
 
         {/* Actions */}
         <div className="space-y-2">
-          {/* <button
+          <button
             className={`w-full flex items-center gap-3 px-4 py-3 ${
               darkMode
                 ? "text-gray-300 hover:text-white hover:bg-white/5"
                 : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-            } rounded-lg transition-colors`}
+            } rounded-lg transition-colors ${loading && "animate-glow"}`}
+            onClick={() => {
+              setLoading(true);
+              router.push("/help");
+              setLoading(false);
+            }}
           >
-            <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
-            <span>Profile Settings</span>
-          </button> */}
+            <FontAwesomeIcon icon={faQuestionCircle} className="w-5 h-5" />
+            <span>Help/Docs</span>
+          </button>
           <div className="h-px bg-white/10 my-2" />
           <button
             onClick={handleSignOut}

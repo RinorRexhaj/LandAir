@@ -33,8 +33,6 @@ import useGenerate from "@/app/hooks/useGenerate";
 // import useUnsplash from "@/app/hooks/useUnsplash";
 
 interface PromptProps {
-  isGenerating: boolean;
-  setIsGenerating: (generating: boolean) => void;
   setProjectFile: (file: boolean) => void;
   getUrl: () => Promise<void>;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
@@ -42,11 +40,9 @@ interface PromptProps {
 }
 
 const Prompt: React.FC<PromptProps> = ({
-  isGenerating,
-  setIsGenerating,
   // setProjectFile,
   // getUrl,
-  // iframeRef,
+  iframeRef,
   selectedElement,
 }) => {
   // const [input, setInput] = useState("");
@@ -59,21 +55,23 @@ const Prompt: React.FC<PromptProps> = ({
   const { credits } = useCreditStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [taskType, setTaskType] = useState("generate");
+  const [taskType, setTaskType] = useState("start");
   const [changing, setChanging] = useState(false);
   const toast = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // const { enhanceImages } = useUnsplash();
   const [lastFailedInput, setLastFailedInput] = useState<number | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const { generateWebsite } = useGenerate();
+  const { generateWebsite, changeWebsite } = useGenerate();
   const {
     input,
     setInput,
     handleInputChange,
     handleSubmit,
     completion,
+    setCompletion,
     isLoading,
   } = useCompletion({
     api: "/api/prompt",
@@ -184,24 +182,36 @@ const Prompt: React.FC<PromptProps> = ({
 
     try {
       await post(`/api/chat`, userMessage); // save user msg
-      handleSubmit(); // start streaming
-      generateWebsite(input);
+      if (!selectedProject?.file || messages.length <= 1) {
+        handleSubmit(); // start streaming
+        await generateWebsite(
+          input,
+          setCompletion,
+          setMessages,
+          setTaskType,
+          iframeRef
+        );
+      } else if (selectedProject.file || messages.length > 1) {
+        if (iframeRef.current) {
+          const summary = await changeWebsite(input, iframeRef?.current);
+          setCompletion(summary);
+        }
+      }
+      setIsGenerating(false);
     } catch (error) {
       console.error(error);
       toast.error("Failed to start generation");
-      setIsGenerating(false);
       setChanging(false);
+      setIsGenerating(false);
 
       const lastMsg = messages[messages.length - 1];
       setLastFailedInput(lastMsg.id);
-    } finally {
-      setIsGenerating(false);
     }
   };
 
   // Keep placeholder updated with live text
   useEffect(() => {
-    if (!messages.length || taskType === "generate") return;
+    if (!messages.length || !completion) return;
     setMessages((prev) =>
       prev.map((m, i) =>
         i === prev.length - 1 && !m.sender ? { ...m, message: completion } : m
@@ -211,30 +221,39 @@ const Prompt: React.FC<PromptProps> = ({
 
   // When streaming ends, freeze and save
   useEffect(() => {
-    if (!isLoading && completion) {
-      if (taskType !== "generate") {
-        const finalText = String(completion);
-        const finalMsg = {
-          id: Date.now() + 20,
-          sender: false,
-          message: finalText,
-          projectId: String(selectedProject?.id),
-        };
+    if (
+      ((!isLoading && taskType === "start") ||
+        (!isGenerating && taskType === "summary")) &&
+      completion
+    ) {
+      const finalText = String(completion);
+      const finalMsg = {
+        id: Date.now() + 20,
+        sender: false,
+        message: finalText,
+        projectId: String(selectedProject?.id),
+      };
 
-        // Update message to frozen text
-        setMessages((prev) =>
-          prev.map((m, i) =>
-            i === prev.length - 1 && !m.sender
-              ? { ...m, message: finalText }
-              : m
-          )
-        );
+      // Update message to frozen text
+      setMessages((prev) =>
+        prev.map((m, i) =>
+          i === prev.length - 1 && !m.sender ? { ...m, message: finalText } : m
+        )
+      );
 
-        // Save bot message
-        post(`/api/chat`, finalMsg).catch(console.error);
-      }
+      // Save bot message
+      post(`/api/chat`, finalMsg).catch(console.error);
+      setCompletion("");
     }
-  }, [isLoading, completion, selectedProject?.id, post, taskType]);
+  }, [
+    isLoading,
+    isGenerating,
+    completion,
+    setCompletion,
+    selectedProject?.id,
+    post,
+    taskType,
+  ]);
 
   // Auto-resize textarea whenever input changes
   useEffect(() => {
@@ -278,7 +297,7 @@ const Prompt: React.FC<PromptProps> = ({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto space-y-8 minimal-scrollbar pr-2"
+        className="flex-1 overflow-y-auto minimal-scrollbar pr-2"
         style={{
           height: "calc(100% - 100px)",
         }}
@@ -305,8 +324,10 @@ const Prompt: React.FC<PromptProps> = ({
         {messages.map((msg, i) => (
           <div
             key={String(msg.id) || String(i)}
-            className={`animate-fade [animation-fill-mode:backwards] ${
-              msg.sender ? `flex justify-end mb-4` : `flex justify-start mb-6`
+            className={`animate-fade [animation-fill-mode:backwards] flex ${
+              msg.sender
+                ? `justify-end ${i === 0 ? "mb-6" : "my-6"}`
+                : `justify-start mb-2`
             }`}
             style={{ animationDelay: i * 0.1 + "s" }}
           >
@@ -331,7 +352,7 @@ const Prompt: React.FC<PromptProps> = ({
           </div>
         ))}
         {(isGenerating || changing || isLoading) && (
-          <div className="relative flex items-center gap-2 text-sm top-2 left-2 text-zinc-500 dark:text-zinc-400">
+          <div className="relative flex items-center gap-2 text-sm left-2 text-zinc-200 dark:text-zinc-400 animate-glow">
             {"Generating..."}
           </div>
         )}
@@ -359,6 +380,7 @@ const Prompt: React.FC<PromptProps> = ({
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            setIsGenerating(true);
             handleFormSubmit();
           }}
           className="flex flex-col items-center flex-1"

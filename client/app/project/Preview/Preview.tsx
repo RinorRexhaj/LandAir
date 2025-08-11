@@ -68,6 +68,8 @@ const Preview: React.FC<PreviewProps> = ({
     return () => window.removeEventListener("resize", updateScale);
   }, [mobile, setMobile, setSelector]);
 
+  if (!selectedProject) return;
+
   return (
     <div
       className="relative w-full h-full flex flex-col gap-3 animate-fade"
@@ -82,7 +84,7 @@ const Preview: React.FC<PreviewProps> = ({
 
       {/* Preview Area */}
       <div className={`relative w-full h-full flex overflow-hidden`}>
-        {(scale < 1 || mobile) && selectedProject?.file && mobile < 2 && (
+        {mobile < 2 && (
           <Website
             selector={selector}
             setSelector={setSelector}

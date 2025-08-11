@@ -16,7 +16,7 @@ const ProjectPage = () => {
   const { selectedProject, setSelectedProject } = useProjectStore();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [projectFile, setProjectFile] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  // const [isGenerating, setIsGenerating] = useState(false);
   const [activeView, setActiveView] = useState<"preview" | "prompt">("preview");
   const [selectedElement, setSelectedElement] = useState<ElementPos | null>(
     null
@@ -134,8 +134,8 @@ const ProjectPage = () => {
           }`}
         >
           <Prompt
-            isGenerating={isGenerating}
-            setIsGenerating={setIsGenerating}
+            // isGenerating={isGenerating}
+            // setIsGenerating={setIsGenerating}
             setProjectFile={setProjectFile}
             getUrl={getUrl}
             iframeRef={iframeRef}

@@ -3,7 +3,11 @@ import { useProjectStore } from "../store/useProjectsStore";
 import { useChangesStore } from "../store/useChangesStore";
 import useApi from "./useApi";
 import useToast from "./useToast";
-import { takeScreenshot } from "../utils/Screenshot";
+import {
+  createIframe,
+  removeIframe,
+  takeScreenshot,
+} from "../utils/Screenshot";
 
 const useChange = () => {
   const { post, put } = useApi();
@@ -142,20 +146,19 @@ const useChange = () => {
         new_name: selectedProject.project_name,
       });
 
-      if (iframeRef.current) {
-        const screenshot = await takeScreenshot(iframeRef.current);
-        if (screenshot) {
-          const screenshotData = new FormData();
-          screenshotData.append("content", screenshot);
-          screenshotData.append(
-            "filePath",
-            `${selectedProject.id}/screenshot.png`
-          );
-          screenshotData.append("type", "image");
-          await post(`/api/storage/`, screenshotData);
-        }
+      const iframe = await createIframe(updatedHTML);
+      const screenshot = await takeScreenshot(iframe);
+      if (screenshot) {
+        const screenshotData = new FormData();
+        screenshotData.append("content", screenshot);
+        screenshotData.append(
+          "filePath",
+          `${selectedProject.id}/screenshot.png`
+        );
+        screenshotData.append("type", "image");
+        await post(`/api/storage/`, screenshotData);
+        removeIframe();
       }
-
       setSelectedProject({
         ...selectedProject,
         file: updatedHTML,

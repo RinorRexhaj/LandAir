@@ -87,8 +87,8 @@ export const createIframe = async (code: string) => {
   const iframe = document.createElement("iframe");
   iframe.id = "mock-iframe";
   iframe.srcdoc = code;
-  iframe.width = "800";
-  iframe.height = "600";
+  iframe.width = "1400";
+  iframe.height = "800";
   iframe.style.border = "none";
   iframe.style.position = "absolute";
   iframe.style.left = "-9999px"; // hide off-screen
