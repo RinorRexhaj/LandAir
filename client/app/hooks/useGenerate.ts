@@ -78,7 +78,7 @@ const useGenerate = () => {
             iframeRef.current.contentDocument.close();
             injectDisableStyle(iframeRef); // re-apply after writing
           }
-        }, 50);
+        }, 100);
       }
 
       // ✅ Clean up disable style now that it's done
