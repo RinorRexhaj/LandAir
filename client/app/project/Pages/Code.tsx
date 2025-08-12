@@ -115,6 +115,7 @@ const Code: React.FC<CodeProps> = ({ file, getUrl, setChanged }) => {
         options={{
           formatOnPaste: true,
           formatOnType: true,
+          wordWrap: "on",
         }}
         className={`${
           isSaving && "animate-glow cursor-not-allowed pointer-events-none"

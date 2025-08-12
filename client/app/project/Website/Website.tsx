@@ -56,6 +56,7 @@ const Website: React.FC<WebsiteProps> = ({
   useEffect(() => {
     hoveredElementRef.current = hoveredElement;
   }, [hoveredElement]);
+
   useEffect(() => {
     selectedElementRef.current = selectedElement;
   }, [selectedElement]);
@@ -295,7 +296,7 @@ const Website: React.FC<WebsiteProps> = ({
 
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (!iframe || !selectedProject?.file) return;
+    if (!iframe) return;
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!iframeDoc || !iframeDoc.body) return;
@@ -337,7 +338,7 @@ const Website: React.FC<WebsiteProps> = ({
       injectDisableInteractionStyle(iframeDoc);
     }
 
-    iframe.addEventListener("load", injectScrollbarStyle);
+    // iframe.addEventListener("load", injectScrollbarStyle);
     iframeDoc.addEventListener("mousemove", handleMouseMove);
     iframeDoc.addEventListener("mouseleave", handleMouseLeave);
 
@@ -359,12 +360,8 @@ const Website: React.FC<WebsiteProps> = ({
     };
   }, [
     selector,
-    selectedProject,
-    scale,
-    isEditing,
     iframeRef,
     removeDisableInteractionStyle,
-    setElementType,
     setSelectedElement,
     injectDisableInteractionStyle,
     handleMouseMove,
@@ -372,7 +369,6 @@ const Website: React.FC<WebsiteProps> = ({
     updateToolbarPos,
     updateHoverPos,
     updateClickPos,
-    showTextEditModal,
   ]);
 
   const getWidth = () => {
@@ -401,7 +397,8 @@ const Website: React.FC<WebsiteProps> = ({
     <div className="">
       <iframe
         ref={iframeRef}
-        key={selectedProject.file}
+        key={"project-preview"}
+        id="project-preview"
         srcDoc={selectedProject.file}
         className={`rounded-xl shadow-md ${
           document.body.clientWidth < 768 ? "top-24" : ""
