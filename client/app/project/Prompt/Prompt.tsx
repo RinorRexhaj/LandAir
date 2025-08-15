@@ -4,6 +4,7 @@ import {
   faArrowDown,
   faArrowRotateRight,
   faArrowUp,
+  faBrain,
   faSpinner,
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
@@ -40,7 +41,7 @@ interface PromptProps {
 }
 
 const Prompt: React.FC<PromptProps> = ({
-  // setProjectFile,
+  setProjectFile,
   // getUrl,
   iframeRef,
   selectedElement,
@@ -182,7 +183,7 @@ const Prompt: React.FC<PromptProps> = ({
 
     try {
       await post(`/api/chat`, userMessage); // save user msg
-      if (!selectedProject?.file || messages.length <= 1) {
+      if (!selectedProject?.file && messages.length <= 1) {
         handleSubmit(); // start streaming
         await generateWebsite(
           input,
@@ -191,9 +192,14 @@ const Prompt: React.FC<PromptProps> = ({
           setTaskType,
           iframeRef
         );
+        setProjectFile(true);
       } else if (selectedProject.file || messages.length > 1) {
         if (iframeRef.current) {
-          const summary = await changeWebsite(input, iframeRef?.current);
+          const summary = await changeWebsite(
+            input,
+            iframeRef?.current,
+            selectedElement
+          );
           setCompletion(summary);
         }
       }
@@ -353,6 +359,7 @@ const Prompt: React.FC<PromptProps> = ({
         ))}
         {(isGenerating || changing || isLoading) && (
           <div className="relative flex items-center gap-2 text-sm left-2 text-zinc-200 dark:text-zinc-400 animate-glow">
+            <FontAwesomeIcon icon={faBrain} />
             {"Generating..."}
           </div>
         )}

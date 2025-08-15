@@ -13,13 +13,15 @@ import {
 import { supabase } from "../utils/Supabase";
 import useApi from "./useApi";
 import useToast from "./useToast";
+import { ElementPos } from "../types/Element";
 
 const token = await supabase.auth
   .getSession()
   .then(({ data }) => data?.session?.access_token);
 
 const useGenerate = () => {
-  const { selectedProject, setSelectedProject } = useProjectStore();
+  const { selectedProject, setSelectedProject, changeProject } =
+    useProjectStore();
   const { post, put } = useApi();
   const toast = useToast();
   const { setCredits } = useCreditStore();
@@ -142,12 +144,16 @@ const useGenerate = () => {
     return fullText;
   };
 
-  const changeWebsite = async (prompt: string, iframe: HTMLIFrameElement) => {
+  const changeWebsite = async (
+    prompt: string,
+    iframe: HTMLIFrameElement,
+    selectedElement: ElementPos | null
+  ) => {
     const { code, summary }: { code: ChangeOutput[]; summary: string } =
       await post(`/api/prompt`, {
         prompt,
         type: "changes",
-        code: selectedProject?.file,
+        code: selectedElement?.element.outerHTML || selectedProject?.file,
       });
     const newCode = makeChanges(code, iframe);
     if (newCode) {
@@ -182,6 +188,16 @@ const useGenerate = () => {
 
         await post(`/api/storage/`, screenshotData);
         removeIframe();
+      }
+
+      if (type === "generate" && selectedProject?.id) {
+        setSelectedProject({ ...selectedProject, created: false });
+        changeProject({
+          ...selectedProject,
+          id: selectedProject?.id,
+          created: false,
+          last_edited: new Date(),
+        });
       }
 
       const { credits }: { credits: number } = await put(`/api/credits`);
