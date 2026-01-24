@@ -29,7 +29,7 @@
     "formidable": "^3.5.4",
     "html2canvas": "^1.4.1",
     "javascript-time-ago": "^2.5.11",
-    "next": "15.1.8",
+    "next": "15.1.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
