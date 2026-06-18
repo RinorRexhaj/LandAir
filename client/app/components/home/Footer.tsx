@@ -15,7 +15,8 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-white">LandAir</h3>
             <p className="text-gray-300/80 text-sm">
-              Creating the future of web development with AI-powered solutions.
+              Create, edit, and post videos straight to TikTok — powered by
+              TikTok&apos;s official Content Posting API.
             </p>
             <div className="flex space-x-4">
               <a
@@ -84,11 +85,11 @@ const Footer = () => {
               <li>
                 <button
                   onClick={() => {
-                    scroll("pricing");
+                    scroll("why-landair");
                   }}
                   className="text-gray-300/80 hover:text-white transition-colors"
                 >
-                  Pricing
+                  Why LandAir
                 </button>
               </li>
               <li>
@@ -149,7 +150,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="/help"
                   className="text-gray-300/80 hover:text-white transition-colors"
                 >
                   Help Center
@@ -157,7 +158,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/help"
                   className="text-gray-300/80 hover:text-white transition-colors"
                 >
                   Documentation
@@ -165,18 +166,10 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="mailto:rinorrexhaj10@gmail.com"
                   className="text-gray-300/80 hover:text-white transition-colors"
                 >
                   Contact Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-300/80 hover:text-white transition-colors"
-                >
-                  Status
                 </a>
               </li>
             </ul>
