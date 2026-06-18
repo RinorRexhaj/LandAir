@@ -1,12 +1,14 @@
 "use client";
 import { useEffect } from "react";
+import About from "./components/home/About";
 import Background from "./components/home/Background";
 import Features from "./components/home/Features";
 import Footer from "./components/home/Footer";
 import GetStarted from "./components/home/GetStarted";
 import Hero from "./components/home/Hero";
 import HowItWorks from "./components/home/HowItWorks";
-import Pricing from "./components/home/Pricing";
+import WhoItsFor from "./components/home/WhoItsFor";
+import WhyLandAir from "./components/home/WhyLandAir";
 import Navbar from "./components/Navbar";
 import useAuth from "./hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -32,14 +34,20 @@ const Home = () => {
         {/* Hero Section */}
         <Hero />
 
+        {/* What Is LandAir Section */}
+        <About />
+
         {/* Features Section */}
         <Features />
 
         {/* How It Works Section */}
         <HowItWorks />
 
-        {/* Pricing Section */}
-        <Pricing />
+        {/* Who Is LandAir For Section */}
+        <WhoItsFor />
+
+        {/* Why LandAir Section */}
+        <WhyLandAir />
 
         {/* Get Started Section */}
         <GetStarted />
