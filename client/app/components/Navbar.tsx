@@ -3,19 +3,16 @@ import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
 import { handleScroll } from "../utils/Scroll";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import useAuth from "../hooks/useAuth";
 
-const links = ["Features", "How it Works", "Pricing", "Get Started"];
+const links = ["Features", "How it Works", "Why LandAir", "Get Started"];
 
 const Navbar: React.FC = () => {
   const [activeLink, setActiveLink] = useState<string>("");
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mainPage, setMainPage] = useState(true);
-  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -154,15 +151,6 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-4">
-          <Link
-            href={user ? "/dashboard" : "/sign-up"}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 font-semibold transition animate-slideDown [animation-fill-mode:backwards]"
-            style={{
-              animationDelay: "0.8s",
-            }}
-          >
-            {user ? "Dashboard" : "Sign Up"}
-          </Link>
           {mainPage && (
             <button
               className="hidden md:block animate-fade [animation-fill-mode:backwards]"

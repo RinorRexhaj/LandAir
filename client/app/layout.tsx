@@ -13,23 +13,24 @@ const dm = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LandAir",
+  title: "LandAir – Create, Edit & Post Videos to TikTok",
   description:
-    "LandAir is an AI-powered platform that lets anyone generate and deploy a fully responsive landing page in seconds, just by describing it in a simple prompt. Whether you're launching a product, building a portfolio, or testing an idea, LandAir turns your vision into a live website instantly. No coding, no design skills, just your words.",
+    "LandAir is a video creation and editing platform that lets creators produce polished, TikTok-ready videos and publish them directly to TikTok using the official Content Posting API — all in one place. Create, refine, and post without ever leaving the app.",
   keywords: [
-    "AI landing page generator",
-    "landing page builder",
-    "instant website creation",
-    "no code landing pages",
-    "AI website generator",
+    "TikTok video editor",
+    "post to TikTok",
+    "TikTok Content Posting API",
+    "video creation platform",
+    "TikTok scheduler",
+    "social media video editor",
     "LandAir",
-    "generate landing pages with AI",
+    "edit and post TikTok videos",
   ],
   metadataBase: new URL("https://landair.app"),
   openGraph: {
-    title: "LandAir – Instantly Generate AI-Powered Landing Pages",
+    title: "LandAir – Create, Edit & Post Videos to TikTok",
     description:
-      "Create and deploy responsive landing pages in seconds using AI. Just describe your idea. No coding, no design—just results.",
+      "Turn your ideas into polished, TikTok-ready videos and post them directly to TikTok via the official Content Posting API. Create, refine, and post — all in one place.",
     url: "https://landair.app",
     siteName: "LandAir",
     images: [
@@ -37,16 +38,16 @@ export const metadata: Metadata = {
         url: "/og/og-image.png", // Recommended 1200x630
         width: 1200,
         height: 630,
-        alt: "Instantly Generate & Deploy AI-Powered Landing Pages",
+        alt: "LandAir – Create, Edit & Post Videos to TikTok",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "LandAir – Instantly Generate AI-Powered Landing Pages",
+    title: "LandAir – Create, Edit & Post Videos to TikTok",
     description:
-      "Create and deploy responsive landing pages in seconds using AI. Just describe your idea. No coding, no design—just results.",
+      "Turn your ideas into polished, TikTok-ready videos and post them directly to TikTok via the official Content Posting API. Create, refine, and post — all in one place.",
     images: ["/og/og-image.png"],
   },
 };
